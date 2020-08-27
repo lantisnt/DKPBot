@@ -295,6 +295,7 @@ class EssentialDKPBot(DKPBot):
         print(str(3))
         i = 1
         for entry in history.values():
+            print(type(entry))
             if isinstance(entry, int): continue
 
             player = entry.get("player")
