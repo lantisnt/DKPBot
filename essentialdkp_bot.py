@@ -294,7 +294,7 @@ class EssentialDKPBot(DKPBot):
         if not isinstance(history, dict): return # dict because there is ["seed"] field...
         print(str(3))
         i = 1
-        for entry in history:
+        for entry in history.items():
             player = entry.get("player")
             if not player: continue
             print("player " + str(i))
