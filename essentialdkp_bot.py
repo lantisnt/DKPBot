@@ -233,7 +233,10 @@ class EssentialDKPBot(DKPBot):
                 
                 for info in c[i + 1]:
                     output_string += "{0} `{1:6.1f}` {2}\n".format(self.__getIconString(info.Class()), info.Dkp(), info.Player())
-                    print(output_string)
+                    if len(output_string) > 5850:
+                        output_string += "{0} {1}\n".format(self.__getIconString(""),  "Limiting output")
+                        break
+
                 field = {
                     'name'      : output_title,
                     'value'     : output_string,
