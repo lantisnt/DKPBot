@@ -290,7 +290,8 @@ class EssentialDKPBot(DKPBot):
         history = sv.get(self.__HISTORY_SV)
         if not history: return
         print(str(2))
-        if not isinstance(history, list): return
+        #if not isinstance(history, list): return
+        if not isinstance(history, dict): return # dict because there is ["seed"] field...
         print(str(3))
         i = 1
         for entry in history:
