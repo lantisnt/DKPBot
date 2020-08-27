@@ -64,7 +64,7 @@ class EssentialDKPBot(DKPBot):
 ################################################
 ############### BUILD DKP OUTPUT ###############
 ################################################
-    def __buildDKPOutput(self, output_result_list):
+    def __buildDKPOutputMultiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list): return None
         ### 3 columns due to discord formating
 
@@ -306,11 +306,13 @@ class EssentialDKPBot(DKPBot):
             if not isinstance(date, int): continue
             
             players = list(map(lambda p: p.lower(), player.split(",")))
+            print(len(players))
             if not isinstance(players, list): continue
 
             if isinstance(dkp, str):
                 # multiple entry
                 dkp = list(map(lambda d: int(d), dkp.split(",")))
+                print(len(dkp))
             elif not isinstance(dkp, int):
                 continue
 
@@ -383,9 +385,11 @@ class EssentialDKPBot(DKPBot):
         else:
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
 
+        if len(output_result_list) == 1:
+            True
         if len(output_result_list) > 0:
             output_result_list.sort(key=lambda info: info.Dkp(), reverse=True)
-            data = self.__buildDKPOutput(output_result_list)
+            data = self.__buildDKPOutputMultiple(output_result_list)
         else:
             data = "{0}'s DKP was not found in database.".format(param.capitalize())
 
@@ -408,7 +412,7 @@ class EssentialDKPBot(DKPBot):
         if len(output_result_list) > 0:
             data = self.__buildHistoryOutput(output_result_list)
         else:
-            data = "{0}'s DKP was not found in database.".format(param.capitalize())
+            data = "{0}'s DKP history was not found in database.".format(param.capitalize())
 
         return Response(ResponseStatus.SUCCESS, data)
 
