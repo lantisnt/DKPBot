@@ -8,7 +8,7 @@ import dkp_bot
 import essentialdkp_bot
 
 TOKEN = os.environ['DISCORD_TOKEN']
-GUILD = os.environ['DISCORD_GUILD']
+#GUILD = os.environ['DISCORD_GUILD']
 
 client = discord.Client()
 
@@ -35,10 +35,7 @@ async def discord_respond(channel, response):
 async def on_ready():    
     try:
         for guild in client.guilds:
-            if guild.name == GUILD:
-                print("Essential guild detected. Enabling.")
-                bot.Enable()
-                break
+            print(guild.name)
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info() 
         traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
