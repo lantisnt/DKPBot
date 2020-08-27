@@ -158,8 +158,6 @@ class EssentialDKPBot(DKPBot):
         targets = list(dict.fromkeys(targets))
         # Lowercase all
         targets = list(map(lambda x:x.strip().lower(), targets))
-        print(param)
-        print(targets)
         output_result_list = []
         if len(targets) > 0:
             for target in targets:
