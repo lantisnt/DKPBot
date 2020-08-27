@@ -14,6 +14,40 @@ class EssentialDKPBot(DKPBot):
     def __init__(self, inputFileName = "EssentialDKP.lua", channel = 0, enabled = False, parser = None):
         super().__init__(inputFileName, channel, enabled, parser)
 
+    ### 
+
+    def __getIconString(self, c):
+        if not c:
+            return ""
+        
+        c = c.lower()
+
+        if c == 'rogue':
+            return "<:rogue:641645675045453824>"
+        
+        if c == 'warrior':
+            return "<:warrior:641604892364111872>"
+
+        if c == 'hunter':
+            return "<:hunter:641604891969716225>"
+
+        if c == 'druid':
+            return "<:druid:641604891671920642>"
+
+        if c == 'priest':
+            return "<:priest:641604894154948638>"
+
+        if c == 'paladin':
+            return "<:paladin:641645675112693799>"
+
+        if c == 'warlock':
+            return "<:warlock:641604892171173928>"
+
+        if c == 'mage':
+            return "<:mage:641604891877310486>"
+
+        return "<:essential:743883972206919790> "
+
     ### Database - Variables parsing ###
     def _buildDkpDatabase(self, sv):
         super()._buildDkpDatabase(None)
@@ -157,7 +191,7 @@ class EssentialDKPBot(DKPBot):
 
             ## Split and reorder if needed
             column_reorder = True
-            i = 0
+            i = 1
             if column_reorder:
                 for info in output_result_list:
                     if i > (2 * num_rows):
@@ -190,9 +224,8 @@ class EssentialDKPBot(DKPBot):
                 num_columns = output_result_list_len
 
             for i in range(num_columns):
-                print(i)
-                min_title_value = (i) * num_rows + 1
-                max_title_value = min((i + 1) * num_rows, output_result_list_len) + 1
+                min_title_value = (i * num_rows) + 1
+                max_title_value = min((i + 1) * num_rows, output_result_list_len)
 
                 if min_title_value != max_title_value:
                     output_title = "{0} - {1}".format(min_title_value, max_title_value)
@@ -201,7 +234,7 @@ class EssentialDKPBot(DKPBot):
                 output_string = ''
                 
                 for info in c[i + 1]:
-                    output_string += "`{0:6.1f}` {1}\n".format(info.Dkp(), info.Player())
+                    output_string += "{0} `{1:6.1f}` {2}\n".format(self.__getIconString(info.Class()), info.Dkp(), info.Player())
                     print(output_string)
                 field = {
                     'name'      : output_title,
