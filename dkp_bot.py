@@ -163,7 +163,7 @@ class DKPBot:
         player_history = self.__db['global']['history'].get(player.lower())
         if not player_history:
             self.__db['global']['history'][player.lower()] = []
-        self.__db['global']['history'][player.lower()].push(entry)
+        self.__db['global']['history'][player.lower()].append(entry)
 
     def _sortGroupDkp(self, group = None):
         if self.__db['group'].get(group):
