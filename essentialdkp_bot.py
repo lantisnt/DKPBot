@@ -295,20 +295,19 @@ class EssentialDKPBot(DKPBot):
         print(str(3))
         i = 1
         for entry in history.values():
-            print(type(entry))
             if isinstance(entry, int): continue
 
             player = entry.get("player")
+            print("player " + str(i) + " " + str(player))
             if not player: continue
-            print("player " + str(i))
 
             dkp = entry.get("dkp")
+            print("dkp " + str(i) + " " + str(dkp))
             if not dkp: continue
-            print("dkp " + str(i))
 
             date = entry.get("date")
+            print("date " + str(i) + " " + str(date))
             if not date: continue
-            print("date " + str(i))
 
             if not isinstance(player, str): continue
             if not isinstance(date, int): continue
