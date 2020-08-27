@@ -403,7 +403,9 @@ class EssentialDKPBot(DKPBot):
         if len(targets) > 0:
             for target in targets:
                 # Single player
+                print(target)
                 info = self._getHistory(target)
+                print(info)
                 if info and isinstance(info, PlayerDKPHistory):
                     output_result_list = info
                     break # Yes single only
