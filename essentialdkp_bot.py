@@ -61,9 +61,76 @@ class EssentialDKPBot(DKPBot):
 
         return "<:essential:743883972206919790> "
 
+    def __getClassColor(self, c):
+        if not c:
+            return 10204605
+        
+        c = c.lower()
+
+        if c == 'rogue':
+            return 16774505
+        
+        if c == 'warrior':
+            return 13081710
+
+        if c == 'hunter':
+            return 11261043
+
+        if c == 'druid':
+            return 16743690
+
+        if c == 'priest':
+            return 16777215
+
+        if c == 'paladin':
+            return 16092346
+
+        if c == 'warlock':
+            return 8882157
+
+        if c == 'mage':
+            return 4245483
+
+        return 10204605
+
 ################################################
 ############### BUILD DKP OUTPUT ###############
 ################################################
+    def __buildDKPOutputSingle(self, info):
+        if not info or not isinstance(info, PlayerInfo): return None
+
+        data = {
+            'author'        : "Essentia; DKP Profile",
+            'title'         : info.Player(),
+            'description'   : info.Class(),
+            'type'          : "rich",
+            'timestamp'     : str(datetime.now().isoformat()),
+            'thumbnail'     : "https://img.rankedboost.com/wp-content/uploads/2019/05/WoW-Classic-{0}-Guide.png".format(info.Class())
+            'color'         : self.__getClassColor(info.Class()),
+            'footer'        :
+            {
+                'text' : "{0}".format(self._dbGetComment())
+            },
+            'fields' : []
+        }
+
+        field = {
+            'name'      : "Current DKP",
+            'value'     : "`{0} DKP`".format(info.Dkp()),
+            'inline'    : True
+        }
+        data['fields'].append(field)
+
+        field = {
+            'name'      : "Lifetime Gained DKP",
+            'value'     : "`{0} DKP`".format(info.LifetimeGained()),
+            'inline'    : True
+        }
+        data['fields'].append(field)
+
+        return data
+
+
     def __buildDKPOutputMultiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list): return None
         ### 3 columns due to discord formating
@@ -215,22 +282,22 @@ class EssentialDKPBot(DKPBot):
 
     ### Database - Variables parsing ###
 
-    def _fillHistory(self, players, dkp, timestamp):
+    def _fillHistory(self, players, dkp, timestamp, reason):
         if not players: return
         if not dkp: return
 
         if isinstance(players, str) and isinstance(dkp, int):
-            self._addHistory(players, PlayerDKPHistory(players, dkp, timestamp))
+            self._addHistory(players, PlayerDKPHistory(players, dkp, timestamp, reason))
         elif isinstance(players, list) and isinstance(dkp, int):
             for player in players:
-                self._addHistory(player, PlayerDKPHistory(player, dkp, timestamp))
+                self._addHistory(player, PlayerDKPHistory(player, dkp, timestamp, reason))
         elif isinstance(players, list) and isinstance(dkp, int):
             # In case of unequal length we only add as many entries as there are players
             limit = min(len(players), len(dkp))
 
             iterator = 1
             for player in players:
-                self._addHistory(player, PlayerDKPHistory(player, float(dkp.pop()), timestamp))
+                self._addHistory(player, PlayerDKPHistory(player, float(dkp.pop()), timestamp, reason))
                 if iterator == limit:
                     break
 
@@ -386,7 +453,7 @@ class EssentialDKPBot(DKPBot):
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
 
         if len(output_result_list) == 1:
-            True
+            data = __buildDKPOutputSingle(output_result_list[0])
         if len(output_result_list) > 0:
             output_result_list.sort(key=lambda info: info.Dkp(), reverse=True)
             data = self.__buildDKPOutputMultiple(output_result_list)

@@ -32,11 +32,13 @@ class PlayerDKPHistory:
     __player = 0
     __dkp = 0
     __timestamp = ""
+    __reason = ""
 
-    def __init__(self, player, dkp, timestamp):
+    def __init__(self, player, dkp, timestamp, reason):
         self.__player = str(player).lower().capitalize()
         self.__dkp = float(dkp)
         self.__timestamp = int(timestamp)
+        self.__reason = str(reason)
 
     def Player(self):
         return self.__player
@@ -46,3 +48,6 @@ class PlayerDKPHistory:
     
     def Timestamp(self):
         return self.__timestamp
+
+    def Reason(self):
+        return self.__reason
