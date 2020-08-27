@@ -105,7 +105,7 @@ class EssentialDKPBot(DKPBot):
             'description'   : info.Class(),
             'type'          : "rich",
             'timestamp'     : str(datetime.now().isoformat()),
-            'thumbnail'     : "https://img.rankedboost.com/wp-content/uploads/2019/05/WoW-Classic-{0}-Guide.png".format(info.Class())
+            'thumbnail'     : "https://img.rankedboost.com/wp-content/uploads/2019/05/WoW-Classic-{0}-Guide.png".format(info.Class()),
             'color'         : self.__getClassColor(info.Class()),
             'footer'        :
             {
@@ -371,8 +371,12 @@ class EssentialDKPBot(DKPBot):
             date = entry.get("date")
             if not date: continue
 
+            reason = entry.get("reason")
+            if not reason: continue
+
             if not isinstance(players, str): continue
             if not isinstance(date, int): continue
+            if not isinstance(reason, ""): reason = ""
             
             players = list(map(lambda p: p.lower(), players.split(",")))
             if not isinstance(players, list): continue
@@ -383,7 +387,7 @@ class EssentialDKPBot(DKPBot):
             elif not isinstance(dkp, int):
                 continue
 
-            self._fillHistory(players, dkp, date)
+            self._fillHistory(players, dkp, date, reason)
 
         self._dbSetTimestamp()
 
@@ -453,7 +457,7 @@ class EssentialDKPBot(DKPBot):
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
 
         if len(output_result_list) == 1:
-            data = __buildDKPOutputSingle(output_result_list[0])
+            data = self.__buildDKPOutputSingle(output_result_list[0])
         if len(output_result_list) > 0:
             output_result_list.sort(key=lambda info: info.Dkp(), reverse=True)
             data = self.__buildDKPOutputMultiple(output_result_list)
