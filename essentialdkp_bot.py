@@ -100,15 +100,18 @@ class EssentialDKPBot(DKPBot):
         if not info or not isinstance(info, PlayerInfo): return None
 
         data = {
-            'author'        : "Essential DKP Profile",
+            'author'        : {
+                'name'      : "Essential DKP Profile"
+            },
             'title'         : info.Player(),
             'description'   : info.Class(),
             'type'          : "rich",
             'timestamp'     : str(datetime.now().isoformat()),
-            'thumbnail'     : "https://img.rankedboost.com/wp-content/uploads/2019/05/WoW-Classic-{0}-Guide.png".format(info.Class()),
+            'thumbnail'     : {
+                'url'       : "https://img.rankedboost.com/wp-content/uploads/2019/05/WoW-Classic-{0}-Guide.png".format(info.Class())
+            },
             'color'         : self.__getClassColor(info.Class()),
-            'footer'        :
-            {
+            'footer'        : {
                 'text' : "{0}".format(self._dbGetComment())
             },
             'fields' : []
