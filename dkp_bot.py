@@ -160,12 +160,12 @@ class DKPBot:
         self.__db['global']['loot'][player.lower()] = entry
 
     def _addHistory(self, player, entry):
-        player = player.lower()
-        print("Add history for: " + player)
-        player_history = self.__db['global']['history'].get(player)
-        if not player_history:
-            self.__db['global']['history'][player] = []
-        self.__db['global']['history'][player].append(entry)
+        if player and player != "":
+            player = player.lower()
+            player_history = self.__db['global']['history'].get(player)
+            if not player_history:
+                self.__db['global']['history'][player] = []
+            self.__db['global']['history'][player].append(entry)
 
     def _sortGroupDkp(self, group = None):
         if self.__db['group'].get(group):
