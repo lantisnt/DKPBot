@@ -12,7 +12,6 @@ class PlayerInfo:
         self.__ingame_class = str(ingame_class).lower().capitalize()
         self.__role = str(role).lower().capitalize()
 
-
     def Player(self):
         return self.__player
     
@@ -27,3 +26,23 @@ class PlayerInfo:
 
     def Role(self):
         return self.__role
+
+
+class PlayerDKPHistory:
+    __player = 0
+    __dkp = 0
+    __timestamp = ""
+
+    def __init__(self, player, dkp, timestamp):
+        self.__player = str(player).lower().capitalize()
+        self.__dkp = float(dkp)
+        self.__timestamp = int(timestamp)
+
+    def Player(self):
+        return self.__player
+    
+    def Dkp(self):
+        return self.__dkp
+    
+    def Timestamp(self):
+        return self.__timestamp

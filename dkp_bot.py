@@ -70,7 +70,7 @@ class DKPBot:
         return (self.__inputFileName == filename)
 
     def IsDatabaseLoaded(self):
-            return (len(self.__db) > 0)
+        return (len(self.__db) > 0)
 
     ### Command handling and parsing ###
 
@@ -155,13 +155,15 @@ class DKPBot:
 
     def _setDkp(self, player, entry):
         self.__db['global']['dkp'][player.lower()] = entry
-        #print("Added dkp entry for {0}".format(player.lower().capitalize()))
 
     def _setLoot(self, player, entry):
         self.__db['global']['loot'][player.lower()] = entry
 
-    def _setHistory(self, player, entry):
-        self.__db['global']['history'][player.lower()] = entry
+    def _addHistory(self, player, entry):
+        player_history = self.__db['global']['history'].get(player.lower())
+        if not player_history:
+            self.__db['global']['history'][player.lower()] = []
+        self.__db['global']['history'][player.lower()].push(entry)
 
     def _sortGroupDkp(self, group = None):
         if self.__db['group'].get(group):
