@@ -465,10 +465,10 @@ class EssentialDKPBot(DKPBot):
                                 output_result_list.append(info)
         else:
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
-        print("len(output_result_list) " + str(len(output_result_list)))
+
         if len(output_result_list) == 1:
             data = self.__buildDKPOutputSingle(output_result_list[0])
-        if len(output_result_list) > 0:
+        elif len(output_result_list) > 0:
             output_result_list.sort(key=lambda info: info.Dkp(), reverse=True)
             data = self.__buildDKPOutputMultiple(output_result_list)
         else:
