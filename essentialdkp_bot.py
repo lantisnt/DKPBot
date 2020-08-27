@@ -100,7 +100,7 @@ class EssentialDKPBot(DKPBot):
         if not info or not isinstance(info, PlayerInfo): return None
 
         data = {
-            'author'        : "Essentia; DKP Profile",
+            'author'        : "Essential DKP Profile",
             'title'         : info.Player(),
             'description'   : info.Class(),
             'type'          : "rich",
@@ -115,15 +115,22 @@ class EssentialDKPBot(DKPBot):
         }
 
         field = {
-            'name'      : "Current DKP",
+            'name'      : "Current",
             'value'     : "`{0} DKP`".format(info.Dkp()),
+            'inline'    : False
+        }
+        data['fields'].append(field)
+
+        field = {
+            'name'      : "Lifetime Gained",
+            'value'     : "`{0} DKP`".format(info.LifetimeGained()),
             'inline'    : True
         }
         data['fields'].append(field)
 
         field = {
-            'name'      : "Lifetime Gained DKP",
-            'value'     : "`{0} DKP`".format(info.LifetimeGained()),
+            'name'      : "Lifetime Spent",
+            'value'     : "`{0} DKP`".format(info.LifetimeSpent()),
             'inline'    : True
         }
         data['fields'].append(field)
@@ -326,13 +333,16 @@ class EssentialDKPBot(DKPBot):
             lifetime_gained = entry.get("lifetime_gained")
             if not lifetime_gained: continue
             
+            lifetime_spent = entry.get("lifetime_spent")
+            if not lifetime_spent: continue
+
             ingame_class = entry.get("class")
             if not ingame_class: continue
 
             role = entry.get("role")
             if not role: continue
             
-            info = PlayerInfo(player, dkp, lifetime_gained, ingame_class, role)
+            info = PlayerInfo(player, dkp, lifetime_gained, lifetime_spent, ingame_class, role)
             self._setDkp(player, info)
             self._setGroupDkp(info.Class(), info)
 
