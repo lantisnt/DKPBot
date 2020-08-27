@@ -399,6 +399,7 @@ class EssentialDKPBot(DKPBot):
         #return Response(ResponseStatus.SUCCESS, "Sorry :frowning: !dkphistory is not yet implemented.")
         targets = self.__getNamesFromParam(param)
         output_result_list = []
+        print("targets " + len(targets))
         if len(targets) > 0:
             for target in targets:
                 # Single player
