@@ -230,7 +230,7 @@ class EssentialDKPBot(DKPBot):
 
             iterator = 1
             for player in players:
-                self._addHistory(player, PlayerDKPHistory(player, dkp.pop(), timestamp))
+                self._addHistory(player, PlayerDKPHistory(player, float(dkp.pop()), timestamp))
                 if iterator == limit:
                     break
 
@@ -312,7 +312,7 @@ class EssentialDKPBot(DKPBot):
 
             if isinstance(dkp, str):
                 # multiple entry
-                dkp = list(map(lambda d: float(d), dkp.split(",")))
+                dkp = list(map(lambda d: d, dkp.split(",")))
                 print(len(dkp))
             elif not isinstance(dkp, int):
                 continue
