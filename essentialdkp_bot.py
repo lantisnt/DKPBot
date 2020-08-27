@@ -376,7 +376,7 @@ class EssentialDKPBot(DKPBot):
 
             if not isinstance(players, str): continue
             if not isinstance(date, int): continue
-            if not isinstance(reason, ""): reason = ""
+            if not isinstance(reason, str): continue
             
             players = list(map(lambda p: p.lower(), players.split(",")))
             if not isinstance(players, list): continue
@@ -455,7 +455,7 @@ class EssentialDKPBot(DKPBot):
                                 output_result_list.append(info)
         else:
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
-
+        print("len(output_result_list) " + str(len(output_result_list)))
         if len(output_result_list) == 1:
             data = self.__buildDKPOutputSingle(output_result_list[0])
         if len(output_result_list) > 0:
