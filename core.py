@@ -105,7 +105,7 @@ async def on_message(message):
                         elif response.status == dkp_bot.ResponseStatus.ERROR:
                             print('ERROR: {0}'.format(response.data))
                             return
-    except Exception:
+    except (SystemExit, Exception):
         exc_type, exc_value, exc_traceback = sys.exc_info() 
         traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
         traceback.print_exc()
