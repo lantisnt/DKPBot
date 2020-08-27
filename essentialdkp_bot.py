@@ -286,26 +286,31 @@ class EssentialDKPBot(DKPBot):
     # Called 3rd
     def _buildHistoryDatabase(self, sv):
         super()._buildHistoryDatabase(None)
-
+        print(str(1))
         history = sv.get(self.__HISTORY_SV)
         if not history: return
-
+        print(str(2))
         if not isinstance(history, list): return
-
+        print(str(3))
+        i = 1
         for entry in history:
             player = entry.get("player")
             if not player: continue
+            print("player " + str(i))
 
             dkp = entry.get("dkp")
             if not dkp: continue
-            
+            print("dkp " + str(i))
+
             date = entry.get("date")
             if not date: continue
+            print("date " + str(i))
 
             if not isinstance(player, str): continue
             if not isinstance(date, int): continue
             
             players = list(map(lambda p: p.lower(), player.split(",")))
+            print("players split")
             print(len(players))
             if not isinstance(players, list): continue
 

@@ -210,7 +210,10 @@ class DKPBot:
         if len(self.__db['global']['dkp']) <= 0:
         #for table in self.__db['global']:
         #    if len(table) <= 0:
-                return Response(ResponseStatus.SUCCESS, "Database building failed.")
+            return Response(ResponseStatus.SUCCESS, "(DKP) Database building failed.")
+
+        if len(self.__db['global']['history']) <= 0:
+            return Response(ResponseStatus.SUCCESS, "(DKP History) Database building failed.")
 
         return Response(ResponseStatus.SUCCESS, "Database building complete.")
 
