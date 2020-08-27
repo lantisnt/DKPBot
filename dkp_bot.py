@@ -160,6 +160,7 @@ class DKPBot:
         self.__db['global']['loot'][player.lower()] = entry
 
     def _addHistory(self, player, entry):
+        print(entry)
         player_history = self.__db['global']['history'].get(player.lower())
         if not player_history:
             self.__db['global']['history'][player.lower()] = []

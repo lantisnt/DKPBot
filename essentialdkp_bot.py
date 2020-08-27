@@ -313,7 +313,6 @@ class EssentialDKPBot(DKPBot):
             if isinstance(dkp, str):
                 # multiple entry
                 dkp = list(map(lambda d: d, dkp.split(",")))
-                print(len(dkp))
             elif not isinstance(dkp, int):
                 continue
 
