@@ -1,5 +1,5 @@
 import argparse
-import time
+from datetime import datetime
 
 from enum import Enum
 
@@ -126,7 +126,7 @@ class DKPBot:
         return SavedVariablesParser().ParseString(inputString)
 
     def _dbSetTimestamp(self):
-        self.__db['timestamp'] = int(time.time())
+        self.__db['timestamp'] = int(datetime.now())
 
     def _dbGetTimestamp(self):
         return self.__db['timestamp']
@@ -192,7 +192,7 @@ class DKPBot:
     def BuildDatabase(self, inputString, comment):
         print('Building database')
 
-        start = int(time.time())
+        start = int(datetime.now())
 
         sv = self.__getSavedVariables(inputString)
         if sv == None:
@@ -207,7 +207,7 @@ class DKPBot:
         self._buildLootDatabase(sv)
         self._buildHistoryDatabase(sv)
 
-        print('Building complete in {0} seconds'.format(int(time.time()) - start))
+        print('Building complete in {0} seconds'.format(int(datetime.now()) - start))
 
         if len(self.__db['global']['dkp']) <= 0:
         #for table in self.__db['global']:

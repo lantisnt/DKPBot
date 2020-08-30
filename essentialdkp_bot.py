@@ -173,11 +173,11 @@ class EssentialDKPBot(DKPBot):
             'title'         : "DKP Values",
             'description'   : " ",
             'type'          : "rich",
-            'timestamp'     : str(datetime.now().isoformat()),
+#            'timestamp'     : str(datetime.now().isoformat()),
             'color'         : 10204605,
             'footer'        :
             {
-                'text' : "{0}".format(self._dbGetComment())
+                'text' : "Last updated {0} with comment: {1}".format(datetime.utcfromtimestamp(self._dbGetTimestamp()), self._dbGetComment())
             },
             'fields' : []
         }
@@ -249,11 +249,11 @@ class EssentialDKPBot(DKPBot):
             'title'         : "DKP History",
             'description'   : " ",
             'type'          : "rich",
-            'timestamp'     : str(datetime.now().isoformat()),
+#            'timestamp'     : str(datetime.now().isoformat()),
             'color'         : 10204605,
             'footer'        :
             {
-                'text' : "{0}".format(self._dbGetComment())
+                'text' : "Last updated {0} with comment: {1}".format(datetime.utcfromtimestamp(self._dbGetTimestamp()), self._dbGetComment())
             },
             'fields' : []
         }
@@ -314,7 +314,6 @@ class EssentialDKPBot(DKPBot):
     # Called 1st
     def _buildDkpDatabase(self, sv):
         super()._buildDkpDatabase(None)
-        #timestamp = int(time.time())
 
         dkp = sv.get(self.__DKP_SV)
         if not dkp: return
