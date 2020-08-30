@@ -126,7 +126,7 @@ class DKPBot:
         return SavedVariablesParser().ParseString(inputString)
 
     def _dbSetTimestamp(self):
-        self.__db['timestamp'] = int(datetime.now(tz=timezone.utc).timezone())
+        self.__db['timestamp'] = int(datetime.now(tz=timezone.utc).timestamp())
 
     def _dbGetTimestamp(self):
         return self.__db['timestamp']
@@ -192,7 +192,7 @@ class DKPBot:
     def BuildDatabase(self, inputString, comment):
         print('Building database')
 
-        start = int(datetime.now())
+        start = int(datetime.now(tz=timezone.utc).timestamp())
 
         sv = self.__getSavedVariables(inputString)
         if sv == None:
@@ -207,7 +207,7 @@ class DKPBot:
         self._buildLootDatabase(sv)
         self._buildHistoryDatabase(sv)
 
-        print('Building complete in {0} seconds'.format(int(datetime.now()) - start))
+        print('Building complete in {0} seconds'.format(int(datetime.now(tz=timezone.utc).timestamp()) - start))
 
         if len(self.__db['global']['dkp']) <= 0:
         #for table in self.__db['global']:
