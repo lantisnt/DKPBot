@@ -371,7 +371,7 @@ class EssentialDKPBot(DKPBot):
         for entry in history.values():
             i = i + 1
 
-            if isinstance(entry, int): continue
+            if not isinstance(entry, dict): continue
 
             players = entry.get("players")
             if not players: continue
