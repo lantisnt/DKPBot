@@ -1,5 +1,6 @@
 import argparse
 from datetime import datetime, timezone
+import pytz
 
 from enum import Enum
 
@@ -126,7 +127,7 @@ class DKPBot:
         return SavedVariablesParser().ParseString(inputString)
 
     def _dbSetTime(self):
-        self.__db['time'] = datetime.now(tz=timezone.utc).ctime()
+        self.__db['time'] = datetime.now(tz=pytz.timezone("Europe/Paris")).ctime()
 
     def _dbGetTime(self):
         return self.__db['time']
