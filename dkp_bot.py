@@ -1,5 +1,5 @@
 import argparse
-from datetime import datetime
+from datetime import datetime, timezone
 
 from enum import Enum
 
@@ -126,7 +126,7 @@ class DKPBot:
         return SavedVariablesParser().ParseString(inputString)
 
     def _dbSetTimestamp(self):
-        self.__db['timestamp'] = int(datetime.now())
+        self.__db['timestamp'] = int(datetime.now(tz=timezone.utc).timezone())
 
     def _dbGetTimestamp(self):
         return self.__db['timestamp']

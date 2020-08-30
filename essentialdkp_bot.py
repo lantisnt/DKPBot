@@ -112,7 +112,7 @@ class EssentialDKPBot(DKPBot):
             },
             'color'         : self.__getClassColor(info.Class()),
             'footer'        : {
-                'text' : "{0}".format(self._dbGetComment())
+                'text' : "Last updated {0} with comment: {1}".format(self._dbGetTimestamp(), self._dbGetComment())
             },
             'fields' : []
         }
@@ -177,7 +177,7 @@ class EssentialDKPBot(DKPBot):
             'color'         : 10204605,
             'footer'        :
             {
-                'text' : "Last updated {0} with comment: {1}".format(datetime.utcfromtimestamp(self._dbGetTimestamp()), self._dbGetComment())
+                'text' : "Last updated {0} with comment: {1}".format(self._dbGetTimestamp(), self._dbGetComment())
             },
             'fields' : []
         }
@@ -253,7 +253,7 @@ class EssentialDKPBot(DKPBot):
             'color'         : 10204605,
             'footer'        :
             {
-                'text' : "Last updated {0} with comment: {1}".format(datetime.utcfromtimestamp(self._dbGetTimestamp()), self._dbGetComment())
+                'text' : "Last updated {0} with comment: {1}".format(self._dbGetTimestamp(), self._dbGetComment())
             },
             'fields' : []
         }
