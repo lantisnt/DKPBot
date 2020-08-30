@@ -44,7 +44,7 @@ class DKPBot:
         self.__db = {
             'global': {}, # Database for all global data indexed by player name. Unsorted.
             'group': {},   # Database for all grouped data. Indexed by groupn name. Sorted by DKP value descending
-            'timestamp' : 0,
+            'time' : 0,
             'comment' : ""
         }
 
@@ -125,11 +125,11 @@ class DKPBot:
     def __getSavedVariables(self, inputString):
         return SavedVariablesParser().ParseString(inputString)
 
-    def _dbSetTimestamp(self):
-        self.__db['timestamp'] = int(datetime.now(tz=timezone.utc).timestamp())
+    def _dbSetTime(self):
+        self.__db['time'] = datetime.now(tz=timezone.utc).ctime()
 
-    def _dbGetTimestamp(self):
-        return self.__db['timestamp']
+    def _dbGetTime(self):
+        return self.__db['time']
 
     def _dbGetComment(self):
         return self.__db['comment']

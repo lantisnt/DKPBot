@@ -106,13 +106,12 @@ class EssentialDKPBot(DKPBot):
             'title'         : info.Player(),
             'description'   : info.Class(),
             'type'          : "rich",
-            'timestamp'     : str(datetime.now().isoformat()),
             'thumbnail'     : {
                 'url'       : "https://img.rankedboost.com/wp-content/uploads/2019/05/WoW-Classic-{0}-Guide.png".format(info.Class())
             },
             'color'         : self.__getClassColor(info.Class()),
             'footer'        : {
-                'text' : "Last updated {0} with comment: {1}".format(self._dbGetTimestamp(), self._dbGetComment())
+                'text' : "Last updated {0} with comment: {1}".format(self._dbGetTime(), self._dbGetComment())
             },
             'fields' : []
         }
@@ -177,7 +176,7 @@ class EssentialDKPBot(DKPBot):
             'color'         : 10204605,
             'footer'        :
             {
-                'text' : "Last updated {0} with comment: {1}".format(self._dbGetTimestamp(), self._dbGetComment())
+                'text' : "Last updated {0} with comment: {1}".format(self._dbGetTime(), self._dbGetComment())
             },
             'fields' : []
         }
@@ -253,7 +252,7 @@ class EssentialDKPBot(DKPBot):
             'color'         : 10204605,
             'footer'        :
             {
-                'text' : "Last updated {0} with comment: {1}".format(self._dbGetTimestamp(), self._dbGetComment())
+                'text' : "Last updated {0} with comment: {1}".format(self._dbGetTime(), self._dbGetComment())
             },
             'fields' : []
         }
@@ -348,7 +347,7 @@ class EssentialDKPBot(DKPBot):
             self._setDkp(player, info)
             self._setGroupDkp(info.Class(), info)
 
-        self._dbSetTimestamp()
+        self._dbSetTime()
 
         # Sort all class DKP
         self._sortGroupDkp()
@@ -401,7 +400,7 @@ class EssentialDKPBot(DKPBot):
 
             self._fillHistory(players, dkp, date, reason)
 
-        self._dbSetTimestamp()
+        self._dbSetTime()
 
     ### Essential related ###
 
