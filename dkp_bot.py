@@ -145,6 +145,9 @@ class DKPBot:
     def _buildHistoryDatabase(self, sv):
         self.__db['global']['history'] = {}
 
+    def _finalizeDatabase(self):
+        return
+
     def _getDkp(self, player):
         return self.__db['global']['dkp'].get(player.lower())
 
@@ -207,6 +210,8 @@ class DKPBot:
         self._buildDkpDatabase(sv)
         self._buildLootDatabase(sv)
         self._buildHistoryDatabase(sv)
+
+        self._finalizeDatabase()
 
         print('Building complete in {0} seconds'.format(int(datetime.now(tz=timezone.utc).timestamp()) - start))
 

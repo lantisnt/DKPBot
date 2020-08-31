@@ -3,7 +3,7 @@ import re
 
 from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory
-
+from display_templates import SingleDKPEntry
 class EssentialDKPBot(DKPBot):
 
     __DKP_SV = "MonDKP_DKPTable"
@@ -13,11 +13,14 @@ class EssentialDKPBot(DKPBot):
 
     __group_player_find = None
 
+    __singleDkpOutputBuilder = None
+
     def __init__(self, inputFileName = "EssentialDKP.lua", channel = 0, enabled = False, parser = None):
         super().__init__(inputFileName, channel, enabled, parser)
         # Matches either a,b,c,d or A / B or A \ B
         self.__group_player_find = re.compile("\s*([\d\w]*)[\s[\/\,]*")
-
+        # Data outputs
+        self.__singleDkpOutputBuilder = SingleDKPEntry("Essential DKP Profile")
     ### 
     def __getNamesFromParam(self, param):
         # Remove empty strings
@@ -61,37 +64,7 @@ class EssentialDKPBot(DKPBot):
 
         return "<:essential:743883972206919790> "
 
-    def __getClassColor(self, c):
-        if not c:
-            return 10204605
-        
-        c = c.lower()
 
-        if c == 'rogue':
-            return 16774505
-        
-        if c == 'warrior':
-            return 13081710
-
-        if c == 'hunter':
-            return 11261043
-
-        if c == 'druid':
-            return 16743690
-
-        if c == 'priest':
-            return 16777215
-
-        if c == 'paladin':
-            return 16092346
-
-        if c == 'warlock':
-            return 8882157
-
-        if c == 'mage':
-            return 4245483
-
-        return 10204605
 
 ################################################
 ############### BUILD DKP OUTPUT ###############
@@ -99,46 +72,7 @@ class EssentialDKPBot(DKPBot):
     def __buildDKPOutputSingle(self, info):
         if not info or not isinstance(info, PlayerInfo): return None
 
-        data = {
-            'author'        : {
-                'name'      : "Essential DKP Profile"
-            },
-            'title'         : info.Player(),
-            'description'   : info.Class(),
-            'type'          : "rich",
-            'thumbnail'     : {
-                'url'       : "https://img.rankedboost.com/wp-content/uploads/2019/05/WoW-Classic-{0}-Guide.png".format(info.Class())
-            },
-            'color'         : self.__getClassColor(info.Class()),
-            'footer'        : {
-                'text' : "Last updated {0} with comment: {1}".format(self._dbGetTime(), self._dbGetComment())
-            },
-            'fields' : []
-        }
-
-        field = {
-            'name'      : "Current",
-            'value'     : "`{0} DKP`".format(info.Dkp()),
-            'inline'    : False
-        }
-        data['fields'].append(field)
-
-        field = {
-            'name'      : "Lifetime Gained",
-            'value'     : "`{0} DKP`".format(info.LifetimeGained()),
-            'inline'    : True
-        }
-        data['fields'].append(field)
-
-        field = {
-            'name'      : "Lifetime Spent",
-            'value'     : "`{0} DKP`".format(info.LifetimeSpent()),
-            'inline'    : True
-        }
-        data['fields'].append(field)
-
-        return data
-
+        return self.__singleDkpOutputBuilder.Get(info)
 
     def __buildDKPOutputMultiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list): return None
@@ -347,8 +281,6 @@ class EssentialDKPBot(DKPBot):
             self._setDkp(player, info)
             self._setGroupDkp(info.Class(), info)
 
-        self._dbSetTime()
-
         # Sort all class DKP
         self._sortGroupDkp()
 
@@ -400,7 +332,10 @@ class EssentialDKPBot(DKPBot):
 
             self._fillHistory(players, dkp, date, reason)
 
+    # Called after whole database is built
+    def _finalizeDatabase(self):
         self._dbSetTime()
+        self.__singleDkpOutputBuilder.SetDbInfo(self._dbGetTime(), self._dbGetComment())
 
     ### Essential related ###
 
