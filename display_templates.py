@@ -127,7 +127,7 @@ class BaseResponse:
             self._title = str(title)
 
     def _GetFooter(self):
-        return "Last updated {0} with comment: {1}".format(self._time, self._comment)
+        return "{0._comment} updated _{0._time}_".format(self)
 
     def IsBuilt(self):
         return self._isBuilt
@@ -179,20 +179,20 @@ class SinglePlayerProfile(BaseResponse):
 class MultipleResponse(BaseResponse):
     __response_list = []
 
-    __column_limit = 6
+    __field_limit = 6
     __entry_limit = 16
     __allow_multiple_responses = True
 
-    def __init__(self, title, column_limit, entry_limit, allow_multiple_responses):
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
         super().__init__(title)
 
-        if column_limit and isinstance(column_limit, int):
-            if column_limit > 6:
-                self.__column_limit = 6
-            elif column_limit < 1:
-                self.__column_limit = 1
+        if field_limit and isinstance(field_limit, int):
+            if field_limit > 6:
+                self.__field_limit = 6
+            elif field_limit < 1:
+                self.__field_limit = 1
             else:
-                self.__column_limit = column_limit
+                self.__field_limit = field_limit
 
         if entry_limit and isinstance(entry_limit, int):
             if entry_limit > 16:
@@ -213,7 +213,7 @@ class MultipleResponse(BaseResponse):
         num_entries = len(data_list)
 
         response_count = int(
-            num_entries / (self.__column_limit * self.__entry_limit)) + 1
+            num_entries / (self.__field_limit * self.__entry_limit)) + 1
 
         if response_count > 1 and not self.__allow_multiple_responses:
             response_count = 1
@@ -231,22 +231,22 @@ class MultipleResponse(BaseResponse):
                                               response_count)
 
             self._embed.Build(
-                author_name=None,
-                title=self._title + append_id,
+                author_name=self._title + append_id,
+                title=None,
                 description=None,
                 thumbnail_url=None,
                 color=get_class_color(),
                 footer_text=self._GetFooter()
             )
 
-            for column_id in range(self.__column_limit):
+            for _ in range(self.__field_limit):
                 if len(data_list) == 0: break
 
                 name = "{0} - {1}".format(start_value,
                                           min(start_value + self.__entry_limit - 1, num_entries))
                 value = ""
 
-                for entry_id in range(self.__entry_limit):
+                for _ in range(self.__entry_limit):
                     if len(data_list) == 0: break
                     value += self._buildRow(data_list.pop())
 
@@ -263,11 +263,11 @@ class MultipleResponse(BaseResponse):
 
 class DKPMultipleResponse(MultipleResponse):
 
-    def __init__(self, title, column_limit, entry_limit, allow_multiple_responses):
-        super().__init__(title, column_limit, entry_limit, allow_multiple_responses)
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
+        super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
 
     def _buildRow(self, data):
         if data and isinstance(data, PlayerInfo):
-            return "{0} `{1:6.1f}` {2}\n".format(get_icon_string(data.Class()), data.Dkp(), data.Player())
+            return "{0}`{1:8.1f}` {2}\n".format(get_icon_string(data.Class()), data.Dkp(), data.Player())
 
         return ""

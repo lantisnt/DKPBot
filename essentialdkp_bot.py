@@ -289,6 +289,9 @@ class EssentialDKPBot(DKPBot):
     def __decodeAliases(self, groups):
         new_groups = groups.copy()
         for group in groups:
+            if group == 'all':
+                return ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
+
             if group == 'tank':
                 new_groups.extend(['warrior', 'druid'])
 
