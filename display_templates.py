@@ -57,7 +57,7 @@ class RawEmbed:
         if footer_text:
             self._d['footer'] = { 'text' : str(footer_text) }
 
-        self._d['fields'] : []
+        self._d['fields'] = []
 
         self.__isBuilt = True
 
