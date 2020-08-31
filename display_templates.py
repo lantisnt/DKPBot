@@ -166,9 +166,9 @@ class SinglePlayerProfile(BaseResponse):
         self._embed.AddField("Lifetime spent:", "`{0} DKP`".format(
             info.LifetimeSpent()), True)
         self._embed.AddField("Last DKP award:",
-                             "- No data yet -", True)
+                             "- No data yet -", False)
         self._embed.AddField("Last received loot:",
-                             "- No data yet -", True)
+                             "- No data yet -", False)
 
         return self
 

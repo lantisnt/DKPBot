@@ -281,6 +281,8 @@ class EssentialDKPBot(DKPBot):
         self._dbSetTime()
         self.__singlePlayerProfileBuilder.SetDbInfo(
             self._dbGetTime(), self._dbGetComment())
+        self.__multipleDkpOutputBuilder.SetDbInfo(
+            self._dbGetTime(), self._dbGetComment())
 
     ### Essential related ###
 
