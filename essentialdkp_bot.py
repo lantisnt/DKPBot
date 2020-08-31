@@ -56,8 +56,6 @@ class EssentialDKPBot(DKPBot):
     def __buildDKPOutputMultiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
-        # 3 columns due to discord formating
-
         return self.__multipleDkpOutputBuilder.Build(output_result_list).Get()
 
 ####################################################
@@ -359,7 +357,7 @@ class EssentialDKPBot(DKPBot):
         if len(output_result_list) == 1:
             data = self.__buildDKPOutputSingle(output_result_list[0])
         elif len(output_result_list) > 0:
-            output_result_list.sort(key=lambda info: info.Dkp(), reverse=True)
+            output_result_list.sort(key=lambda info: info.Dkp(), reverse=False)
             data = self.__buildDKPOutputMultiple(output_result_list)
         else:
             data = "{0}'s DKP was not found in database.".format(

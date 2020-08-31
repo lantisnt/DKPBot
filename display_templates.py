@@ -34,7 +34,7 @@ def get_class_color(c=None):
     return 10204605
 
 
-def get_icon_string(self, c = None):
+def get_icon_string(c = None):
     if not c:
         return ""
 
@@ -220,6 +220,7 @@ class MultipleResponse(BaseResponse):
 
         self.__response_list = []
 
+        start_value = 1
         for response_id in range(response_count):
             if len(data_list) == 0: break
             self._embed.Clear()
@@ -227,7 +228,7 @@ class MultipleResponse(BaseResponse):
             append_id = ""
             if response_count > 1:
                 append_id = " {0}/{1}".format(response_id + 1,
-                                              response_count + 1)
+                                              response_count)
 
             self._embed.Build(
                 author_name=None,
@@ -238,12 +239,11 @@ class MultipleResponse(BaseResponse):
                 footer_text=self._GetFooter()
             )
 
-            start_value = 1
             for column_id in range(self.__column_limit):
                 if len(data_list) == 0: break
 
                 name = "{0} - {1}".format(start_value,
-                                          min(start_value + self.__entry_limit, num_entries))
+                                          min(start_value + self.__entry_limit - 1, num_entries))
                 value = ""
 
                 for entry_id in range(self.__entry_limit):
