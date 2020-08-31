@@ -6,6 +6,7 @@ from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
 
+
 class ResponseStatus(Enum):
     SUCCESS = 0
     ERROR = 1
@@ -18,6 +19,7 @@ class Request(Enum):
     CHANNEL_ID = 1
     ATTACHEMENT = 2
 
+
 class Response:
     status = ResponseStatus.IGNORE
     # Response on SUCCESS
@@ -25,33 +27,35 @@ class Response:
     # Request type on REQUEST
     # None on IGNORE
     message = None
-    
-    def __init__(self, status = ResponseStatus.IGNORE, data = None):
+
+    def __init__(self, status=ResponseStatus.IGNORE, data=None):
         self.status = status
         self.data = data
+
 
 class DKPBot:
     __inputFileName = ""
     __channel = 0
     __enabled = False
     __parser = None
-    __db = { }
+    __db = {}
 
-    def __init__(self, inputFileName = "SavedVariable.lua", channel = 0, enabled = False, parser = None):
+    def __init__(self, inputFileName="SavedVariable.lua", channel=0, enabled=False, parser=None):
         self.__inputFileName = inputFileName
         self.__channel = channel
         self.__enabled = enabled
         self.__parser = parser
         self.__db = {
-            'global': {}, # Database for all global data indexed by player name. Unsorted.
+            # Database for all global data indexed by player name. Unsorted.
+            'global': {},
             'group': {},   # Database for all grouped data. Indexed by groupn name. Sorted by DKP value descending
-            'time' : 0,
-            'comment' : ""
+            'time': 0,
+            'comment': ""
         }
 
     def Enable(self):
         self.__enabled = True
-    
+
     def Disable(self):
         self.__enabled = False
 
@@ -77,10 +81,14 @@ class DKPBot:
 
     def __getCommandParser(self):
         if not(self.__parser and isinstance(self.__parser, argparse.ArgumentParser)):
-            self.__parser = argparse.ArgumentParser(description='Process commands.')
-            self.__parser.add_argument('command', metavar='command', type=str, help='Actual command', nargs='?', default=None)
-            self.__parser.add_argument('param', metavar='param', type=str, help='Command parameter', nargs='?', default=None)
-            self.__parser.add_argument('varargs', metavar='varargs', type=str, help='All other string values will be put here', nargs='*', default=None)
+            self.__parser = argparse.ArgumentParser(
+                description='Process commands.')
+            self.__parser.add_argument(
+                'command', metavar='command', type=str, help='Actual command', nargs='?', default=None)
+            self.__parser.add_argument(
+                'param', metavar='param', type=str, help='Command parameter', nargs='?', default=None)
+            self.__parser.add_argument('varargs', metavar='varargs', type=str,
+                                       help='All other string values will be put here', nargs='*', default=None)
         return self.__parser
 
     def __parseCommand(self, string):
@@ -98,7 +106,7 @@ class DKPBot:
         else:
             return Response(ResponseStatus.IGNORE)
 
-        method += command[1:]        
+        method += command[1:]
         callback = getattr(self, method, None)
         if callback:
             return callback(param, isPrivileged)
@@ -127,7 +135,8 @@ class DKPBot:
         return SavedVariablesParser().ParseString(inputString)
 
     def _dbSetTime(self):
-        self.__db['time'] = datetime.now(tz=pytz.timezone("Europe/Paris")).ctime()
+        self.__db['time'] = datetime.now(
+            tz=pytz.timezone("Europe/Paris")).ctime()
 
     def _dbGetTime(self):
         return self.__db['time']
@@ -138,7 +147,7 @@ class DKPBot:
     def _buildDkpDatabase(self, sv):
         self.__db['global']['dkp'] = {}
         self.__db['group'] = {}
-    
+
     def _buildLootDatabase(self, sv):
         self.__db['global']['loot'] = {}
 
@@ -171,14 +180,15 @@ class DKPBot:
                 self.__db['global']['history'][player] = []
             self.__db['global']['history'][player].append(entry)
 
-    def _sortGroupDkp(self, group = None):
+    def _sortGroupDkp(self, group=None):
         if self.__db['group'].get(group):
-            self.__db['group'][group].sort(key=lambda info: info.Dkp(), reverse=True)
+            self.__db['group'][group].sort(
+                key=lambda info: info.Dkp(), reverse=True)
         else:
             for g in self.__db['group'].values():
                 g.sort(key=lambda info: info.Dkp(), reverse=True)
 
-    def _setGroupDkp(self, group, entry, sort = False):
+    def _setGroupDkp(self, group, entry, sort=False):
         if group:
             group = group.lower()
             if not group in self.__db['group']:
@@ -201,7 +211,7 @@ class DKPBot:
         sv = self.__getSavedVariables(inputString)
         if sv == None:
             return Response(ResponseStatus.ERROR, "Error Parsing .lua file.")
-        
+
         if not isinstance(sv, dict):
             return Response(ResponseStatus.ERROR, "No SavedVariables found in .lua file.")
 
@@ -213,11 +223,12 @@ class DKPBot:
 
         self._finalizeDatabase()
 
-        print('Building complete in {0} seconds'.format(int(datetime.now(tz=timezone.utc).timestamp()) - start))
+        print('Building complete in {0} seconds'.format(
+            int(datetime.now(tz=timezone.utc).timestamp()) - start))
 
         if len(self.__db['global']['dkp']) <= 0:
-        #for table in self.__db['global']:
-        #    if len(table) <= 0:
+            # for table in self.__db['global']:
+            #    if len(table) <= 0:
             return Response(ResponseStatus.SUCCESS, "(DKP) Database building failed.")
 
         if len(self.__db['global']['history']) <= 0:

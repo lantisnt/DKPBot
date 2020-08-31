@@ -1,5 +1,6 @@
 import os
-import sys,traceback
+import sys
+import traceback
 import io
 
 import discord
@@ -14,38 +15,50 @@ client = discord.Client()
 
 bot = essentialdkp_bot.EssentialDKPBot()
 
+
 async def discord_build_embed(data):
     return discord.Embed().from_dict(data)
+
 
 async def discord_build_file(data):
     return discord.File(data)
 
-async def discord_respond(channel, response):
-    if not response:
+
+async def discord_respond(channel, responses):
+    if not responses:
         return
-    
-    if isinstance(response, str):
-        await channel.send(response)
-    elif isinstance(response, dict):
-        await channel.send(embed=await discord_build_embed(response))
-    elif isinstance(response, io.IOBase):
-        await channel.send(file=await discord_build_file(response))
+
+    if not isinstance(responses, list):
+        response_list = []
+        response_list.append(responses)
+    else:
+        response_list = responses
+
+    for response in response_list:
+        if isinstance(response, str):
+            await channel.send(response)
+        elif isinstance(response, dict):
+            await channel.send(embed=await discord_build_embed(response))
+        elif isinstance(response, io.IOBase):
+            await channel.send(file=await discord_build_file(response))
+
 
 @client.event
-async def on_ready():    
+async def on_ready():
     try:
         for guild in client.guilds:
             print(guild.name)
     except Exception:
-        exc_type, exc_value, exc_traceback = sys.exc_info() 
+        exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
         traceback.print_exc()
+
 
 @client.event
 async def on_message(message):
     try:
         # TODO very later on
-        #if enabled != True:
+        # if enabled != True:
         #    return
 
         # Don't react to own messages
@@ -71,10 +84,11 @@ async def on_message(message):
 
         # Debug message receive print
         #print('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
-        #await message.channel.send('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
+        # await message.channel.send('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
 
         # Check if user is privileged user (administrator)
-        isPrivileged = message.author.permissions_in(message.channel).administrator
+        isPrivileged = message.author.permissions_in(
+            message.channel).administrator
 
         # Handle ?!command
         response = bot.Handle(message.content, author, isPrivileged)
@@ -88,7 +102,7 @@ async def on_message(message):
                 if response.data == dkp_bot.Request.CHANNEL_ID:
                     bot.RegisterChannel(message.channel.id)
                     await discord_respond(message.channel, 'Registed to expect SavedVariable lua file on channel {0.name}'.format(message.channel))
-                
+
                 return
 
         # No ?!command response
@@ -98,7 +112,8 @@ async def on_message(message):
                 for attachment in message.attachments:
                     if bot.CheckAttachmentName(attachment.filename):
                         attachment_bytes = await attachment.read()
-                        response = bot.BuildDatabase(str(attachment_bytes, 'utf-8'), message.content)
+                        response = bot.BuildDatabase(
+                            str(attachment_bytes, 'utf-8'), message.content)
                         if response.status == dkp_bot.ResponseStatus.SUCCESS:
                             await discord_respond(message.channel, response.data)
                             return
@@ -106,7 +121,7 @@ async def on_message(message):
                             print('ERROR: {0}'.format(response.data))
                             return
     except (SystemExit, Exception):
-        exc_type, exc_value, exc_traceback = sys.exc_info() 
+        exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
         traceback.print_exc()
 

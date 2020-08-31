@@ -5,21 +5,23 @@ class PlayerInfo:
     __lifetime_spent = 0
     __ingame_class = ""
     __role = ""
+    #__lastDkp = None
+    #__lastLoot = None
 
     def __init__(self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role):
         self.__player = str(player).lower().capitalize()
         self.__dkp = float(dkp)
         self.__lifetime_gained = abs(float(lifetime_gained))
-        self.__lifetime_spent =  abs(float(lifetime_spent))
+        self.__lifetime_spent = abs(float(lifetime_spent))
         self.__ingame_class = str(ingame_class).lower().capitalize()
         self.__role = str(role).lower().capitalize()
 
     def Player(self):
         return self.__player
-    
+
     def Dkp(self):
         return self.__dkp
-    
+
     def LifetimeGained(self):
         return self.__lifetime_gained
 
@@ -47,10 +49,10 @@ class PlayerDKPHistory:
 
     def Player(self):
         return self.__player
-    
+
     def Dkp(self):
         return self.__dkp
-    
+
     def Timestamp(self):
         return self.__timestamp
 
