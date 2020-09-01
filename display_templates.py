@@ -242,10 +242,15 @@ class MultipleResponse(BaseResponse):
         if not requester or not isinstance(requester, str):
             requester = ""
 
+        if not isinstance(data_list, list):
+            return None
+
+        data_list = data_list.copy()
+
         requester = requester.strip().capitalize()
 
         num_entries = len(data_list)
-
+        
         response_count = int(
             num_entries / (self.__field_limit * self.__entry_limit)) + 1
 
@@ -352,7 +357,7 @@ class HistoryMultipleResponse(MultipleResponse):
                 break
 
     def _overrideResponseLoop(self, response_id):
-        self._embed.SetAuthor(self.__user)
+        self._embed.SetTitle(self.__user)
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerDKPHistory):

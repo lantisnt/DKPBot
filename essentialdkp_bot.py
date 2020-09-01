@@ -81,6 +81,7 @@ class EssentialDKPBot(DKPBot):
     def _fillHistory(self, players, dkp, timestamp, reason):
         if not players:
             return
+
         if not dkp:
             return
 
