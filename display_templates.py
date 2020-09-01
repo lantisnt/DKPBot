@@ -323,7 +323,7 @@ class HistoryMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
 
-        value_width = max(len(str(int(data_list_min))), len(str(int(data_list_max))))
+        value_width = max(len(str(int(data_list_min.Dkp()))), len(str(int(data_list_max.Dkp()))))
         self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
 
         # Override title
