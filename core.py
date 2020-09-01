@@ -80,20 +80,27 @@ async def on_message(message):
         else:
             author = message.author
         author = "{0}".format(author)
-        author = author.split("#")[0]
+        author = author.split("#")[0].strip()
+        author = author.split("/")[0].strip()
+        author = author.split("\\")[0].strip()
 
         # Debug message receive print
         #print('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
         # await message.channel.send('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
 
         # Check if user is privileged user (administrator)
-        isPrivileged = False
+        is_privileged = False
         if isinstance(message.author, discord.Member):
-            isPrivileged = message.author.permissions_in(
+            is_privileged = message.author.permissions_in(
                 message.channel).administrator
 
+        requester_info = {
+            'name'  : author,
+            'is_privileged' : is_privileged
+        }
+
         # Handle ?!command
-        response = bot.Handle(message.content, author, isPrivileged)
+        response = bot.Handle(message.content, requester_info)
         if response and isinstance(response, dkp_bot.Response):
             if response.status == dkp_bot.ResponseStatus.SUCCESS:
                 await discord_respond(message.channel, response.data)

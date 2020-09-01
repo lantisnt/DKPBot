@@ -337,7 +337,7 @@ class EssentialDKPBot(DKPBot):
                 "!dkpmanage reload")
         return Response(ResponseStatus.SUCCESS, help_string)
 
-    def call_dkp(self, param, isPrivileged):
+    def call_dkp(self, param, requester_info):
         if not self.IsDatabaseLoaded():
             return
 
@@ -370,7 +370,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_dkphistory(self, param, isPrivileged):
+    def call_dkphistory(self, param, requester_info):
         # return Response(ResponseStatus.SUCCESS, "Sorry :frowning: !dkphistory is not yet implemented.")
         targets = self.__getNamesFromParam(param)
         output_result_list = []
@@ -393,5 +393,5 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_dkploot(self, param, isPrivileged):
-        return Response(ResponseStatus.SUCCESS, "Sorry :frowning: !dkploot is not yet implemented.")
+    def call_dkploot(self, param, requester_info):
+        return Response(ResponseStatus.SUCCESS, "Sorry {0} :frowning: !dkploot is not yet implemented.".format(str(requester_info.get('name'))))

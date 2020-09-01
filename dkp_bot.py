@@ -97,7 +97,7 @@ class DKPBot:
         else:
             return None
 
-    def __handleCommand(self, command, param, isPrivileged):
+    def __handleCommand(self, command, param, requester_info):
         method = ''
         if command[0] == '?':
             method = 'help_'
@@ -109,19 +109,19 @@ class DKPBot:
         method += command[1:]
         callback = getattr(self, method, None)
         if callback:
-            return callback(param, isPrivileged)
+            return callback(param, requester_info)
         else:
             return Response(ResponseStatus.IGNORE)
 
-    def Handle(self, message, author, isPrivileged):
+    def Handle(self, message, requester_info):
         args = self.__parseCommand(message)
         if args:
             if args.command:
                 if not args.param:
-                    if not author:
+                    if not requester_info or not requester_info.get('name'):
                         return Response(ResponseStatus.ERROR, "No param and no author. How?")
-                    args.param = author
-                return self.__handleCommand(args.command.lower(), args.param.lower(), isPrivileged)
+                    args.param = requester_info.get('name')
+                return self.__handleCommand(args.command.lower(), args.param.lower(), requester_info)
             else:
                 # Empty message, attachement only probably
                 return Response(ResponseStatus.IGNORE)
@@ -241,8 +241,8 @@ class DKPBot:
 
     ### Command callbacks ###
 
-    def call_dkpmanage(self, param, isPrivileged):
-        if not isPrivileged == True:
+    def call_dkpmanage(self, param, requester_info):
+        if requester_info.get('is_privileged') != True:
             return Response(ResponseStatus.IGNORE)
 
         if param == 'register':
@@ -251,4 +251,4 @@ class DKPBot:
         if param == 'reload':
             return self.ReloadData()
 
-        return Response(ResponseStatus.SUCCESS, "Sorry :frowning: !dkpmanage {0} is not yet implemented.".format(param))
+        return Response(ResponseStatus.SUCCESS, "Sorry :frowning: !dkpmanage {0} is not yet implemented.".format(str(requester_info.get('name'))))

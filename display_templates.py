@@ -127,7 +127,7 @@ class BaseResponse:
             self._title = str(title)
 
     def _GetFooter(self):
-        return "{0._comment} updated _{0._time}_".format(self)
+        return "{0._comment} updated {0._time}".format(self)
 
     def IsBuilt(self):
         return self._isBuilt
