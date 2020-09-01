@@ -1,5 +1,6 @@
 from player_db_models import PlayerInfo, PlayerDKPHistory
-
+from datetime import datetime
+import pytz
 
 def get_class_color(c=None):
     if not c:
@@ -323,7 +324,13 @@ class HistoryMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
         print(data_list_min)
+        print(int(data_list_min.Dkp()))
+        print(str(int(data_list_min.Dkp())))
+        print(len(str(int(data_list_min.Dkp()))))
         print(data_list_max)
+        print(int(data_list_max.Dkp()))
+        print(str(int(data_list_max.Dkp())))
+        print(len(str(int(data_list_max.Dkp()))))
         value_width = max(len(str(int(data_list_min.Dkp()))), len(str(int(data_list_max.Dkp()))))
         self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
 
@@ -336,7 +343,7 @@ class HistoryMultipleResponse(MultipleResponse):
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerDKPHistory):
-            row  = "`{0:<24}`: ".format(data.Timestamp())
+            row  = "`{0:<24}` ".format(datetime.fromtimestamp(data.Timestamp(), tz=pytz.timezone("Europe/Paris")).ctime())
             row += self._value_format_string.format(data.Dkp())
             row += "{0}".format(data.Reason())
             row += "\n"
