@@ -101,7 +101,7 @@ class PlayerDKPHistory:
     def __neq__(self, other):
         if isinstance(other, PlayerDKPHistory):
             other = other.Timestamp()
-        return self.Timestamp() != other.
+        return self.Timestamp() != other
 
     def __lt__(self, other):
         if isinstance(other, PlayerDKPHistory):
