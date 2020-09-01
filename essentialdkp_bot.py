@@ -211,6 +211,7 @@ class EssentialDKPBot(DKPBot):
                 continue
 
             players = list(map(lambda p: p.lower(), players.split(",")))
+            print(players)
             if not isinstance(players, list):
                 continue
 
