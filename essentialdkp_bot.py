@@ -212,6 +212,8 @@ class EssentialDKPBot(DKPBot):
                 continue
 
             self._fillHistory(players, dkp, date, reason)
+            self._sortHistory()
+
 
     # Called after whole database is built
     def _finalizeDatabase(self):
@@ -219,6 +221,8 @@ class EssentialDKPBot(DKPBot):
         self.__singlePlayerProfileBuilder.SetDbInfo(
             self._dbGetTime(), self._dbGetComment())
         self.__multipleDkpOutputBuilder.SetDbInfo(
+            self._dbGetTime(), self._dbGetComment())
+        self.__multipleHistoryOutputBuilder.SetDbInfo(
             self._dbGetTime(), self._dbGetComment())
 
     ### Essential related ###

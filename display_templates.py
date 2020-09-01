@@ -214,7 +214,7 @@ class MultipleResponse(BaseResponse):
 
         self.__allow_multiple_responses = bool(allow_multiple_responses)
 
-    def _prepare(self):
+    def _prepare(self, data_list):
         True
 
     def _buildRow(self, data, requester):
@@ -334,7 +334,7 @@ class HistoryMultipleResponse(MultipleResponse):
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerDKPHistory):
-            row  = "{0:<24}: ".format(data.Timestamp())
+            row  = "`{0:<24}`: ".format(data.Timestamp())
             row += self._value_format_string.format(data.Dkp())
             row += "{0}".format(data.Reason())
             row += "\n"
