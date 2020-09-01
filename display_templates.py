@@ -223,7 +223,7 @@ class MultipleResponse(BaseResponse):
         self._min = 0
         self._max = 0
 
-    def _buildRow(self, data):
+    def _buildRow(self, data, requester):
         return str(data) + "\n"
 
     def Build(self, data_list, requester="", thumbnail=None):
@@ -333,10 +333,10 @@ class DKPMultipleResponse(MultipleResponse):
             row =  "{0}`".format(get_icon_string(data.Class()))
             row += self._value_format_string.format(data.Dkp())
             row += "` "
-            if requester != data.Player():
-                row += "{0}".format(data.Player())
-            else:
+            if requester == data.Player():
                 row += "**{0}**".format(data.Player())
+            else:
+                row += "{0}".format(data.Player())
             row += "\n"
             return row
 

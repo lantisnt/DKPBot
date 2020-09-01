@@ -53,10 +53,14 @@ class EssentialDKPBot(DKPBot):
             info.Class())
         return self.__singlePlayerProfileBuilder.Build(info, thumbnail).Get()
 
-    def __buildDKPOutputMultiple(self, output_result_list):
+    def __buildDKPOutputMultiple(self, output_result_list, requester):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
-        return self.__multipleDkpOutputBuilder.Build(output_result_list).Get()
+
+        if not requester:
+            requester = ""
+
+        return self.__multipleDkpOutputBuilder.Build(output_result_list, requester).Get()
 
 ####################################################
 ############### BUILD HISTORY OUTPUT ###############
@@ -363,7 +367,7 @@ class EssentialDKPBot(DKPBot):
             data = self.__buildDKPOutputSingle(output_result_list[0])
         elif len(output_result_list) > 0:
             output_result_list.sort(key=lambda info: info.Dkp(), reverse=False)
-            data = self.__buildDKPOutputMultiple(output_result_list)
+            data = self.__buildDKPOutputMultiple(output_result_list, requester_info.get('name'))
         else:
             data = "{0}'s DKP was not found in database.".format(
                 param.capitalize())
