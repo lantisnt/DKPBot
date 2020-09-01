@@ -94,15 +94,12 @@ class EssentialDKPBot(DKPBot):
                     player, dkp, timestamp, reason, index))
         elif isinstance(players, list) and isinstance(dkp, list):
             # In case of unequal length we only add as many entries as there are players
-            limit = min(len(players), len(dkp))
-            print(len(players))
-            print(len(dkp))
-            iterator = 1
+            limit = min(len(players), len(dkp)) - 1
             for player in players:
                 self._addHistory(player, PlayerDKPHistory(
                     player, float(dkp.pop()), timestamp, reason, index))
-                iterator = iterator + 1
-                if iterator == limit:
+                limit = limit - 1
+                if limit <= 0:
                     break
 
     # Called 1st
