@@ -363,7 +363,7 @@ class HistoryMultipleResponse(MultipleResponse):
         if data and isinstance(data, PlayerDKPHistory):
             row  = "`{0:<24}` ".format(datetime.fromtimestamp(data.Timestamp(), tz=pytz.timezone("Europe/Paris")).ctime())
             row += self._value_format_string.format(data.Dkp())
-            row += " {0}".format(data.Reason())
+            row += " _{0}_ by {1}".format(data.Reason(), data.Officer())
             row += "\n"
             return row
 

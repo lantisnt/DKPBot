@@ -78,7 +78,7 @@ class EssentialDKPBot(DKPBot):
 
     ### Database - Variables parsing ###
 
-    def _fillHistory(self, players, dkp, timestamp, reason):
+    def _fillHistory(self, players, dkp, timestamp, reason, index):
         if not players:
             return
 
@@ -87,11 +87,11 @@ class EssentialDKPBot(DKPBot):
 
         if isinstance(players, str) and isinstance(dkp, int):
             self._addHistory(players, PlayerDKPHistory(
-                players, dkp, timestamp, reason))
+                players, dkp, timestamp, reason, index))
         elif isinstance(players, list) and isinstance(dkp, int):
             for player in players:
                 self._addHistory(player, PlayerDKPHistory(
-                    player, dkp, timestamp, reason))
+                    player, dkp, timestamp, reason, index))
         elif isinstance(players, list) and isinstance(dkp, int):
             # In case of unequal length we only add as many entries as there are players
             limit = min(len(players), len(dkp))
@@ -99,7 +99,7 @@ class EssentialDKPBot(DKPBot):
             iterator = 1
             for player in players:
                 self._addHistory(player, PlayerDKPHistory(
-                    player, float(dkp.pop()), timestamp, reason))
+                    player, float(dkp.pop()), timestamp, reason, index))
                 if iterator == limit:
                     break
 
@@ -195,6 +195,14 @@ class EssentialDKPBot(DKPBot):
             if not reason:
                 continue
 
+            index = entry.get("index")
+            if not index:
+                continue
+
+            ## Skip deletetion and deleted entries ##
+            if entry.get("deletes") or entry.get("deletedby"):
+                continue
+
             if not isinstance(players, str):
                 continue
             if not isinstance(date, int):
@@ -212,7 +220,7 @@ class EssentialDKPBot(DKPBot):
             elif not isinstance(dkp, int):
                 continue
 
-            self._fillHistory(players, dkp, date, reason)
+            self._fillHistory(players, dkp, date, reason, index)
             self._sortHistory()
 
 

@@ -75,12 +75,15 @@ class PlayerDKPHistory:
     __dkp = 0
     __timestamp = ""
     __reason = ""
+    __officer = ""
 
-    def __init__(self, player, dkp, timestamp, reason):
+    def __init__(self, player, dkp, timestamp, reason, index):
         self.__player = str(player).lower().capitalize()
         self.__dkp = float(dkp)
         self.__timestamp = int(timestamp)
         self.__reason = str(reason)
+        officer = str(index.split("-")[0])
+        self.__officer = officer.lower().capitalize()
 
     def Player(self):
         return self.__player
@@ -94,8 +97,11 @@ class PlayerDKPHistory:
     def Reason(self):
         return self.__reason
 
+    def Officer(self):
+        return self.__officer
+
     def __str__(self):
-        return "{0}: {1} {2} DKP ({3})".format(self.Timestamp(), self.Player(), self.Dkp(), self.Reason())
+        return "{0}: {1} {2} DKP ({3}) by {4}".format(self.Timestamp(), self.Player(), self.Dkp(), self.Reason(), self.Officer())
 
     ### Overriding comparison to use Dkp ###
 
