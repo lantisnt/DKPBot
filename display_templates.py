@@ -115,6 +115,15 @@ class RawEmbed:
             }
             self._d['fields'].append(field)
 
+    def EditField(self, id, name=None, value=None, inline=None):
+        if id < len(self._d['fields']):
+            if name and len(name) > 0:
+                self._d['fields'][id]['name'] = str(name)
+            if value and len(value) > 0:
+                self._d['fields'][id]['value'] = str(value)
+            if inline:
+                self._d['fields'][id]['inline'] = bool(inline)
+
     def Clear(self):
         self._d = {}
         self.__isBuilt = False
@@ -218,6 +227,12 @@ class MultipleResponse(BaseResponse):
     def _prepare(self, data_list):
         True
 
+    def _overrideResponseLoop(self, response_id):
+        True
+
+    def _overrideFieldLoop(self, response_id, field_id):
+        True
+
     def _buildRow(self, data, requester):
         return str(data) + "\n"
 
@@ -261,7 +276,10 @@ class MultipleResponse(BaseResponse):
                 footer_text=self._GetFooter()
             )
 
-            for _ in range(self.__field_limit):
+            # Hook to allow template overrides
+            self._overrideResponseLoop(response_id)
+
+            for field_id in range(self.__field_limit):
                 if len(data_list) == 0: break
 
                 name = "{0} - {1}".format(start_value,
@@ -273,6 +291,7 @@ class MultipleResponse(BaseResponse):
                     value += self._buildRow(data_list.pop(), requester)
 
                 self._embed.AddField(name, value, True)
+                self._overrideFieldLoop(response_id, field_id)
                 start_value += self.__entry_limit
 
             self.__response_list.append(self._embed.Get())
@@ -311,41 +330,35 @@ class DKPMultipleResponse(MultipleResponse):
 
 class HistoryMultipleResponse(MultipleResponse):
 
+    __user = None
+
     def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
         super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
 
     def _prepare(self, data_list):
-
         # Prepare format string
-
         def get_dkp(i):
             return i.Dkp()
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-        print(data_list_min)
-        print(int(data_list_min.Dkp()))
-        print(str(int(data_list_min.Dkp())))
-        print(len(str(int(data_list_min.Dkp()))))
-        print(data_list_max)
-        print(int(data_list_max.Dkp()))
-        print(str(int(data_list_max.Dkp())))
-        print(len(str(int(data_list_max.Dkp()))))
-        value_width = max(len(str(int(data_list_min.Dkp()))), len(str(int(data_list_max.Dkp()))))
+        # +2 for decimal
+        value_width = max(len(str(int(data_list_min.Dkp()))), len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
 
-        # Override title
         for data in data_list:
-            print(str(data))
             if data and isinstance(data, PlayerDKPHistory):
-                self._embed.SetAuthor(data.Player())
+                self.__user = data.Player()
                 break
+
+    def _overrideResponseLoop(self, response_id):
+        self._embed.SetAuthor(self.__user)
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerDKPHistory):
             row  = "`{0:<24}` ".format(datetime.fromtimestamp(data.Timestamp(), tz=pytz.timezone("Europe/Paris")).ctime())
             row += self._value_format_string.format(data.Dkp())
-            row += "{0}".format(data.Reason())
+            row += " {0}".format(data.Reason())
             row += "\n"
             return row
 
