@@ -322,12 +322,14 @@ class HistoryMultipleResponse(MultipleResponse):
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-
+        print(data_list_min)
+        print(data_list_max)
         value_width = max(len(str(int(data_list_min.Dkp()))), len(str(int(data_list_max.Dkp()))))
         self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
 
         # Override title
         for data in data_list:
+            print(str(data))
             if data and isinstance(data, PlayerDKPHistory):
                 self._embed.SetAuthor(data.Player())
                 break

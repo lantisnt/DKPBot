@@ -34,6 +34,9 @@ class PlayerInfo:
     def Role(self):
         return self.__role
 
+    def __str__(self):
+        return "{0.__player} ({0.__ingame_class}) {0.__dkp} ({0.__lifetime_gained}/{0.__lifetime_spent}) DKP".format(self)
+
     ### Overriding comparison to use DKP ###
 
     def __eq__(self, other):
@@ -90,6 +93,9 @@ class PlayerDKPHistory:
 
     def Reason(self):
         return self.__reason
+
+    def __str__(self):
+        return "{0.__timestamp}: {0.__player} {0.__dkp} DKP ({0.__reason})".format(self)
 
     ### Overriding comparison to use Dkp ###
 
