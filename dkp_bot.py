@@ -136,7 +136,7 @@ class DKPBot:
 
     def _dbSetTime(self):
         self.__db['time'] = datetime.now(
-            tz=pytz.timezone("Europe/Paris")).ctime()
+            tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M")
 
     def _dbGetTime(self):
         return self.__db['time']
