@@ -5,8 +5,8 @@ class PlayerInfo:
     __lifetime_spent = 0
     __ingame_class = ""
     __role = ""
-    #__lastDkp = None
-    #__lastLoot = None
+    # __lastDkp = None
+    # __lastLoot = None
 
     def __init__(self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role):
         self.__player = str(player).lower().capitalize()
@@ -37,22 +37,34 @@ class PlayerInfo:
     ### Overriding comparison to use DKP ###
 
     def __eq__(self, other):
-        return self.Dkp() == other.Dkp()
+        if isinstance(other, PlayerInfo):
+            other = other.Dkp()
+        return self.Dkp() == other
 
     def __neq__(self, other):
-        return self.Dkp() != other.Dkp()
+        if isinstance(other, PlayerInfo):
+            other = other.Dkp()
+        return self.Dkp() != other
 
     def __lt__(self, other):
-        return self.Dkp() < other.Dkp()
+        if isinstance(other, PlayerInfo):
+            other = other.Dkp()
+        return self.Dkp() < other
 
     def __le__(self, other):
-        return self.Dkp() <= other.Dkp()
+        if isinstance(other, PlayerInfo):
+            other = other.Dkp()
+        return self.Dkp() <= other
 
     def __gt__(self, other):
-        return self.Dkp() > other.Dkp()
+        if isinstance(other, PlayerInfo):
+            other = other.Dkp()
+        return self.Dkp() > other
 
     def __ge__(self, other):
-        return self.Dkp() >= other.Dkp()
+        if isinstance(other, PlayerInfo):
+            other = other.Dkp()
+        return self.Dkp() >= other
 
 
 class PlayerDKPHistory:
@@ -82,22 +94,34 @@ class PlayerDKPHistory:
     ### Overriding comparison to use timestamp ###
 
     def __eq__(self, other):
-        return self.Timestamp() == other.Timestamp()
+        if isinstance(other, PlayerDKPHistory):
+            other = other.Timestamp()
+        return self.Timestamp() == other
 
     def __neq__(self, other):
-        return self.Timestamp() != other.Timestamp()
+        if isinstance(other, PlayerDKPHistory):
+            other = other.Timestamp()
+        return self.Timestamp() != other.
 
     def __lt__(self, other):
-        return self.Timestamp() < other.Timestamp()
+        if isinstance(other, PlayerDKPHistory):
+            other = other.Timestamp()
+        return self.Timestamp() < other
 
     def __le__(self, other):
-        return self.Timestamp() <= other.Timestamp()
+        if isinstance(other, PlayerDKPHistory):
+            other = other.Timestamp()
+        return self.Timestamp() <= other
 
     def __gt__(self, other):
-        return self.Timestamp() > other.Timestamp()
+        if isinstance(other, PlayerDKPHistory):
+            other = other.Timestamp()
+        return self.Timestamp() > other
 
     def __ge__(self, other):
-        return self.Timestamp() >= other.Timestamp()
+        if isinstance(other, PlayerDKPHistory):
+            other = other.Timestamp()
+        return self.Timestamp() >= other
 
 
 
