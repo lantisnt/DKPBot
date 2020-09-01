@@ -26,7 +26,7 @@ class EssentialDKPBot(DKPBot):
         self.__singlePlayerProfileBuilder = SinglePlayerProfile(
             "Essential DKP Profile")
 
-        self.__multipleDkpOutputBuilder = DKPMultipleResponse("DKP Values", 6, 16, True)
+        self.__multipleDkpOutputBuilder = DKPMultipleResponse("DKP Values", 6, 16, True, 1)
     ###
 
     def __getNamesFromParam(self, param):

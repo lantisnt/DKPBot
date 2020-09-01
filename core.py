@@ -87,8 +87,10 @@ async def on_message(message):
         # await message.channel.send('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
 
         # Check if user is privileged user (administrator)
-        isPrivileged = message.author.permissions_in(
-            message.channel).administrator
+        isPrivileged = False
+        if isinstance(message.author, discord.Member):
+            isPrivileged = message.author.permissions_in(
+                message.channel).administrator
 
         # Handle ?!command
         response = bot.Handle(message.content, author, isPrivileged)

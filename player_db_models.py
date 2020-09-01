@@ -34,6 +34,26 @@ class PlayerInfo:
     def Role(self):
         return self.__role
 
+    ### Overriding comparison to use DKP ###
+
+    def __eq__(self, other):
+        return self.Dkp() == other.Dkp()
+
+    def __neq__(self, other):
+        return self.Dkp() != other.Dkp()
+
+    def __lt__(self, other):
+        return self.Dkp() < other.Dkp()
+
+    def __le__(self, other):
+        return self.Dkp() <= other.Dkp()
+
+    def __gt__(self, other):
+        return self.Dkp() > other.Dkp()
+
+    def __ge__(self, other):
+        return self.Dkp() >= other.Dkp()
+
 
 class PlayerDKPHistory:
     __player = 0
@@ -58,3 +78,26 @@ class PlayerDKPHistory:
 
     def Reason(self):
         return self.__reason
+
+    ### Overriding comparison to use timestamp ###
+
+    def __eq__(self, other):
+        return self.Timestamp() == other.Timestamp()
+
+    def __neq__(self, other):
+        return self.Timestamp() != other.Timestamp()
+
+    def __lt__(self, other):
+        return self.Timestamp() < other.Timestamp()
+
+    def __le__(self, other):
+        return self.Timestamp() <= other.Timestamp()
+
+    def __gt__(self, other):
+        return self.Timestamp() > other.Timestamp()
+
+    def __ge__(self, other):
+        return self.Timestamp() >= other.Timestamp()
+
+
+
