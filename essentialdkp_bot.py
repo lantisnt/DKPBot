@@ -69,7 +69,7 @@ class EssentialDKPBot(DKPBot):
 ####################################################
 
 
-    def __buildDKPOutputMultiple(self, output_result_list):
+    def __buildHistoryOutputMultiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
@@ -323,7 +323,7 @@ class EssentialDKPBot(DKPBot):
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
 
         if len(output_result_list) > 0:
-            data = self.__buildHistoryOutput(output_result_list)
+            data = self.__buildHistoryOutputMultiple(output_result_list)
         else:
             data = "{0}'s DKP history was not found in database.".format(
                 param.capitalize())
