@@ -183,7 +183,7 @@ class MultipleResponse(BaseResponse):
     __allow_multiple_responses = True
     _decimals = 2
 
-    _format_string = "{0:8.1f}"
+    _value_format_string = "{0:8.1f}"
     _min = 0
     _max = 0
 
@@ -226,8 +226,13 @@ class MultipleResponse(BaseResponse):
     def _buildRow(self, data):
         return str(data) + "\n"
 
-    def Build(self, data_list, thumbnail=None):
+    def Build(self, data_list, requester="", thumbnail=None):
         self._embed.Clear()
+
+        if not requester or not isinstance(requester, str):
+            requester = ""
+
+        requester = requester.strip().capitalize()
 
         num_entries = len(data_list)
 
@@ -272,7 +277,7 @@ class MultipleResponse(BaseResponse):
 
                 for _ in range(self.__entry_limit):
                     if len(data_list) == 0: break
-                    value += self._buildRow(data_list.pop())
+                    value += self._buildRow(data_list.pop(), requester)
 
                 self._embed.AddField(name, value, True)
                 start_value += self.__entry_limit
@@ -319,15 +324,20 @@ class DKPMultipleResponse(MultipleResponse):
         else:
             value_width += 1
 
-        self._format_string = "{{0:{0}{1}f}}".format(value_width, decimals_format)
+        self._value_format_string = "{{0:{0}{1}f}}".format(value_width, decimals_format)
 
 
 #self._format_string = "{0:8.1f}"
-    def _buildRow(self, data):
+    def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerInfo):
             row =  "{0}`".format(get_icon_string(data.Class()))
-            row += self._format_string.format(data.Dkp())
-            row += "` {0}\n".format(data.Player())
+            row += self._value_format_string.format(data.Dkp())
+            row += "` "
+            if requester != data.Player():
+                row += "{0}".format(data.Player())
+            else:
+                row += "**{0}**".format(data.Player())
+            row += "\n"
             return row
 
         return ""
