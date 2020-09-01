@@ -94,11 +94,11 @@ class EssentialDKPBot(DKPBot):
                     player, dkp, timestamp, reason, index))
         elif isinstance(players, list) and isinstance(dkp, list):
             # In case of unequal length we only add as many entries as there are players
-            #del players[-1]
-            #del dkp[-1]
+            del players[-1]
+            del dkp[-1]
 
             for player in players:
-                internal_dkp = dkp.pop()
+                internal_dkp = dkp.pop(0)
                 print("-{0}- : {1}".format(player, internal_dkp))
                 self._addHistory(player, PlayerDKPHistory(
                     player, float(internal_dkp), timestamp, reason, index))
@@ -211,13 +211,11 @@ class EssentialDKPBot(DKPBot):
                 continue
 
             players = list(map(lambda p: p.lower(), players.split(",")))
-            print(players)
             if not isinstance(players, list):
                 continue
 
             if isinstance(dkp, str):
                 # multiple entry
-                print(dkp.split(","))
                 dkp = list(map(lambda d: d, dkp.split(",")))
                 if len(dkp) == 1: # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
                     continue
