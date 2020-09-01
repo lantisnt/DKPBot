@@ -216,8 +216,10 @@ class EssentialDKPBot(DKPBot):
 
             if isinstance(dkp, str):
                 # multiple entry
-                #dkp = list(map(lambda d: d, dkp.split(",")))
-                dkp = dkp.split(",")
+                print(dkp.split(","))
+                dkp = list(map(lambda d: d, dkp.split(",")))
+                if len(dkp) == 1: # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
+                    continue
             elif not isinstance(dkp, int):
                 continue
 
