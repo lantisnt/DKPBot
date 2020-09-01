@@ -100,6 +100,7 @@ class EssentialDKPBot(DKPBot):
             for player in players:
                 self._addHistory(player, PlayerDKPHistory(
                     player, float(dkp.pop()), timestamp, reason, index))
+                iterator = iterator + 1
                 if iterator == limit:
                     break
 
