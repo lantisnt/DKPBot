@@ -3,7 +3,7 @@ import re
 
 from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory
-from display_templates import SinglePlayerProfile, DKPMultipleResponse
+from display_templates import SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse
 
 
 class EssentialDKPBot(DKPBot):
@@ -17,6 +17,7 @@ class EssentialDKPBot(DKPBot):
 
     __singleDkpOutputBuilder = None
     __multipleDkpOutputBuilder = None
+    __multipleHistoryOutputBuilder = None
 
     def __init__(self, inputFileName="EssentialDKP.lua", channel=0, enabled=False, parser=None):
         super().__init__(inputFileName, channel, enabled, parser)
@@ -26,7 +27,8 @@ class EssentialDKPBot(DKPBot):
         self.__singlePlayerProfileBuilder = SinglePlayerProfile(
             "Essential DKP Profile")
 
-        self.__multipleDkpOutputBuilder = DKPMultipleResponse("DKP Values", 6, 16, True, 1)
+        self.__multipleDkpOutputBuilder = DKPMultipleResponse("DKP Values", 6, 16, True)
+        self.__multipleHistoryOutputBuilder = HistoryMultipleResponse("Latest DKP History", 1, 10, False)
     ###
 
     def __getNamesFromParam(self, param):
@@ -67,80 +69,11 @@ class EssentialDKPBot(DKPBot):
 ####################################################
 
 
-    def __buildHistoryOutput(self, output_result_list):
+    def __buildDKPOutputMultiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
-        # 3 columns due to discord formating
 
-        output_result_list_len = len(output_result_list)
-        c = {1: [], 2: [], 3: []}
-
-        num_rows = int(output_result_list_len / 3)
-        if num_rows == 0:
-            num_rows = 1
-
-        # Split and reorder if needed
-        column_reorder = True
-        i = 1
-        if column_reorder:
-            for info in output_result_list:
-                if i > (2 * num_rows):
-                    c[3].append(info)
-                elif i > num_rows:
-                    c[2].append(info)
-                else:
-                    c[1].append(info)
-                i = i + 1
-        else:  # row order
-            for info in output_result_list:
-                c[(i % 3) + 1].append(info)
-                i = i + 1
-
-        data = {
-            'title': "DKP History",
-            'description': " ",
-            'type': "rich",
-            #            'timestamp'     : str(datetime.now().isoformat()),
-            'color': 10204605,
-            'footer':
-            {
-                'text': "Last updated {0} with comment: {1}".format(self._dbGetTime(), self._dbGetComment())
-            },
-            'fields': []
-        }
-
-        num_columns = 3
-        if output_result_list_len < 3:
-            num_columns = output_result_list_len
-
-        for i in range(num_columns):
-            min_title_value = (i * num_rows) + 1
-            max_title_value = min((i + 1) * num_rows, output_result_list_len)
-
-            if min_title_value != max_title_value:
-                output_title = "{0} - {1}".format(
-                    min_title_value, max_title_value)
-            else:
-                output_title = "{0}".format(min_title_value)
-            output_string = ''
-
-            for history in c[i + 1]:
-                output_string += "{0} `{1:6.1f}` {2}\n".format(datetime.fromtimestamp(
-                    history.Timestamp()), history.Dkp(), history.Player())
-                if len(output_string) > 950:
-                    output_string += "{1}\n".format("Limiting output")
-                    break
-
-            field = {
-                'name': output_title,
-                'value': output_string,
-                'inline': True
-            }
-
-            if len(field['name']) > 0 and len(field['value']) > 0:
-                data['fields'].append(field)
-
-        return data
+        return self.__multipleHistoryOutputBuilder.Build(output_result_list).Get()
 ###
 
     ### Database - Variables parsing ###

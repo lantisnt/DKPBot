@@ -1,4 +1,4 @@
-from player_db_models import PlayerInfo
+from player_db_models import PlayerInfo, PlayerDKPHistory
 
 
 def get_class_color(c=None):
@@ -96,6 +96,15 @@ class RawEmbed:
 
         self.__isBuilt = True
 
+    def SetAuthor(self, value):
+        self._d['author'] = {'name': str(value)}
+
+    def SetTitle(self, value):
+        self._d['title'] = str(value)
+
+    def SetDescription(self, value):
+        self._d['description'] = str(value)
+
     def AddField(self, name, value, inline=True):
         if name and value and (len(name) > 0) and (len(value) > 0) and (len(self._d['fields']) < 25):
             field = {
@@ -181,13 +190,10 @@ class MultipleResponse(BaseResponse):
     __field_limit = 6
     __entry_limit = 16
     __allow_multiple_responses = True
-    _decimals = 2
 
     _value_format_string = "{0:8.1f}"
-    _min = 0
-    _max = 0
 
-    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses, decimals = 0):
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
         super().__init__(title)
 
         if field_limit and isinstance(field_limit, int):
@@ -206,22 +212,10 @@ class MultipleResponse(BaseResponse):
             else:
                 self.__entry_limit = entry_limit
 
-        if decimals and isinstance(decimals, int):
-            if decimals > 2:
-                self._decimals = 2
-            elif decimals < 0:
-                self._decimals = 1
-            else:
-                self._decimals = decimals
-
         self.__allow_multiple_responses = bool(allow_multiple_responses)
 
     def _prepare(self):
         True
-
-    def _setLimits(self, data_list):
-        self._min = 0
-        self._max = 0
 
     def _buildRow(self, data, requester):
         return str(data) + "\n"
@@ -243,11 +237,9 @@ class MultipleResponse(BaseResponse):
             response_count = 1
 
         self.__response_list = []
-
-        self._setLimits(data_list)
         
         # Hook to prepare format strings if needed
-        self._prepare()
+        self._prepare(data_list)
 
         start_value = 1
         for response_id in range(response_count):
@@ -292,51 +284,59 @@ class MultipleResponse(BaseResponse):
 
 class DKPMultipleResponse(MultipleResponse):
 
-    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses, decimals):
-        super().__init__(title, field_limit, entry_limit, allow_multiple_responses, decimals)
-
-    def _setLimits(self, data_list):
-        self._min = min(data_list)
-        self._max = max(data_list)
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
+        super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
         
-    def _prepare(self):
-        value_width = 0
-        decimals_format = ""
-        if self._decimals > 0:
-            value_width += (self._decimals + 1)
-            decimals_format = ".{0}".format(self._decimals)
+    def _prepare(self, data_list):
+        data_list_min = min(data_list)
+        data_list_max = max(data_list)
+        value_width = max(len(str(int(data_list_min))), len(str(int(data_list_max))))
+        self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
 
-        if self._min < 0:
-            value_width += 1
-
-        if   self._min > 999999 or self._max > 999999:
-            value_width += 7
-        elif self._min > 99999  or self._max > 99999:
-            value_width += 6
-        elif self._min > 9999   or self._max > 9999:
-            value_width += 5
-        elif self._min > 999    or self._max > 999:
-            value_width += 4
-        elif self._min > 99     or self._max > 99:
-            value_width += 3
-        elif self._min > 9      or self._max > 9:
-            value_width += 2
-        else:
-            value_width += 1
-
-        self._value_format_string = "{{0:{0}{1}f}}".format(value_width, decimals_format)
-
-
-#self._format_string = "{0:8.1f}"
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerInfo):
-            row =  "{0}`".format(get_icon_string(data.Class()))
+            row =  "{0}".format(get_icon_string(data.Class()))
             row += self._value_format_string.format(data.Dkp())
-            row += "` "
+            row += " "
             if requester == data.Player():
                 row += "**{0}**".format(data.Player())
             else:
                 row += "{0}".format(data.Player())
+            row += "\n"
+            return row
+
+        return ""
+
+
+class HistoryMultipleResponse(MultipleResponse):
+
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
+        super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
+
+    def _prepare(self, data_list):
+
+        # Prepare format string
+
+        def get_dkp(i):
+            return i.Dkp()
+
+        data_list_min = min(data_list, key=get_dkp)
+        data_list_max = max(data_list, key=get_dkp)
+
+        value_width = max(len(str(int(data_list_min))), len(str(int(data_list_max))))
+        self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
+
+        # Override title
+        for data in data_list:
+            if data and isinstance(data, PlayerDKPHistory):
+                self._embed.SetAuthor(data.Player())
+                break
+
+    def _buildRow(self, data, requester):
+        if data and isinstance(data, PlayerDKPHistory):
+            row  = "{0:<24}: ".format(data.Timestamp())
+            row += self._value_format_string.format(data.Dkp())
+            row += "{0}".format(data.Reason())
             row += "\n"
             return row
 

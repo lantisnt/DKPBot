@@ -91,37 +91,37 @@ class PlayerDKPHistory:
     def Reason(self):
         return self.__reason
 
-    ### Overriding comparison to use timestamp ###
+    ### Overriding comparison to use Dkp ###
 
-    def __eq__(self, other):
-        if isinstance(other, PlayerDKPHistory):
-            other = other.Timestamp()
-        return self.Timestamp() == other
+    # def __eq__(self, other):
+    #     if isinstance(other, PlayerDKPHistory):
+    #         other = other.Dkp()
+    #     return self.Dkp() == other
 
-    def __neq__(self, other):
-        if isinstance(other, PlayerDKPHistory):
-            other = other.Timestamp()
-        return self.Timestamp() != other
+    # def __neq__(self, other):
+    #     if isinstance(other, PlayerDKPHistory):
+    #         other = other.Dkp()
+    #     return self.Dkp() != other
 
-    def __lt__(self, other):
-        if isinstance(other, PlayerDKPHistory):
-            other = other.Timestamp()
-        return self.Timestamp() < other
+    # def __lt__(self, other):
+    #     if isinstance(other, PlayerDKPHistory):
+    #         other = other.Dkp()
+    #     return self.Dkp() < other
 
-    def __le__(self, other):
-        if isinstance(other, PlayerDKPHistory):
-            other = other.Timestamp()
-        return self.Timestamp() <= other
+    # def __le__(self, other):
+    #     if isinstance(other, PlayerDKPHistory):
+    #         other = other.Dkp()
+    #     return self.Dkp() <= other
 
-    def __gt__(self, other):
-        if isinstance(other, PlayerDKPHistory):
-            other = other.Timestamp()
-        return self.Timestamp() > other
+    # def __gt__(self, other):
+    #     if isinstance(other, PlayerDKPHistory):
+    #         other = other.Dkp()
+    #     return self.Dkp() > other
 
-    def __ge__(self, other):
-        if isinstance(other, PlayerDKPHistory):
-            other = other.Timestamp()
-        return self.Timestamp() >= other
+    # def __ge__(self, other):
+    #     if isinstance(other, PlayerDKPHistory):
+    #         other = other.Dkp()
+    #     return self.Dkp() >= other
 
 
 
