@@ -192,7 +192,7 @@ class EssentialDKPBot(DKPBot):
             if len(item_info) != 2:
                 continue
 
-            self._addHistory(player, PlayerLoot(player, item_info[0], item_info[1], cost, date))
+            self._addLoot(player, PlayerLoot(player, item_info[0], item_info[1], cost, date))
 
         self._sortLoot()
         #self._setPlayerLatestLoot()
