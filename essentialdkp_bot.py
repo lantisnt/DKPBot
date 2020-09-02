@@ -192,11 +192,15 @@ class EssentialDKPBot(DKPBot):
             
             item_info = list(filter(None, self.__item_id_name_find.findall(loot))) #[0] -> id [1] -> name
             #print(item_info)
-            if len(item_info) != 2:
-                print("ERROR: len(item_info) = " + str(len(item_info)) + " in entry: " + str(player) + " " + str(date) + " " + str(cost) + " " + str(loot))
+            if not item_info or not isinstance(item_info, list) or len(item_info) != 1:
+                print("ERROR in entry: " + str(player) + " " + str(date) + " " + str(cost) + " " + str(loot))
                 continue
 
-            self._addLoot(player, PlayerLoot(player, item_info[0], item_info[1], cost, date))
+            if not item_info[0] or not isinstance(item_info[0], tuple) or len(item_info[0]) != 2:
+                print("ERROR in item_info[0] " + str(item_info[0]))
+                continue
+
+            self._addLoot(player, PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date))
 
         self._sortLoot()
         #self._setPlayerLatestLoot()
