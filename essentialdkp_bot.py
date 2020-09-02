@@ -361,7 +361,7 @@ class EssentialDKPBot(DKPBot):
         if len(output_result_list) == 1:
             data = self.__buildDKPOutputSingle(output_result_list[0])
         elif len(output_result_list) > 0:
-            output_result_list.sort(key=lambda info: info.Dkp(), reverse=False)
+            output_result_list.sort(key=lambda info: info.Dkp(), reverse=True)
             data = self.__buildDKPOutputMultiple(output_result_list, requester_info.get('name'))
         else:
             data = "{0}'s DKP was not found in database.".format(
