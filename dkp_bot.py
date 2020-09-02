@@ -212,7 +212,7 @@ class DKPBot:
         return None
 
     def _setPlayerLatestHistory(self):
-        for p in self.__db['global']['dkp']:
+        for p in self.__db['global']['dkp'].values():
             history = self._getHistory(p.Player())
             if history and isinstance(history, list):
                 p.SetLatestHistoryEntry(history[0])
