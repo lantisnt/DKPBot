@@ -185,7 +185,6 @@ class DKPBot:
             self.__db['global']['history'][player].sort(
                 key=lambda info: info.Timestamp(), reverse=bool(oldest))
         else:
-            print(self.__db['global']['history'].keys())
             for p in self.__db['global']['history'].values():
                 p.sort(key=lambda info: info.Timestamp(), reverse=bool(oldest))
 

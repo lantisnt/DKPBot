@@ -166,14 +166,13 @@ class EssentialDKPBot(DKPBot):
     def _buildHistoryDatabase(self, sv):
         super()._buildHistoryDatabase(None)
         history = sv.get(self.__HISTORY_SV)
+
         if not history:
             return
         if not isinstance(history, dict):
             return  # dict because there is ["seed"] field...
-        i = 1
-        for entry in history.values():
-            i = i + 1
 
+        for entry in history.values():
             if not isinstance(entry, dict):
                 continue
 
@@ -221,9 +220,9 @@ class EssentialDKPBot(DKPBot):
                 continue
 
             self._fillHistory(players, dkp, date, reason, index)
-            self._sortHistory()
 
-            self._setPlayerLatestHistory()
+        self._sortHistory()
+        self._setPlayerLatestHistory()
 
 
     # Called after whole database is built
