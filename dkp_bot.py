@@ -27,10 +27,12 @@ class Response:
     # Request type on REQUEST
     # None on IGNORE
     message = None
+    dm = False
 
-    def __init__(self, status=ResponseStatus.IGNORE, data=None):
+    def __init__(self, status=ResponseStatus.IGNORE, data=None, dm=False):
         self.status = status
         self.data = data
+        self.dm = bool(dm)
 
 
 class DKPBot:
@@ -99,17 +101,26 @@ class DKPBot:
 
     def __handleCommand(self, command, param, requester_info):
         method = ''
+        dm = False
         if command[0] == '?':
             method = 'help_'
         elif command[0] == '!':
             method = 'call_'
+            if command[1] == '!':
+                dm = True # direct message
+                method += command[2:] #remove second ! also
+            else:
+                method += command[1:]
         else:
             return Response(ResponseStatus.IGNORE)
 
-        method += command[1:]
         callback = getattr(self, method, None)
         if callback:
-            return callback(param, requester_info)
+            response = callback(param, requester_info)
+
+            response.dm = dm
+
+            return response
         else:
             return Response(ResponseStatus.IGNORE)
 

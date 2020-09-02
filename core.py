@@ -135,7 +135,17 @@ async def on_message(message):
         response = bot.Handle(message.content, requester_info)
         if response and isinstance(response, dkp_bot.Response):
             if response.status == dkp_bot.ResponseStatus.SUCCESS:
-                await discord_respond(message.channel, response.data)
+                response_channel = message.channel
+                if response.dm:
+                    dm_channel = message.author.dm_channel
+                    if dm_channel == None:
+                        await message.author.create_dm()
+                        dm_channel = message.author.dm_channel
+                        if dm_channel == None:
+                             print('ERROR: Unable to create DM channel with {0}'.format(message.author))
+                             return
+                    response_channel = dm_channel    
+                await discord_respond(response_channel, response.data)
             elif response.status == dkp_bot.ResponseStatus.ERROR:
                 print('ERROR: {0}'.format(response.data))
                 return
