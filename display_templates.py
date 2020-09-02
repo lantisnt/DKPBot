@@ -348,10 +348,13 @@ class DKPMultipleResponse(MultipleResponse):
         super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
 
     def _prepare(self, data_list):
-        data_list_min = min(data_list)
-        data_list_max = max(data_list)
-        value_width = max(len(str(int(data_list_min))),
-                          len(str(int(data_list_max))))
+        def get_dkp(i):
+            return i.Dkp()
+
+        data_list_min = min(data_list, key=get_dkp)
+        data_list_max = max(data_list, key=get_dkp)
+        value_width = max(len(str(int(data_list_min.Dkp()))),
+                          len(str(int(data_list_max.Dkp()))))
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
     def _buildRow(self, data, requester):
