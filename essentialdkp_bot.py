@@ -114,31 +114,31 @@ class EssentialDKPBot(DKPBot):
         # if timestamp - updated > self.__30_DAYS_SECONDS: continue
 
         for entry in dkp_list:
-            if not entry:
+            if entry == None:
                 continue
 
             player = entry.get("player")
-            if not player:
+            if player == None:
                 continue
 
             dkp = entry.get("dkp")
-            if not dkp:
+            if dkp == None:
                 continue
 
             lifetime_gained = entry.get("lifetime_gained")
-            if not lifetime_gained:
+            if lifetime_gained == None:
                 continue
 
             lifetime_spent = entry.get("lifetime_spent")
-            if not lifetime_spent:
+            if lifetime_spent == None:
                 continue
 
             ingame_class = entry.get("class")
-            if not ingame_class:
+            if ingame_class == None:
                 continue
 
             role = entry.get("role")
-            if not role:
+            if role == None:
                 continue
 
             info = PlayerInfo(player, dkp, lifetime_gained,
@@ -161,26 +161,26 @@ class EssentialDKPBot(DKPBot):
             return  # dict because there is ["seed"] field...
 
         for entry in loot_list.values():
-            if not entry:
+            if entry == None:
                 continue
 
             if not isinstance(entry, dict):
                 continue
 
             player = entry.get("player")
-            if not player:
+            if player == None:
                 continue
             
             cost = entry.get("cost")
-            if not cost:
+            if cost == None:
                 continue
 
             loot = entry.get("loot")
-            if not loot:
+            if loot == None:
                 continue
 
             date = entry.get("date")
-            if not date:
+            if date == None:
                 continue
 
             ## Skip deletetion and deleted entries ##
@@ -216,30 +216,30 @@ class EssentialDKPBot(DKPBot):
             return  # dict because there is ["seed"] field...
 
         for entry in history.values():
-            if not entry:
+            if entry == None:
                 continue
 
             if not isinstance(entry, dict):
                 continue
 
             players = entry.get("players")
-            if not players:
+            if players == None:
                 continue
 
             dkp = entry.get("dkp")
-            if not dkp:
+            if dkp == None:
                 continue
 
             date = entry.get("date")
-            if not date:
+            if date == None:
                 continue
 
             reason = entry.get("reason")
-            if not reason:
+            if reason == None:
                 continue
 
             index = entry.get("index")
-            if not index:
+            if index == None:
                 continue
 
             ## Skip deletetion and deleted entries ##
