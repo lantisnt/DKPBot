@@ -55,6 +55,9 @@ async def discord_attachment_parse(message):
                     await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
                     print('ERROR: {0}'.format(response.data))
+                return response.status
+
+    return dkp_bot.ResponseStatus.IGNORE
 
 @client.event
 async def on_ready():
@@ -65,12 +68,17 @@ async def on_ready():
                 guild = client_guild
                 break
 
+        channel = None
         if guild and isinstance(guild, discord.Guild):
-            for channel in guild.text_channels:
-                if channel.id == int(CHANNEL_ID):
-                    async for message in channel.history(limit=50):
-                        await discord_attachment_parse(message)
+            for guild_channel in guild.text_channels:
+                if guild_channel.id == int(CHANNEL_ID):
+                    channel = guild_channel
 
+        if channel and isinstance(channel, discord.TextChannel):
+            async for message in channel.history(limit=50):
+                status = await discord_attachment_parse(message)
+                if status == dkp_bot.ResponseStatus.SUCCESS:
+                    break
 
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
