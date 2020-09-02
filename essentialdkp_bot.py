@@ -164,35 +164,39 @@ class EssentialDKPBot(DKPBot):
             if not entry:
                 continue
 
+            if not isinstance(entry, dict):
+                continue
+
             player = entry.get("player")
             if not player:
                 continue
-            #print("player " + player)
+            print("player " + player)
             
             cost = entry.get("cost")
             if not cost:
                 continue
-            #print("cost " + cost)
+            print("cost " + cost)
 
             loot = entry.get("loot")
             if not loot:
                 continue
-            #print("loot " + loot)
+            print("loot " + loot)
 
             date = entry.get("date")
             if not date:
                 continue
-            #print("date " + date)
+            print("date " + date)
 
             ## Skip deletetion and deleted entries ##
             if entry.get("deletes") or entry.get("deletedby"):
+                print("deletes/deletedby")
                 continue
 
             if not isinstance(loot, str):
                 continue
             
             item_info = list(filter(None, self.__item_id_name_find.findall(loot))) #[0] -> id [1] -> name
-            #print(item_info)
+            print(item_info)
             if len(item_info) != 2:
                 continue
 
