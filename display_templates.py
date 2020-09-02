@@ -72,7 +72,7 @@ def get_icon_string(c=None):
 def generate_dkp_history_entry(history_entry, format_string=None):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):
         if not format_string:
-            format_string = "`{{0:{0}.1f}}`".format(
+            format_string = "`{{0:{0}.1f}} DKP`".format(
                 len(str(int(history_entry.Dkp()))))
 
         row = "`{0:16}` ".format(datetime.fromtimestamp(history_entry.Timestamp(
@@ -337,7 +337,7 @@ class DKPMultipleResponse(MultipleResponse):
         data_list_max = max(data_list)
         value_width = max(len(str(int(data_list_min))),
                           len(str(int(data_list_max))))
-        self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
+        self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerInfo):
