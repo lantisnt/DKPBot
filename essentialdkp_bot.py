@@ -170,34 +170,30 @@ class EssentialDKPBot(DKPBot):
             player = entry.get("player")
             if not player:
                 continue
-            print("player " + str(player))
             
             cost = entry.get("cost")
             if not cost:
                 continue
-            print("cost " +  str(cost))
 
             loot = entry.get("loot")
             if not loot:
                 continue
-            print("loot " +  str(loot))
 
             date = entry.get("date")
             if not date:
                 continue
-            print("date " +  str(date))
 
             ## Skip deletetion and deleted entries ##
             if entry.get("deletes") or entry.get("deletedby"):
-                print("deletes/deletedby")
                 continue
 
             if not isinstance(loot, str):
                 continue
             
             item_info = list(filter(None, self.__item_id_name_find.findall(loot))) #[0] -> id [1] -> name
-            print(item_info)
+            #print(item_info)
             if len(item_info) != 2:
+                print("ERROR: len(item_info) = " + str(len(item_info)) + " in entry: " + str(player) + " " + str(date) + " " + str(cost) + " " + str(loot))
                 continue
 
             self._addLoot(player, PlayerLoot(player, item_info[0], item_info[1], cost, date))

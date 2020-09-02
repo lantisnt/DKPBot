@@ -176,6 +176,7 @@ class DKPBot:
             if not player_loot:
                 self.__db['global']['loot'][player] = []
             self.__db['global']['loot'][player].append(entry)
+            print("loot added for " + str(player))
 
     def _sortLoot(self, newest=True, player=None):
         if self.__db['global']['loot'].get(player):
