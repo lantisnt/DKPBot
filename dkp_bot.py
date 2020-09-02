@@ -215,6 +215,11 @@ class DKPBot:
         for p in self.__db['global']['dkp'].values():
             history = self._getHistory(p.Player())
             if history and isinstance(history, list):
+                if p.Player() == 'Danteril':
+                    i = 0
+                    for h in history:
+                        i = i+1
+                        print(str(i) + " " + str(h))
                 p.SetLatestHistoryEntry(history[0])
 
     def BuildDatabase(self, inputString, comment):
