@@ -31,7 +31,7 @@ class EssentialDKPBot(DKPBot):
 
         self.__multipleDkpOutputBuilder = DKPMultipleResponse("DKP Values", 6, 16, True)
         self.__multipleHistoryOutputBuilder = HistoryMultipleResponse("Latest DKP History", 1, 10, False)
-        self.__multipleLootOutputBuilder = LootMultipleResponse("Latest DKP History", 1, 10, False)
+        self.__multipleLootOutputBuilder = LootMultipleResponse("Latest Loot History", 1, 10, False)
     ###
 
     def __getNamesFromParam(self, param):
@@ -203,7 +203,7 @@ class EssentialDKPBot(DKPBot):
             self._addLoot(player, PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date))
 
         self._sortLoot()
-        #self._setPlayerLatestLoot()
+        self._setPlayerLatestLoot()
 
     # Called 3rd
     def _buildHistoryDatabase(self, sv):

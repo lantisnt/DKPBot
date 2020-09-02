@@ -225,6 +225,12 @@ class DKPBot:
 
         return None
 
+    def _setPlayerLatestLoot(self):
+        for p in self.__db['global']['dkp'].values():
+            loot = self._getLoot(p.Player())
+            if loot and isinstance(loot, list):
+                p.SetLatestLootEntry(loot[0])
+
     def _setPlayerLatestHistory(self):
         for p in self.__db['global']['dkp'].values():
             history = self._getHistory(p.Player())

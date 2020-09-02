@@ -5,8 +5,8 @@ class PlayerInfo:
     __lifetime_spent = 0
     __ingame_class = ""
     __role = ""
+    __latest_loot_entry = None
     __latest_history_entry = None
-    # __lastLoot = None
 
     def __init__(self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role):
         self.__player = str(player).lower().capitalize()
@@ -33,6 +33,13 @@ class PlayerInfo:
 
     def Role(self):
         return self.__role
+
+    def SetLatestLootEntry(self, loot_entry):
+        if loot_entry and isinstance(loot_entry, PlayerLoot):
+            self.__latest_loot_entry = loot_entry
+
+    def GetLatestLootEntry(self):
+        return self.__latest_loot_entry
 
     def SetLatestHistoryEntry(self, history_entry):
         if history_entry and isinstance(history_entry, PlayerDKPHistory):

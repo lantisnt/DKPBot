@@ -219,7 +219,7 @@ class SinglePlayerProfile(BaseResponse):
         self._embed.AddField("Last DKP award:",
                              generate_dkp_history_entry(info.GetLatestHistoryEntry()), False)
         self._embed.AddField("Last received loot:",
-                             "- No data yet -", False)
+                             generate_loot_entry(info.GetLatestLootEntry()), False)
 
         return self
 
