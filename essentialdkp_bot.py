@@ -194,6 +194,8 @@ class EssentialDKPBot(DKPBot):
 
             self._addHistory(player, PlayerLoot(player, item_info[0], item_info[1], cost, date))
 
+        self._sortLoot()
+        #self._setPlayerLatestLoot()
 
     # Called 3rd
     def _buildHistoryDatabase(self, sv):
