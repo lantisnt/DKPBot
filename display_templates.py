@@ -1,4 +1,4 @@
-from player_db_models import PlayerInfo, PlayerDKPHistory
+from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from datetime import datetime
 import pytz
 
@@ -80,6 +80,21 @@ def generate_dkp_history_entry(history_entry, format_string=None):
         row += format_string.format(history_entry.Dkp())
         row += " {0} _by {1}_".format(history_entry.Reason(),
                                       history_entry.Officer())
+        row += "\n"
+        return row
+    return ""
+
+def generate_loot_entry(loot_entry, format_string=None):
+    if loot_entry and isinstance(loot_entry, PlayerLoot):
+        if not format_string:
+            format_string = "`{{0:{0}.1f}} DKP`".format(
+                len(str(int(loot_entry.Dkp()))))
+
+        row = "`{0:16}` ".format(datetime.fromtimestamp(loot_entry.Timestamp(
+        ), tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"))
+        row += format_string.format(loot_entry.Dkp())
+        row += " [{0}](https://classic.wowhead.com/item={1})".format(loot_entry.ItemName(),
+                                      loot_entry.ItemId())
         row += "\n"
         return row
     return ""
@@ -384,5 +399,38 @@ class HistoryMultipleResponse(MultipleResponse):
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerDKPHistory):
             return generate_dkp_history_entry(data, self._value_format_string)
+
+        return ""
+
+class LootMultipleResponse(MultipleResponse):
+
+    __user = None
+
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
+        super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
+
+    def _prepare(self, data_list):
+        # Prepare format string
+        def get_dkp(i):
+            return i.Dkp()
+
+        data_list_min = min(data_list, key=get_dkp)
+        data_list_max = max(data_list, key=get_dkp)
+        # +2 for decimal
+        value_width = max(len(str(int(data_list_min.Dkp()))),
+                          len(str(int(data_list_max.Dkp())))) + 2
+        self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
+
+        for data in data_list:
+            if data and isinstance(data, PlayerLoot):
+                self.__user = data.Player()
+                break
+
+    def _overrideResponseLoop(self, response_id):
+        self._embed.SetTitle(self.__user)
+
+    def _buildRow(self, data, requester):
+        if data and isinstance(data, PlayerLoot):
+            return generate_loot_entry(data, self._value_format_string)
 
         return ""

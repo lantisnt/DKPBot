@@ -2,8 +2,8 @@ from datetime import datetime
 import re
 
 from dkp_bot import DKPBot, Response, ResponseStatus
-from player_db_models import PlayerInfo, PlayerDKPHistory
-from display_templates import SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse
+from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
+from display_templates import SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, LootMultipleResponse
 
 
 class EssentialDKPBot(DKPBot):
@@ -14,6 +14,7 @@ class EssentialDKPBot(DKPBot):
     __30_DAYS_SECONDS = 2592000
 
     __group_player_find = None
+    __item_id_name_find = None
 
     __singleDkpOutputBuilder = None
     __multipleDkpOutputBuilder = None
@@ -23,12 +24,14 @@ class EssentialDKPBot(DKPBot):
         super().__init__(inputFileName, channel, enabled, parser)
         # Matches either a,b,c,d or A / B or A \ B
         self.__group_player_find = re.compile("\s*([\d\w]*)[\s[\/\,]*")
+        self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)")
         # Data outputs
         self.__singlePlayerProfileBuilder = SinglePlayerProfile(
             "Essential DKP Profile")
 
         self.__multipleDkpOutputBuilder = DKPMultipleResponse("DKP Values", 6, 16, True)
         self.__multipleHistoryOutputBuilder = HistoryMultipleResponse("Latest DKP History", 1, 10, False)
+        self.__multipleLootOutputBuilder = LootMultipleResponse("Latest DKP History", 1, 10, False)
     ###
 
     def __getNamesFromParam(self, param):
@@ -40,11 +43,6 @@ class EssentialDKPBot(DKPBot):
         targets = list(dict.fromkeys(targets))
         # Lowercase all
         return list(map(lambda x: x.strip().lower(), targets))
-
-################################################
-############### BUILD DKP OUTPUT ###############
-################################################
-
 
     def __buildDKPOutputSingle(self, info):
         if not info or not isinstance(info, PlayerInfo):
@@ -64,17 +62,17 @@ class EssentialDKPBot(DKPBot):
 
         return self.__multipleDkpOutputBuilder.Build(output_result_list, requester).Get()
 
-####################################################
-############### BUILD HISTORY OUTPUT ###############
-####################################################
-
-
     def __buildHistoryOutputMultiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
         return self.__multipleHistoryOutputBuilder.Build(output_result_list).Get()
-###
+
+    def __buildLootOutputMultiple(self, output_result_list):
+        if not output_result_list or not isinstance(output_result_list, list):
+            return None
+
+        return self.__multipleLootOutputBuilder.Build(output_result_list).Get()
 
     ### Database - Variables parsing ###
 
@@ -105,17 +103,17 @@ class EssentialDKPBot(DKPBot):
     def _buildDkpDatabase(self, sv):
         super()._buildDkpDatabase(None)
 
-        dkp = sv.get(self.__DKP_SV)
-        if not dkp:
+        dkp_list = sv.get(self.__DKP_SV)
+        if not dkp_list:
             return
 
-        if not isinstance(dkp, list):
+        if not isinstance(dkp_list, list):
             return
 
         # Ignore players not getting DKP in last 30 days TODO
         # if timestamp - updated > self.__30_DAYS_SECONDS: continue
 
-        for entry in dkp:
+        for entry in dkp_list:
             if not entry:
                 return
 
@@ -149,7 +147,7 @@ class EssentialDKPBot(DKPBot):
             self._setGroupDkp(info.Class(), info)
 
         # Sort all class DKP
-        self._sortGroupDkp()
+        #self._sortGroupDkp() # not sure if needed as we do a sort on each request due to mixins
 
     # Called 2nd
     def _buildLootDatabase(self, sv):
@@ -161,6 +159,41 @@ class EssentialDKPBot(DKPBot):
 
         if not isinstance(loot, list):
             return
+
+        for entry in loot:
+            if not entry:
+                return
+
+            player = entry.get("player")
+            if not player:
+                continue
+
+            cost = entry.get("cost")
+            if not cost:
+                continue
+
+            loot = entry.get("loot")
+            if not loot:
+                continue
+
+            date = entry.get("date")
+            if not date:
+                continue
+
+            ## Skip deletetion and deleted entries ##
+            if entry.get("deletes") or entry.get("deletedby"):
+                continue
+
+            if not isinstance(loot, str):
+                continue
+
+            item_info = list(filter(None, self.__item_id_name_find.findall(loot))) #[0] -> id [1] -> name
+
+            if len(item_info) != 2:
+                continue
+
+            self._addHistory(player, PlayerLoot(player, item_info[0], item_info[1], cost, date))
+
 
     # Called 3rd
     def _buildHistoryDatabase(self, sv):
@@ -233,6 +266,8 @@ class EssentialDKPBot(DKPBot):
         self.__multipleDkpOutputBuilder.SetDbInfo(
             self._dbGetTime(), self._dbGetComment())
         self.__multipleHistoryOutputBuilder.SetDbInfo(
+            self._dbGetTime(), self._dbGetComment())
+        self.__multipleLootOutputBuilder.SetDbInfo(
             self._dbGetTime(), self._dbGetComment())
 
     ### Essential related ###
@@ -345,4 +380,24 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_dkploot(self, param, requester_info):
-        return Response(ResponseStatus.SUCCESS, "Sorry {0} :frowning: !dkploot is not yet implemented.".format(str(requester_info.get('name'))))
+        # return Response(ResponseStatus.SUCCESS, "Sorry {0} :frowning: !dkploot is not yet implemented.".format(str(requester_info.get('name'))))
+        targets = self.__getNamesFromParam(param)
+        output_result_list = []
+
+        if len(targets) > 0:
+            for target in targets:
+                # Single player
+                info = self._getLoot(target)
+                if info and isinstance(info, list):
+                    output_result_list = info
+                    break  # Yes single only
+        else:
+            return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
+
+        if len(output_result_list) > 0:
+            data = self.__buildLootOutputMultiple(output_result_list)
+        else:
+            data = "{0}'s DKP loot was not found in database.".format(
+                param.capitalize())
+
+        return Response(ResponseStatus.SUCCESS, data)

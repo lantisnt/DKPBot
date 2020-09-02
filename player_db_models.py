@@ -77,8 +77,41 @@ class PlayerInfo:
         return self.Dkp() >= other
 
 
+class PlayerLoot:
+    __player = ""
+    __item_id = 0
+    __item_name = ""
+    __dkp = 0
+    __timestamp = 0
+
+    def __init__(self, player, item_id, item_name, dkp, timestamp):
+        self.__player = str(player).lower().capitalize()
+        self.__item_id = int(item_id)
+        self.__item_name = str(item_name)
+        self.__dkp = float(abs(dkp))
+        self.__timestamp = int(timestamp)
+
+    def Player(self):
+        return self.__player
+
+    def ItemId(self):
+        return self.__item_id
+
+    def ItemName(self):
+        return self.__item_name
+
+    def Dkp(self):
+        return self.__dkp
+
+    def Timestamp(self):
+        return self.__timestamp
+
+    def __str__(self):
+        return "{0}: {1} {2}({3}) for {4} DKP".format(self.Timestamp(), self.Player(), self.ItemName(), self.ItemId(), self.Dkp())
+
+
 class PlayerDKPHistory:
-    __player = 0
+    __player = ""
     __dkp = 0
     __timestamp = ""
     __reason = ""
@@ -141,6 +174,3 @@ class PlayerDKPHistory:
     #     if isinstance(other, PlayerDKPHistory):
     #         other = other.Dkp()
     #     return self.Dkp() >= other
-
-
-

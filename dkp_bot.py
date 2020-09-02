@@ -169,8 +169,21 @@ class DKPBot:
     def _setDkp(self, player, entry):
         self.__db['global']['dkp'][player.lower()] = entry
 
-    def _setLoot(self, player, entry):
-        self.__db['global']['loot'][player.lower()] = entry
+    def _addLoot(self, player, entry):
+        if player and player != "":
+            player = player.lower()
+            player_loot = self.__db['global']['loot'].get(player)
+            if not player_loot:
+                self.__db['global']['loot'][player] = []
+            self.__db['global']['loot'][player].append(entry)
+
+    def _sortLoot(self, newest=True, player=None):
+        if self.__db['global']['loot'].get(player):
+            self.__db['global']['loot'][player].sort(
+                key=lambda info: info.Timestamp(), reverse=bool(newest))
+        else:
+            for p in self.__db['global']['loot'].values():
+                p.sort(key=lambda info: info.Timestamp(), reverse=bool(newest))
 
     def _addHistory(self, player, entry):
         if player and player != "":
