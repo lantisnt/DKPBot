@@ -77,6 +77,8 @@ class PlayerDKPHistory:
     __reason = ""
     __officer = ""
 
+    __latest_history_entry = None
+
     def __init__(self, player, dkp, timestamp, reason, index):
         self.__player = str(player).lower().capitalize()
         self.__dkp = float(dkp)
@@ -99,6 +101,13 @@ class PlayerDKPHistory:
 
     def Officer(self):
         return self.__officer
+
+    def SetLatestHistoryEntry(self, history_entry):
+        if history_entry and isinstance(history_entry, PlayerDKPHistory):
+            self.__latest_history_entry = history_entry
+
+    def GetLatestHistoryEntry(self):
+        return self.__latest_history_entry
 
     def __str__(self):
         return "{0}: {1} {2} DKP ({3}) by {4}".format(self.Timestamp(), self.Player(), self.Dkp(), self.Reason(), self.Officer())

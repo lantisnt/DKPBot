@@ -93,15 +93,13 @@ class EssentialDKPBot(DKPBot):
                 self._addHistory(player, PlayerDKPHistory(
                     player, dkp, timestamp, reason, index))
         elif isinstance(players, list) and isinstance(dkp, list):
-            # In case of unequal length we only add as many entries as there are players
+            # Remove the % entry
             del players[-1]
             del dkp[-1]
-
+            # In case of unequal length we only add as many entries as there are players
             for player in players:
-                internal_dkp = dkp.pop(0)
-                print("-{0}- : {1}".format(player, internal_dkp))
                 self._addHistory(player, PlayerDKPHistory(
-                    player, float(internal_dkp), timestamp, reason, index))
+                    player, float(dkp.pop(0)), timestamp, reason, index))
 
     # Called 1st
     def _buildDkpDatabase(self, sv):
@@ -224,6 +222,8 @@ class EssentialDKPBot(DKPBot):
 
             self._fillHistory(players, dkp, date, reason, index)
             self._sortHistory()
+
+            self._setPlayerLatestHistory()
 
 
     # Called after whole database is built

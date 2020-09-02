@@ -211,6 +211,12 @@ class DKPBot:
 
         return None
 
+    def _setPlayerLatestHistory(self):
+        for p in self.__db['global']['dkp']:
+            history = self._getHistory(p.Player())
+            if history and isinstance(history, list):
+                p.SetLatestHistoryEntry(history[0])
+
     def BuildDatabase(self, inputString, comment):
         print('Building database')
 

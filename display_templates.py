@@ -2,6 +2,7 @@ from player_db_models import PlayerInfo, PlayerDKPHistory
 from datetime import datetime
 import pytz
 
+
 def get_class_color(c=None):
     if not c:
         return 10204605
@@ -35,7 +36,7 @@ def get_class_color(c=None):
     return 10204605
 
 
-def get_icon_string(c = None):
+def get_icon_string(c=None):
     if not c:
         return ""
 
@@ -66,6 +67,22 @@ def get_icon_string(c = None):
         return "<:mage:641604891877310486>"
 
     return "<:essential:743883972206919790>"
+
+
+def generate_dkp_history_entry(history_entry, format_string=None):
+    if history_entry and isinstance(history_entry, PlayerDKPHistory):
+        if not format_string:
+            format_string = "`{{0:{0}.1f}}`".format(
+                len(str(int(history_entry.Dkp()))))
+
+        row = "`{0:16}` ".format(datetime.fromtimestamp(history_entry.Timestamp(
+        ), tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"))
+        row += format_string.format(history_entry.Dkp())
+        row += " {0} _by {1}_".format(history_entry.Reason(),
+                                      history_entry.Officer())
+        row += "\n"
+        return row
+    return ""
 
 
 class RawEmbed:
@@ -185,7 +202,7 @@ class SinglePlayerProfile(BaseResponse):
         self._embed.AddField("Lifetime spent:", "`{0} DKP`".format(
             info.LifetimeSpent()), True)
         self._embed.AddField("Last DKP award:",
-                             "- No data yet -", False)
+                             generate_dkp_history_entry(info.GetLatestHistoryEntry()), False)
         self._embed.AddField("Last received loot:",
                              "- No data yet -", False)
 
@@ -250,7 +267,7 @@ class MultipleResponse(BaseResponse):
         requester = requester.strip().capitalize()
 
         num_entries = len(data_list)
-        
+
         response_count = int(
             num_entries / (self.__field_limit * self.__entry_limit)) + 1
 
@@ -258,13 +275,14 @@ class MultipleResponse(BaseResponse):
             response_count = 1
 
         self.__response_list = []
-        
+
         # Hook to prepare format strings if needed
         self._prepare(data_list)
 
         start_value = 1
         for response_id in range(response_count):
-            if len(data_list) == 0: break
+            if len(data_list) == 0:
+                break
             self._embed.Clear()
 
             append_id = ""
@@ -285,14 +303,16 @@ class MultipleResponse(BaseResponse):
             self._overrideResponseLoop(response_id)
 
             for field_id in range(self.__field_limit):
-                if len(data_list) == 0: break
+                if len(data_list) == 0:
+                    break
 
                 name = "{0} - {1}".format(start_value,
                                           min(start_value + self.__entry_limit - 1, num_entries))
                 value = ""
 
                 for _ in range(self.__entry_limit):
-                    if len(data_list) == 0: break
+                    if len(data_list) == 0:
+                        break
                     value += self._buildRow(data_list.pop(), requester)
 
                 self._embed.AddField(name, value, True)
@@ -311,16 +331,17 @@ class DKPMultipleResponse(MultipleResponse):
 
     def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
         super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
-        
+
     def _prepare(self, data_list):
         data_list_min = min(data_list)
         data_list_max = max(data_list)
-        value_width = max(len(str(int(data_list_min))), len(str(int(data_list_max))))
+        value_width = max(len(str(int(data_list_min))),
+                          len(str(int(data_list_max))))
         self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerInfo):
-            row =  "{0}".format(get_icon_string(data.Class()))
+            row = "{0}".format(get_icon_string(data.Class()))
             row += self._value_format_string.format(data.Dkp())
             row += " "
             if requester == data.Player():
@@ -348,7 +369,8 @@ class HistoryMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
         # +2 for decimal
-        value_width = max(len(str(int(data_list_min.Dkp()))), len(str(int(data_list_max.Dkp())))) + 2
+        value_width = max(len(str(int(data_list_min.Dkp()))),
+                          len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
 
         for data in data_list:
@@ -361,10 +383,6 @@ class HistoryMultipleResponse(MultipleResponse):
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerDKPHistory):
-            row  = "`{0:16}` ".format(datetime.fromtimestamp(data.Timestamp(), tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"))
-            row += self._value_format_string.format(data.Dkp())
-            row += " {0} _by {1}_".format(data.Reason(), data.Officer())
-            row += "\n"
-            return row
+            return generate_dkp_history_entry(data, self._value_format_string)
 
         return ""

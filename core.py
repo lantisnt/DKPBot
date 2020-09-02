@@ -121,6 +121,7 @@ async def on_message(message):
                 for attachment in message.attachments:
                     if bot.CheckAttachmentName(attachment.filename):
                         attachment_bytes = await attachment.read()
+                        print("Attachement on channel: {0}".format(message.channel.id))
                         response = bot.BuildDatabase(
                             str(attachment_bytes, 'utf-8'), message.content)
                         if response.status == dkp_bot.ResponseStatus.SUCCESS:
