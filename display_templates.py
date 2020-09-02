@@ -387,9 +387,10 @@ class HistoryMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
         # +2 for decimal
+        # +4 for DKP
         value_width = max(len(str(int(data_list_min.Dkp()))),
-                          len(str(int(data_list_max.Dkp())))) + 2
-        self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
+                          len(str(int(data_list_max.Dkp())))) + 6
+        self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
         for data in data_list:
             if data and isinstance(data, PlayerDKPHistory):
@@ -420,9 +421,10 @@ class LootMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
         # +2 for decimal
+        # +4 for DKP
         value_width = max(len(str(int(data_list_min.Dkp()))),
-                          len(str(int(data_list_max.Dkp())))) + 2
-        self._value_format_string = "`{{0:{0}.1f}}`".format(value_width)
+                          len(str(int(data_list_max.Dkp())))) + 6
+        self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
         for data in data_list:
             if data and isinstance(data, PlayerLoot):
