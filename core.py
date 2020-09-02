@@ -69,7 +69,7 @@ async def on_ready():
             for channel in guild.text_channels:
                 if channel.id == int(CHANNEL_ID):
                     async for message in channel.history(limit=50):
-                        discord_attachment_parse(message)
+                        await discord_attachment_parse(message)
 
 
     except Exception:
