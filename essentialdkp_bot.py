@@ -115,7 +115,7 @@ class EssentialDKPBot(DKPBot):
 
         for entry in dkp_list:
             if not entry:
-                return
+                continue
 
             player = entry.get("player")
             if not player:
@@ -153,16 +153,16 @@ class EssentialDKPBot(DKPBot):
     def _buildLootDatabase(self, sv):
         super()._buildLootDatabase(None)
 
-        loot = sv.get(self.__LOOT_SV)
-        if not loot:
+        loot_list = sv.get(self.__LOOT_SV)
+        if not loot_list:
             return
 
-        if not isinstance(loot, list):
+        if not isinstance(loot_list, list):
             return
 
-        for entry in loot:
+        for entry in loot_list:
             if not entry:
-                return
+                continue
 
             player = entry.get("player")
             if not player:
@@ -212,6 +212,9 @@ class EssentialDKPBot(DKPBot):
             return  # dict because there is ["seed"] field...
 
         for entry in history.values():
+            if not entry:
+                continue
+
             if not isinstance(entry, dict):
                 continue
 
