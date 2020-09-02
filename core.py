@@ -9,12 +9,12 @@ import dkp_bot
 import essentialdkp_bot
 
 TOKEN = os.environ['DISCORD_TOKEN']
-#GUILD = os.environ['DISCORD_GUILD']
+GUILD = os.environ['GUILD']
+CHANNEL_ID = os.environ['CHANNEL_ID']
 
 client = discord.Client()
 
 bot = essentialdkp_bot.EssentialDKPBot()
-
 
 async def discord_build_embed(data):
     return discord.Embed().from_dict(data)
@@ -43,11 +43,35 @@ async def discord_respond(channel, responses):
             await channel.send(file=await discord_build_file(response))
 
 
+async def discord_attachment_parse(message):
+    if len(message.attachments) > 0:
+        for attachment in message.attachments:
+            if bot.CheckAttachmentName(attachment.filename):
+                attachment_bytes = await attachment.read()
+                print("Attachement on channel: {0}".format(message.channel.id))
+                response = bot.BuildDatabase(
+                    str(attachment_bytes, 'utf-8'), message.content)
+                if response.status == dkp_bot.ResponseStatus.SUCCESS:
+                    await discord_respond(message.channel, response.data)
+                elif response.status == dkp_bot.ResponseStatus.ERROR:
+                    print('ERROR: {0}'.format(response.data))
+
 @client.event
 async def on_ready():
     try:
-        for guild in client.guilds:
-            print(guild.name)
+        guild = None
+        for client_guild in client.guilds:
+            if client_guild.name == GUILD:
+                guild = client_guild
+                break
+
+        if guild and isinstance(guild, discord.Guild):
+            for channel in guild.text_channels:
+                if channel.id == int(CHANNEL_ID):
+                    async for message in channel.history(limit=50):
+                        discord_attachment_parse(message)
+
+
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
@@ -58,7 +82,7 @@ async def on_ready():
 async def on_message(message):
     try:
         # TODO very later on
-        # if enabled != True:
+        #if enabled != True:
         #    return
 
         # Don't react to own messages
@@ -116,20 +140,10 @@ async def on_message(message):
 
         # No ?!command response
         # Check if we have attachment on registered channel
-        if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
-            if len(message.attachments) > 0:
-                for attachment in message.attachments:
-                    if bot.CheckAttachmentName(attachment.filename):
-                        attachment_bytes = await attachment.read()
-                        print("Attachement on channel: {0}".format(message.channel.id))
-                        response = bot.BuildDatabase(
-                            str(attachment_bytes, 'utf-8'), message.content)
-                        if response.status == dkp_bot.ResponseStatus.SUCCESS:
-                            await discord_respond(message.channel, response.data)
-                            return
-                        elif response.status == dkp_bot.ResponseStatus.ERROR:
-                            print('ERROR: {0}'.format(response.data))
-                            return
+        #if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
+        if message.channel.id == int(CHANNEL_ID):
+            await discord_attachment_parse(message)
+
     except (SystemExit, Exception):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)

@@ -283,6 +283,8 @@ class EssentialDKPBot(DKPBot):
         self.__multipleLootOutputBuilder.SetDbInfo(
             self._dbGetTime(), self._dbGetComment())
 
+        # TODO remove inactive
+
     ### Essential related ###
 
     def __decodeAliases(self, groups):

@@ -75,14 +75,14 @@ def generate_dkp_history_entry(history_entry, format_string=None):
             format_string = "`{{0:{0}.1f}} DKP`".format(
                 len(str(int(history_entry.Dkp()))))
 
-        row = "`{0:16}` ".format(datetime.fromtimestamp(history_entry.Timestamp(
+        row = "`{0:16}` - ".format(datetime.fromtimestamp(history_entry.Timestamp(
         ), tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"))
         row += format_string.format(history_entry.Dkp())
-        row += " {0} _by {1}_".format(history_entry.Reason(),
+        row += " - {0} _by {1}_".format(history_entry.Reason(),
                                       history_entry.Officer())
         row += "\n"
         return row
-    return ""
+    return "- No data available -"
 
 def generate_loot_entry(loot_entry, format_string=None):
     if loot_entry and isinstance(loot_entry, PlayerLoot):
@@ -90,14 +90,14 @@ def generate_loot_entry(loot_entry, format_string=None):
             format_string = "`{{0:{0}.1f}} DKP`".format(
                 len(str(int(loot_entry.Dkp()))))
 
-        row = "`{0:16}` ".format(datetime.fromtimestamp(loot_entry.Timestamp(
+        row = "`{0:16}` - ".format(datetime.fromtimestamp(loot_entry.Timestamp(
         ), tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"))
         row += format_string.format(loot_entry.Dkp())
-        row += " [{0}](https://classic.wowhead.com/item={1})".format(loot_entry.ItemName(),
+        row += " - [{0}](https://classic.wowhead.com/item={1})".format(loot_entry.ItemName(),
                                       loot_entry.ItemId())
         row += "\n"
         return row
-    return ""
+    return "- No data available -"
 
 
 class RawEmbed:

@@ -7,6 +7,7 @@ class PlayerInfo:
     __role = ""
     __latest_loot_entry = None
     __latest_history_entry = None
+    __active = True
 
     def __init__(self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role):
         self.__player = str(player).lower().capitalize()
@@ -33,6 +34,12 @@ class PlayerInfo:
 
     def Role(self):
         return self.__role
+
+    def SetInactive(self):
+        self.__active = False
+
+    def IsActive(self):
+        return self.__active
 
     def SetLatestLootEntry(self, loot_entry):
         if loot_entry and isinstance(loot_entry, PlayerLoot):
