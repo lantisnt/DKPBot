@@ -313,7 +313,7 @@ class MultipleResponse(BaseResponse):
                 for _ in range(self.__entry_limit):
                     if len(data_list) == 0:
                         break
-                    value += self._buildRow(data_list.pop(), requester)
+                    value += self._buildRow(data_list.pop(0), requester)
 
                 self._embed.AddField(name, value, True)
                 self._overrideFieldLoop(response_id, field_id)
