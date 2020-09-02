@@ -357,7 +357,7 @@ class DKPMultipleResponse(MultipleResponse):
         # +2 for decimal
         # +4 for DKP
         value_width = max(len(str(int(data_list_min.Dkp()))),
-                          len(str(int(data_list_max.Dkp())))) + 6
+                          len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
     def _buildRow(self, data, requester):
@@ -392,7 +392,7 @@ class HistoryMultipleResponse(MultipleResponse):
         # +2 for decimal
         # +4 for DKP
         value_width = max(len(str(int(data_list_min.Dkp()))),
-                          len(str(int(data_list_max.Dkp())))) + 6
+                          len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
         for data in data_list:
@@ -426,7 +426,7 @@ class LootMultipleResponse(MultipleResponse):
         # +2 for decimal
         # +4 for DKP
         value_width = max(len(str(int(data_list_min.Dkp()))),
-                          len(str(int(data_list_max.Dkp())))) + 6
+                          len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
         for data in data_list:
