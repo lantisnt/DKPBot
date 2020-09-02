@@ -170,22 +170,22 @@ class EssentialDKPBot(DKPBot):
             player = entry.get("player")
             if not player:
                 continue
-            print("player " + player)
+            print("player " + str(player))
             
             cost = entry.get("cost")
             if not cost:
                 continue
-            print("cost " + cost)
+            print("cost " +  str(cost))
 
             loot = entry.get("loot")
             if not loot:
                 continue
-            print("loot " + loot)
+            print("loot " +  str(loot))
 
             date = entry.get("date")
             if not date:
                 continue
-            print("date " + date)
+            print("date " +  str(date))
 
             ## Skip deletetion and deleted entries ##
             if entry.get("deletes") or entry.get("deletedby"):
