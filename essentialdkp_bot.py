@@ -5,7 +5,6 @@ from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from display_templates import SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, LootMultipleResponse
 
-
 class EssentialDKPBot(DKPBot):
 
     __DKP_SV = "MonDKP_DKPTable"
@@ -49,9 +48,8 @@ class EssentialDKPBot(DKPBot):
             return None
 
         # TODO host the images
-        thumbnail = "https://img.rankedboost.com/wp-content/uploads/2019/05/WoW-Classic-{0}-Guide.png".format(
-            info.Class())
-        return self.__singlePlayerProfileBuilder.Build(info, thumbnail).Get()
+        #thumbnail = "https://img.rankedboost.com/wp-content/uploads/2019/05/WoW-Classic-{0}-Guide.png".format(info.Class())
+        return self.__singlePlayerProfileBuilder.Build(info, info.Class()).Get()
 
     def __buildDKPOutputMultiple(self, output_result_list, requester):
         if not output_result_list or not isinstance(output_result_list, list):

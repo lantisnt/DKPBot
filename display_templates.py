@@ -68,6 +68,37 @@ def get_icon_string(c=None):
 
     return "<:essential:743883972206919790>"
 
+def get_thumbnail(c):
+    if not c or not isinstance(c, str):
+        return None
+
+    c = c.lower()
+
+    if c == 'rogue':
+        return "https://media.discordapp.net/attachments/747858424540430457/750760643593765037/rogue.png"
+
+    if c == 'warrior':
+        return "https://media.discordapp.net/attachments/747858424540430457/750760648031600720/warrior.png"
+
+    if c == 'hunter':
+        return "https://media.discordapp.net/attachments/747858424540430457/750760636753117325/hunter.png"
+
+    if c == 'druid':
+        return "https://media.discordapp.net/attachments/747858424540430457/750760633729024030/druid.png"
+
+    if c == 'priest':
+        return "https://media.discordapp.net/attachments/747858424540430457/750760641740013741/priest.png"
+
+    if c == 'paladin':
+        return "https://media.discordapp.net/attachments/747858424540430457/750760640167280640/paladin.png"
+
+    if c == 'warlock':
+        return "https://media.discordapp.net/attachments/747858424540430457/750760645770739893/warlock.png"
+
+    if c == 'mage':
+        return "https://media.discordapp.net/attachments/747858424540430457/750760638699143288/mage.png"
+
+    return None
 
 def generate_dkp_history_entry(history_entry, format_string=None):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):
@@ -200,6 +231,9 @@ class SinglePlayerProfile(BaseResponse):
 
     def Build(self, info, thumbnail=None):
         self._embed.Clear()
+
+        if thumbnail:
+            thumbnail = get_thumbnail(thumbnail)
 
         self._embed.Build(
             author_name=self._title,
