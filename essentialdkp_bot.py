@@ -293,23 +293,23 @@ class EssentialDKPBot(DKPBot):
             if group == 'all':
                 return ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
 
-            if group == 'tank':
+            if group == 'tank' or group == 'tanks':
                 new_groups.extend(['warrior', 'druid'])
 
-            elif group == 'healer':
+            elif group == 'healer' or group == 'healers':
                 new_groups.extend(['priest', 'paladin', 'druid', 'shaman'])
 
             elif group == 'dps':
                 new_groups.extend(
                     ['warrior', 'rogue', 'hunter', 'mage', 'warlock', 'shaman'])
 
-            elif group == 'caster':
+            elif group == 'caster' or group == 'casters':
                 new_groups.extend(['mage', 'warlock'])
 
             elif group == 'physical':
                 new_groups.extend(['warrior', 'rogue', 'hunter', 'shaman'])
 
-            elif group == 'range':
+            elif group == 'range' or group == 'ranged':
                 new_groups.extend(['mage', 'warlock'])
 
             elif group == 'melee':
@@ -325,6 +325,8 @@ class EssentialDKPBot(DKPBot):
         help_string += '**{0}**\n Display this help\n'.format("?dkp")
         help_string += '**{0}**\n Display current DKP for [player] or the submitter if not specified.\n'.format(
             "!dkp [player]")
+        help_string += '**{0}**\n Display current DKP for player, class or alias mixed together. Supported aliases: all, tanks, healers, dps, casters, physical, ranged, melee. Example: !dkp Shadowlifes,healers,mage\n'.format(
+            "!dkp <class,alias,player>")
         help_string += '**{0}**\n Display latest loot for [player] or the submitter if not specified.\n'.format(
             "!dkploot [player]")
         help_string += '**{0}**\n Display DKP history for [player] or the submitter if not specified.'.format(
