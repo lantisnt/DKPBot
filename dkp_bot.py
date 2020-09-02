@@ -187,6 +187,7 @@ class DKPBot:
         else:
             for p in self.__db['global']['history'].values():
                 p.sort(key=lambda info: info.Timestamp(), reverse=bool(oldest))
+                print(p[0])
 
     def _sortGroupDkp(self, group=None):
         if self.__db['group'].get(group):
@@ -212,13 +213,9 @@ class DKPBot:
         return None
 
     def _setPlayerLatestHistory(self):
-        displayed = False
         for p in self.__db['global']['dkp'].values():
             history = self._getHistory(p.Player())
             if history and isinstance(history, list):
-                if not displayed and p.Player() == 'Danteril':
-                    displayed = True
-                    print(history)
                 p.SetLatestHistoryEntry(history[0])
 
     def BuildDatabase(self, inputString, comment):
