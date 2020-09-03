@@ -441,6 +441,9 @@ class HistoryMultipleResponse(MultipleResponse):
     def _overrideResponseLoop(self, response_id):
         self._embed.SetTitle(self.__user)
 
+    def _overrideFieldLoop(self, response_id, field_id):
+        self._embed.EditField(field_id, name="\u200b")
+
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerDKPHistory):
             return generate_dkp_history_entry(data, self._value_format_string)
@@ -468,11 +471,14 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
         for data in data_list:
             if data and isinstance(data, PlayerLoot):
-                self.__user = data.Player()
+                self.__user = data.Player().Player()
                 break
 
     def _overrideResponseLoop(self, response_id):
         self._embed.SetTitle(self.__user)
+
+    def _overrideFieldLoop(self, response_id, field_id):
+        self._embed.EditField(field_id, name="\u200b")
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerLoot):
@@ -501,6 +507,9 @@ class LootMultipleResponse(MultipleResponse):
 
     def _overrideResponseLoop(self, response_id):
         self._embed.SetTitle(self.__user)
+
+    def _overrideFieldLoop(self, response_id, field_id):
+        self._embed.EditField(field_id, name="\u200b")
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerLoot):
