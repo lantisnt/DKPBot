@@ -266,7 +266,7 @@ class EssentialDKPBot(DKPBot):
             self._fillHistory(players, dkp, date, reason, index)
 
         self._sortHistory()
-        self._setPlayerLatestHistory()
+        self._setPlayerLatestPositiveHistory()
 
 
     # Called after whole database is built
