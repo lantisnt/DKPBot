@@ -115,8 +115,8 @@ class DKPBot:
             return Response(ResponseStatus.IGNORE)
 
         callback = getattr(self, method, None)
-        if callback:
-            response = callback(param, requester_info)
+        if callback and callable(callback):
+            response = callback(param, requester_info) # pylint: disable=not-callable
 
             response.dm = dm
 
@@ -160,7 +160,7 @@ class DKPBot:
         self.__db['group'] = {}
 
     def _buildLootDatabase(self, sv):
-        self.__db['global']['loot'] = {}
+        self.__db['global']['loot'] = []
         self.__db['global']['player_loot'] = {}
 
     def _buildHistoryDatabase(self, sv):
