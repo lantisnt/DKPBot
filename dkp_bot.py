@@ -161,6 +161,7 @@ class DKPBot:
 
     def _buildLootDatabase(self, sv):
         self.__db['global']['loot'] = {}
+        self.__db['global']['player_loot'] = {}
 
     def _buildHistoryDatabase(self, sv):
         self.__db['global']['history'] = {}
@@ -171,8 +172,8 @@ class DKPBot:
     def _getDkp(self, player):
         return self.__db['global']['dkp'].get(player.lower())
 
-    def _getLoot(self, player):
-        return self.__db['global']['loot'].get(player.lower())
+    def _getPlayerLoot(self, player):
+        return self.__db['global']['player_loot'].get(player.lower())
 
     def _getHistory(self, player):
         return self.__db['global']['history'].get(player.lower())
@@ -180,20 +181,27 @@ class DKPBot:
     def _setDkp(self, player, entry):
         self.__db['global']['dkp'][player.lower()] = entry
 
-    def _addLoot(self, player, entry):
+    def _addLoot(self, entry):
+        self.__db['global']['loot'].append(entry)
+
+    def _sortLoot(self, newest=True):
+            self.__db['global']['loot'].sort(
+                key=lambda info: info.Timestamp(), reverse=bool(newest))
+
+    def _addPlayerLoot(self, player, entry):
         if player and player != "":
             player = player.lower()
-            player_loot = self.__db['global']['loot'].get(player)
+            player_loot = self.__db['global']['player_loot'].get(player)
             if not player_loot:
-                self.__db['global']['loot'][player] = []
-            self.__db['global']['loot'][player].append(entry)
+                self.__db['global']['player_loot'][player] = []
+            self.__db['global']['player_loot'][player].append(entry)
 
-    def _sortLoot(self, newest=True, player=None):
-        if self.__db['global']['loot'].get(player):
-            self.__db['global']['loot'][player].sort(
+    def _sortPlayerLoot(self, newest=True, player=None):
+        if self.__db['global']['player_loot'].get(player):
+            self.__db['global']['player_loot'][player].sort(
                 key=lambda info: info.Timestamp(), reverse=bool(newest))
         else:
-            for p in self.__db['global']['loot'].values():
+            for p in self.__db['global']['player_loot'].values():
                 p.sort(key=lambda info: info.Timestamp(), reverse=bool(newest))
 
     def _addHistory(self, player, entry):
@@ -237,7 +245,7 @@ class DKPBot:
 
     def _setPlayerLatestLoot(self):
         for p in self.__db['global']['dkp'].values():
-            loot = self._getLoot(p.Player())
+            loot = self._getPlayerLoot(p.Player())
             if loot and isinstance(loot, list):
                 p.SetLatestLootEntry(loot[0])
 

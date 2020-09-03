@@ -443,7 +443,7 @@ class HistoryMultipleResponse(MultipleResponse):
 
         return ""
 
-class LootMultipleResponse(MultipleResponse):
+class PlayerLootMultipleResponse(MultipleResponse):
 
     __user = None
 
@@ -467,6 +467,35 @@ class LootMultipleResponse(MultipleResponse):
             if data and isinstance(data, PlayerLoot):
                 self.__user = data.Player()
                 break
+
+    def _overrideResponseLoop(self, response_id):
+        self._embed.SetTitle(self.__user)
+
+    def _buildRow(self, data, requester):
+        if data and isinstance(data, PlayerLoot):
+            return generate_loot_entry(data, self._value_format_string)
+
+        return ""
+
+class LootMultipleResponse(MultipleResponse):
+
+    __user = None
+
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
+        super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
+
+    def _prepare(self, data_list):
+        # Prepare format string
+        def get_dkp(i):
+            return i.Dkp()
+
+        data_list_min = min(data_list, key=get_dkp)
+        data_list_max = max(data_list, key=get_dkp)
+        # +2 for decimal
+        # +4 for DKP
+        value_width = max(len(str(int(data_list_min.Dkp()))),
+                          len(str(int(data_list_max.Dkp())))) + 2
+        self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
     def _overrideResponseLoop(self, response_id):
         self._embed.SetTitle(self.__user)

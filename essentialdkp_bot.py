@@ -3,7 +3,7 @@ import re
 
 from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
-from display_templates import SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, LootMultipleResponse
+from display_templates import SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
 
 class EssentialDKPBot(DKPBot):
 
@@ -18,6 +18,8 @@ class EssentialDKPBot(DKPBot):
     __singleDkpOutputBuilder = None
     __multipleDkpOutputBuilder = None
     __multipleHistoryOutputBuilder = None
+    __multiplePlayerLootOutputBuilder = None
+    __multipleLootOutputBuilder = None
 
     def __init__(self, inputFileName="EssentialDKP.lua", channel=0, enabled=False, parser=None):
         super().__init__(inputFileName, channel, enabled, parser)
@@ -30,6 +32,7 @@ class EssentialDKPBot(DKPBot):
 
         self.__multipleDkpOutputBuilder = DKPMultipleResponse("DKP Values", 6, 16, True)
         self.__multipleHistoryOutputBuilder = HistoryMultipleResponse("Latest DKP History", 1, 10, False)
+        self.__multiplePlayerLootOutputBuilder = PlayerLootMultipleResponse("Latest Loot History", 1, 10, False)
         self.__multipleLootOutputBuilder = LootMultipleResponse("Latest Loot History", 1, 10, False)
     ###
 
@@ -65,6 +68,12 @@ class EssentialDKPBot(DKPBot):
             return None
 
         return self.__multipleHistoryOutputBuilder.Build(output_result_list).Get()
+
+    def __buildPlayerLootOutputMultiple(self, output_result_list):
+        if not output_result_list or not isinstance(output_result_list, list):
+            return None
+
+        return self.__multiplePlayerLootOutputBuilder.Build(output_result_list).Get()
 
     def __buildLootOutputMultiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
@@ -198,9 +207,12 @@ class EssentialDKPBot(DKPBot):
                 print("ERROR in item_info[0] " + str(item_info[0]))
                 continue
 
-            self._addLoot(player, PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date))
+            player_loot =  PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date)
+            self._addLoot(player_loot)
+            self._addPlayerLoot(player, player_loot)
 
         self._sortLoot()
+        self._sortPlayerLoot()
         self._setPlayerLatestLoot()
 
     # Called 3rd
@@ -278,7 +290,7 @@ class EssentialDKPBot(DKPBot):
             self._dbGetTime(), self._dbGetComment())
         self.__multipleHistoryOutputBuilder.SetDbInfo(
             self._dbGetTime(), self._dbGetComment())
-        self.__multipleLootOutputBuilder.SetDbInfo(
+        self.__multiplePlayerLootOutputBuilder.SetDbInfo(
             self._dbGetTime(), self._dbGetComment())
 
         # TODO remove inactive
@@ -329,6 +341,8 @@ class EssentialDKPBot(DKPBot):
             "!dkploot [player]")
         help_string += '**{0}**\n Display DKP history for [player] or the submitter if not specified.'.format(
             "!dkphistory [player]")
+        help_string += '**{0}**\n Display latest loot from raids.'.format(
+            "!dkploothistory")
         if isPrivileged == True:
             help_string += '\n\n'
             help_string += 'Administrator only options:\n'
@@ -402,7 +416,7 @@ class EssentialDKPBot(DKPBot):
         if len(targets) > 0:
             for target in targets:
                 # Single player
-                info = self._getLoot(target)
+                info = self._getPlayerLoot(target)
                 if info and isinstance(info, list):
                     output_result_list = info
                     break  # Yes single only
@@ -410,9 +424,20 @@ class EssentialDKPBot(DKPBot):
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
 
         if len(output_result_list) > 0:
-            data = self.__buildLootOutputMultiple(output_result_list)
+            data = self.__buildPlayerLootOutputMultiple(output_result_list)
         else:
             data = "{0}'s DKP loot was not found in database.".format(
                 param.capitalize())
+
+        return Response(ResponseStatus.SUCCESS, data)
+
+    def call_dkploothistory(self, param, requester_info):
+        # return Response(ResponseStatus.SUCCESS, "Sorry {0} :frowning: !dkploot is not yet implemented.".format(str(requester_info.get('name'))))
+        output_result_list = self._getLoot()
+
+        if len(output_result_list) > 0:
+            data = self.__buildLootOutputMultiple(output_result_list)
+        else:
+            data = "Unable to find data loot data."
 
         return Response(ResponseStatus.SUCCESS, data)
