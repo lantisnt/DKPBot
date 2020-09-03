@@ -270,10 +270,11 @@ class MultipleResponse(BaseResponse):
     __field_limit = 6
     __entry_limit = 16
     __allow_multiple_responses = True
+    __multiple_columns = True
 
     _value_format_string = "{0:8.1f}"
 
-    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses, multiple_columns):
         super().__init__(title)
 
         if field_limit and isinstance(field_limit, int):
@@ -293,6 +294,7 @@ class MultipleResponse(BaseResponse):
                 self.__entry_limit = entry_limit
 
         self.__allow_multiple_responses = bool(allow_multiple_responses)
+        self.__multiple_columns = bool(multiple_columns)
 
     def _prepare(self, data_list):
         True
@@ -368,7 +370,7 @@ class MultipleResponse(BaseResponse):
                         break
                     value += self._buildRow(data_list.pop(0), requester)
 
-                self._embed.AddField(name, value, True)
+                self._embed.AddField(name, value, self.__multiple_columns)
                 self._overrideFieldLoop(response_id, field_id)
                 start_value += self.__entry_limit
 
@@ -382,8 +384,8 @@ class MultipleResponse(BaseResponse):
 
 class DKPMultipleResponse(MultipleResponse):
 
-    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
-        super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses, multiple_columns):
+        super().__init__(title, field_limit, entry_limit, allow_multiple_responses, multiple_columns)
 
     def _prepare(self, data_list):
         # Prepare format string
@@ -416,8 +418,8 @@ class HistoryMultipleResponse(MultipleResponse):
 
     __user = None
 
-    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
-        super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses, multiple_columns):
+        super().__init__(title, field_limit, entry_limit, allow_multiple_responses, multiple_columns)
 
     def _prepare(self, data_list):
         # Prepare format string
@@ -449,8 +451,8 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
     __user = None
 
-    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
-        super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses, multiple_columns):
+        super().__init__(title, field_limit, entry_limit, allow_multiple_responses, multiple_columns)
 
     def _prepare(self, data_list):
         # Prepare format string
@@ -482,8 +484,8 @@ class LootMultipleResponse(MultipleResponse):
 
     __user = None
 
-    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses):
-        super().__init__(title, field_limit, entry_limit, allow_multiple_responses)
+    def __init__(self, title, field_limit, entry_limit, allow_multiple_responses, multiple_columns):
+        super().__init__(title, field_limit, entry_limit, allow_multiple_responses, multiple_columns)
 
     def _prepare(self, data_list):
         # Prepare format string
