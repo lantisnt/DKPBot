@@ -175,6 +175,9 @@ class DKPBot:
     def _getPlayerLoot(self, player):
         return self.__db['global']['player_loot'].get(player.lower())
 
+    def _getLoot(self,):
+        return self.__db['global']['loot']
+
     def _getHistory(self, player):
         return self.__db['global']['history'].get(player.lower())
 
