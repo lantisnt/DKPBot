@@ -144,8 +144,10 @@ async def on_message(message):
                         if dm_channel == None:
                              print('ERROR: Unable to create DM channel with {0}'.format(message.author))
                              return
-                    response_channel = dm_channel    
+                    response_channel = dm_channel
                 await discord_respond(response_channel, response.data)
+                if response.dm:
+                    await message.delete()
             elif response.status == dkp_bot.ResponseStatus.ERROR:
                 print('ERROR: {0}'.format(response.data))
                 return

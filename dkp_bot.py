@@ -50,7 +50,7 @@ class DKPBot:
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
             'global': {},
-            'group': {},   # Database for all grouped data. Indexed by groupn name. Sorted by DKP value descending
+            'group': {},   # Database for all grouped data. Indexed by group name. Sorted by DKP value descending
             'time': 0,
             'comment': ""
         }
