@@ -99,7 +99,9 @@ class PlayerLoot:
     __timestamp = 0
 
     def __init__(self, player, item_id, item_name, dkp, timestamp):
-        self.__player = str(player).lower().capitalize()
+        if not isinstance(player, PlayerInfo): #Workaround as we expect player to be connected to the 
+            player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN")
+        self.__player = player
         self.__item_id = int(item_id)
         self.__item_name = str(item_name)
         self.__dkp = float(abs(dkp))

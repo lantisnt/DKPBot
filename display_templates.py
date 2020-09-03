@@ -105,8 +105,8 @@ def generate_dkp_history_entry(history_entry, format_string=None):
         if not format_string:
             format_string = "`{{0:{0}.1f}} DKP`".format(
                 len(str(int(history_entry.Dkp()))))
-
-        row = "`{0:16}` - ".format(datetime.fromtimestamp(history_entry.Timestamp(
+        row = ""
+        row += "`{0:16}` - ".format(datetime.fromtimestamp(history_entry.Timestamp(
         ), tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"))
         row += format_string.format(history_entry.Dkp())
         row += " - {0} _by {1}_".format(history_entry.Reason(),
@@ -115,17 +115,21 @@ def generate_dkp_history_entry(history_entry, format_string=None):
         return row
     return "- No data available -"
 
-def generate_loot_entry(loot_entry, format_string=None):
+def generate_loot_entry(loot_entry, format_string=None, player=False):
     if loot_entry and isinstance(loot_entry, PlayerLoot):
         if not format_string:
             format_string = "`{{0:{0}.1f}} DKP`".format(
                 len(str(int(loot_entry.Dkp()))))
-
-        row = "`{0:16}` - ".format(datetime.fromtimestamp(loot_entry.Timestamp(
+        row = ""
+        row += "`{0:16}` - ".format(datetime.fromtimestamp(loot_entry.Timestamp(
         ), tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"))
         row += format_string.format(loot_entry.Dkp())
         row += " - [{0}](https://classic.wowhead.com/item={1})".format(loot_entry.ItemName(),
                                       loot_entry.ItemId())
+        if player:
+            row += " - "
+            row += "{0}".format(get_icon_string(loot_entry.Player().Class()))
+            row += "{0}".format(loot_entry.Player().Player())
         row += "\n"
         return row
     return "- No data available -"
@@ -389,7 +393,6 @@ class DKPMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
         # +2 for decimal
-        # +4 for DKP
         value_width = max(len(str(int(data_list_min.Dkp()))),
                           len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
@@ -424,7 +427,6 @@ class HistoryMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
         # +2 for decimal
-        # +4 for DKP
         value_width = max(len(str(int(data_list_min.Dkp()))),
                           len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
@@ -458,7 +460,6 @@ class PlayerLootMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
         # +2 for decimal
-        # +4 for DKP
         value_width = max(len(str(int(data_list_min.Dkp()))),
                           len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
@@ -492,7 +493,6 @@ class LootMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
         # +2 for decimal
-        # +4 for DKP
         value_width = max(len(str(int(data_list_min.Dkp()))),
                           len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
@@ -502,6 +502,6 @@ class LootMultipleResponse(MultipleResponse):
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerLoot):
-            return generate_loot_entry(data, self._value_format_string)
+            return generate_loot_entry(data, self._value_format_string, True)
 
         return ""
