@@ -505,9 +505,6 @@ class LootMultipleResponse(MultipleResponse):
                           len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
-    def _overrideResponseLoop(self, response_id):
-        self._embed.SetTitle(self.__user)
-
     def _overrideFieldLoop(self, response_id, field_id):
         self._embed.EditField(field_id, name="\u200b")
 

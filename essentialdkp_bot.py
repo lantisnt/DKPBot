@@ -342,11 +342,11 @@ class EssentialDKPBot(DKPBot):
         help_string += '**{0}**\n Display current DKP for player, class or alias mixed together. Supported aliases: all, tanks, healers, dps, casters, physical, ranged, melee. Example: !dkp Shadowlifes,healers,mage\n'.format(
             "!dkp <class,alias,player>")
         help_string += '**{0}**\n Display latest loot for [player] or the submitter if not specified.\n'.format(
-            "!dkploot [player]")
+            "!loot [player]")
         help_string += '**{0}**\n Display DKP history for [player] or the submitter if not specified.'.format(
-            "!dkphistory [player]")
+            "!history [player]")
         help_string += '**{0}**\n Display latest loot from raids.'.format(
-            "!dkploothistory")
+            "!items")
         if isPrivileged == True:
             help_string += '\n\n'
             help_string += 'Administrator only options:\n'
@@ -389,8 +389,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_dkphistory(self, param, requester_info):
-        # return Response(ResponseStatus.SUCCESS, "Sorry :frowning: !dkphistory is not yet implemented.")
+    def call_history(self, param, requester_info):
         targets = self.__getNamesFromParam(param)
         output_result_list = []
 
@@ -412,8 +411,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_dkploot(self, param, requester_info):
-        # return Response(ResponseStatus.SUCCESS, "Sorry {0} :frowning: !dkploot is not yet implemented.".format(str(requester_info.get('name'))))
+    def call_loot(self, param, requester_info):
         targets = self.__getNamesFromParam(param)
         output_result_list = []
 
@@ -435,8 +433,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_dkploothistory(self, param, requester_info):
-        # return Response(ResponseStatus.SUCCESS, "Sorry {0} :frowning: !dkploot is not yet implemented.".format(str(requester_info.get('name'))))
+    def call_items(self, param, requester_info):
         output_result_list = self._getLoot()
 
         if len(output_result_list) > 0:
@@ -445,3 +442,17 @@ class EssentialDKPBot(DKPBot):
             data = "Unable to find data loot data."
 
         return Response(ResponseStatus.SUCCESS, data)
+
+    ### Aliases ###
+
+    def call_dkphistory(self, param, requester_info):
+        return self.call_history(param, requester_info)
+
+    def call_dkploot(self, param, requester_info):
+        return self.call_loot(param, requester_info)
+
+    def call_dkploothistory(self, param, requester_info):
+        return self.call_items(param, requester_info)
+
+    def call_item(self, param, requester_info):
+        return self.call_items(param, requester_info)
