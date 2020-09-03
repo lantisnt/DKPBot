@@ -30,10 +30,10 @@ class EssentialDKPBot(DKPBot):
         self.__singlePlayerProfileBuilder = SinglePlayerProfile(
             "Essential DKP Profile")
 
-        self.__multipleDkpOutputBuilder = DKPMultipleResponse("DKP Values", 6, 16, True, True)
-        self.__multipleHistoryOutputBuilder = HistoryMultipleResponse("Latest DKP History", 1, 10, False, True)
-        self.__multiplePlayerLootOutputBuilder = PlayerLootMultipleResponse("Latest Loot History", 1, 10, False, True)
-        self.__multipleLootOutputBuilder = LootMultipleResponse("Latest Loot History", 6, 6, False, False)
+        self.__multipleDkpOutputBuilder = DKPMultipleResponse("DKP values", 6, 16, True, True)
+        self.__multipleHistoryOutputBuilder = HistoryMultipleResponse("Latest DKP hstory", 1, 10, False, True)
+        self.__multiplePlayerLootOutputBuilder = PlayerLootMultipleResponse("Latest loot history", 1, 10, False, True)
+        self.__multipleLootOutputBuilder = LootMultipleResponse("Latest 30 items", 6, 5, False, False)
     ###
 
     def __getNamesFromParam(self, param):
@@ -333,7 +333,7 @@ class EssentialDKPBot(DKPBot):
 
     ### Commands ###
 
-    def help_dkp(self, param, isPrivileged):
+    def help_dkp(self, param, requester_info):
         help_string = 'EssentialDKP Bot allows access to dkp information.\n'
         help_string += 'Currently supported commands:\n'
         help_string += '**{0}**\n Display this help\n'.format("?dkp")
@@ -347,7 +347,7 @@ class EssentialDKPBot(DKPBot):
             "!history [player]")
         help_string += '**{0}**\n Display latest loot from raids.'.format(
             "!items")
-        if isPrivileged == True:
+        if requester_info['is_privileged'] == True:
             help_string += '\n\n'
             help_string += 'Administrator only options:\n'
             help_string += '**{0}**\n Register current channel as EssentialDKP.lua file source.\n'.format(

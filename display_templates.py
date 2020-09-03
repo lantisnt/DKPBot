@@ -438,11 +438,14 @@ class HistoryMultipleResponse(MultipleResponse):
                 self.__user = data.Player()
                 break
 
-    def _overrideResponseLoop(self, response_id):
-        self._embed.SetTitle(self.__user)
+    #def _overrideResponseLoop(self, response_id):
+    #    self._embed.SetTitle(self.__user)
 
     def _overrideFieldLoop(self, response_id, field_id):
-        self._embed.EditField(field_id, name="\u200b")
+        if field_id == 0:
+            self._embed.SetTitle(self.__user)
+        else:
+            self._embed.EditField(field_id, name="\u200b")
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerDKPHistory):
@@ -474,11 +477,14 @@ class PlayerLootMultipleResponse(MultipleResponse):
                 self.__user = data.Player().Player()
                 break
 
-    def _overrideResponseLoop(self, response_id):
-        self._embed.SetTitle(self.__user)
+    #def _overrideResponseLoop(self, response_id):
+    #    self._embed.SetTitle(self.__user)
 
     def _overrideFieldLoop(self, response_id, field_id):
-        self._embed.EditField(field_id, name="\u200b")
+        if field_id == 0:
+            self._embed.SetTitle(self.__user)
+        else:
+            self._embed.EditField(field_id, name="\u200b")
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerLoot):
@@ -505,8 +511,19 @@ class LootMultipleResponse(MultipleResponse):
                           len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
+        for data in data_list:
+            if data and isinstance(data, PlayerLoot):
+                self.__user = data.Player().Player()
+                break
+
+    #def _overrideResponseLoop(self, response_id):
+    #    self._embed.SetTitle(self.__user)
+
     def _overrideFieldLoop(self, response_id, field_id):
-        self._embed.EditField(field_id, name="\u200b")
+        if field_id == 0:
+            self._embed.SetTitle(self.__user)
+        else:
+            self._embed.EditField(field_id, name="\u200b")
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerLoot):
