@@ -443,7 +443,7 @@ class HistoryMultipleResponse(MultipleResponse):
 
     def _overrideFieldLoop(self, response_id, field_id):
         if field_id == 0:
-            self._embed.SetTitle(self.__user)
+            self._embed.EditField(field_id, self.__user)
         else:
             self._embed.EditField(field_id, name="\u200b")
 
@@ -482,7 +482,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
     def _overrideFieldLoop(self, response_id, field_id):
         if field_id == 0:
-            self._embed.SetTitle(self.__user)
+            self._embed.EditField(field_id, self.__user)
         else:
             self._embed.EditField(field_id, name="\u200b")
 
@@ -521,7 +521,7 @@ class LootMultipleResponse(MultipleResponse):
 
     def _overrideFieldLoop(self, response_id, field_id):
         if field_id == 0:
-            self._embed.SetTitle(self.__user)
+            self._embed.EditField(field_id, self.__user)
         else:
             self._embed.EditField(field_id, name="\u200b")
 
