@@ -334,20 +334,26 @@ class EssentialDKPBot(DKPBot):
 
     ### Commands ###
 
-    def help_dkp(self, param, requester_info):
+    def call_dkphelp(self, param, requester_info):
         help_string = 'EssentialDKP Bot allows access to dkp information.\n'
         help_string += 'Currently supported commands:\n'
-        help_string += '**{0}**\n Display this help\n'.format("?dkp")
-        help_string += '**{0}**\n Display current DKP for [player] or the submitter if not specified.\n'.format(
+        help_string += '**{0}**\n Display this help\n'.format("!dkphelp")
+        help_string += '**{0}**\n Display summary information of the requester.\n'.format(
+            "!dkp")
+        help_string += '**{0}**\n Display summary information of [player].\n'.format(
             "!dkp [player]")
         help_string += '**{0}**\n Display current DKP for player, class or alias mixed together. Supported aliases: all, tanks, healers, dps, casters, physical, ranged, melee. Example: !dkp Shadowlifes,healers,mage\n'.format(
             "!dkp <class,alias,player>")
-        help_string += '**{0}**\n Display latest loot for [player] or the submitter if not specified.\n'.format(
-            "!loot [player]")
-        help_string += '**{0}**\n Display DKP history for [player] or the submitter if not specified.'.format(
+        help_string += '**{0}**\n Display DKP history of the requester.'.format(
+            "!history ")
+        help_string += '**{0}**\n Display DKP history of [player].'.format(
             "!history [player]")
-        help_string += '**{0}**\n Display latest loot from raids.'.format(
-            "!items")
+        help_string += '**{0}**\n Display latest loot of the requester.\n'.format(
+            "!loot" )
+        help_string += '**{0}**\n Display latest loot of [player].\n'.format(
+            "!loot [player]")
+        help_string += '**{0}**\n Display latest 30 loot entries from raids.'.format(
+            "!raidloot")
         if requester_info['is_privileged'] == True:
             help_string += '\n\n'
             help_string += 'Administrator only options:\n'
@@ -390,7 +396,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_history(self, param, requester_info):
+    def call_dkphistory(self, param, requester_info):
         targets = self.__getNamesFromParam(param)
         output_result_list = []
 
@@ -434,7 +440,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_items(self, param, requester_info):
+    def call_raidloot(self, param, requester_info):
         output_result_list = self._getLoot()
 
         if len(output_result_list) > 0:
@@ -446,14 +452,14 @@ class EssentialDKPBot(DKPBot):
 
     ### Aliases ###
 
-    def call_dkphistory(self, param, requester_info):
-        return self.call_history(param, requester_info)
+    # def call_dkphistory(self, param, requester_info):
+    #     return self.call_history(param, requester_info)
 
-    def call_dkploot(self, param, requester_info):
-        return self.call_loot(param, requester_info)
+    # def call_dkploot(self, param, requester_info):
+    #     return self.call_loot(param, requester_info)
 
-    def call_dkploothistory(self, param, requester_info):
-        return self.call_items(param, requester_info)
+    # def call_dkploothistory(self, param, requester_info):
+    #     return self.call_items(param, requester_info)
 
-    def call_item(self, param, requester_info):
-        return self.call_items(param, requester_info)
+    # def call_item(self, param, requester_info):
+    #     return self.call_items(param, requester_info)

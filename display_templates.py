@@ -214,7 +214,7 @@ class BaseResponse:
             self._title = str(title)
 
     def _GetFooter(self):
-        return "Database updated by {0._author} | {0._comment} | {0._date}"
+        return "Database updated by {0._author} | {0._comment} | {0._date}".format(self)
 
     def IsBuilt(self):
         return self._isBuilt
