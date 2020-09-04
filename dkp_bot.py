@@ -273,8 +273,8 @@ class DKPBot:
             return Response(ResponseStatus.ERROR, "No SavedVariables found in .lua file.")
 
         comment = info.get('comment')
-        date = info.get('comment')
-        author = info.get('comment')
+        date = info.get('date')
+        author = info.get('author')
         self.__db['info']['comment'] = comment if type(comment) == 'str' else ""
         self.__db['info']['date'] = date if type(date) == 'str' else datetime.now(tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M")
         self.__db['info']['author'] = author if type(author) == 'str' else ""
