@@ -66,7 +66,7 @@ async def discord_attachment_parse(message, normalized_author):
             if bot.CheckAttachmentName(attachment.filename):
                 attachment_bytes = await attachment.read()
                 info = {
-                    'comment' : message.content[:50] if message.content else None,
+                    'comment' : message.content[:50],
                     'date' : message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
                     'author' : normalized_author,
                 }

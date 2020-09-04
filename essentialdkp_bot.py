@@ -345,9 +345,9 @@ class EssentialDKPBot(DKPBot):
         help_string += '**{0}**\n Display current DKP for player, class or alias mixed together. Supported aliases: all, tanks, healers, dps, casters, physical, ranged, melee. Example: !dkp Shadowlifes,healers,mage\n'.format(
             "!dkp <class,alias,player>")
         help_string += '**{0}**\n Display DKP history of the requester.\n'.format(
-            "!history ")
+            "!dkphistory ")
         help_string += '**{0}**\n Display DKP history of [player].\n'.format(
-            "!history [player]")
+            "!dkphistory [player]")
         help_string += '**{0}**\n Display latest loot of the requester.\n'.format(
             "!loot" )
         help_string += '**{0}**\n Display latest loot of [player].\n'.format(
