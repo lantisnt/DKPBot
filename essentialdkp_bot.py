@@ -181,7 +181,7 @@ class EssentialDKPBot(DKPBot):
             player = self._getDkp(player)
             if player == None:
                 continue
-            
+
             cost = entry.get("cost")
             if cost == None:
                 continue
@@ -200,7 +200,7 @@ class EssentialDKPBot(DKPBot):
 
             if not isinstance(loot, str):
                 continue
-            
+
             item_info = list(filter(None, self.__item_id_name_find.findall(loot))) #[0] -> id [1] -> name
             #print(item_info)
             if not item_info or not isinstance(item_info, list) or len(item_info) != 1:
@@ -287,17 +287,16 @@ class EssentialDKPBot(DKPBot):
 
     # Called after whole database is built
     def _finalizeDatabase(self):
-        self._dbSetTime()
         self.__singlePlayerProfileBuilder.SetDbInfo(
-            self._dbGetTime(), self._dbGetComment())
+            self._dbGetInfo())
         self.__multipleDkpOutputBuilder.SetDbInfo(
-            self._dbGetTime(), self._dbGetComment())
+            self._dbGetInfo())
         self.__multipleHistoryOutputBuilder.SetDbInfo(
-            self._dbGetTime(), self._dbGetComment())
+            self._dbGetInfo())
         self.__multiplePlayerLootOutputBuilder.SetDbInfo(
-            self._dbGetTime(), self._dbGetComment())
+            self._dbGetInfo())
         self.__multipleLootOutputBuilder.SetDbInfo(
-            self._dbGetTime(), self._dbGetComment())
+            self._dbGetInfo())
 
         # TODO remove inactive
 

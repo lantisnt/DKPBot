@@ -145,15 +145,8 @@ class DKPBot:
     def __getSavedVariables(self, inputString):
         return SavedVariablesParser().ParseString(inputString)
 
-    def _dbSetTime(self):
-        self.__db['time'] = datetime.now(
-            tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M")
-
-    def _dbGetTime(self):
-        return self.__db['time']
-
-    def _dbGetComment(self):
-        return self.__db['comment']
+    def _dbGetInfo(self):
+        return self.__db['info']
 
     def _buildDkpDatabase(self, sv):
         self.__db['global']['dkp'] = {}
@@ -283,7 +276,7 @@ class DKPBot:
         date = info.get('comment')
         author = info.get('comment')
         self.__db['info']['comment'] = comment if type(comment) == 'str' else ""
-        self.__db['info']['date'] = date if type(date) == 'str' else ""
+        self.__db['info']['date'] = date if type(date) == 'str' else datetime.now(tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M")
         self.__db['info']['author'] = author if type(author) == 'str' else ""
 
         self._buildDkpDatabase(sv)

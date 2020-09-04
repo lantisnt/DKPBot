@@ -202,7 +202,8 @@ class RawEmbed:
 class BaseResponse:
     _embed = None
     _title = ""
-    _time = ""
+    _date = ""
+    _author = ""
     _comment = ""
     _isBuilt = False
 
@@ -213,16 +214,21 @@ class BaseResponse:
             self._title = str(title)
 
     def _GetFooter(self):
-        #Database update by [Uploader] | [Uploader's note] | YYYY.MM.DD HH:MM
-        return "{0._comment} updated {0._time}".format(self)
+        return "Database updated by {0._author} | {0._comment} | {0._date}"
 
     def IsBuilt(self):
         return self._isBuilt
 
-    def SetDbInfo(self, time, comment):
-        if time:
-            self._time = str(time)
+    def SetDbInfo(self, info):
+        date = info.get('date')
+        if date:
+            self._date = date
 
+        author = info.get('author')
+        if author:
+            self._author = str(author)
+
+        comment = info.get('comment')
         if comment:
             self._comment = str(comment)
 
