@@ -8,6 +8,8 @@ import discord
 import dkp_bot
 import essentialdkp_bot
 
+import pytz
+
 TOKEN = os.environ['DISCORD_TOKEN']
 GUILD = os.environ['GUILD']
 CHANNEL_ID = os.environ['CHANNEL_ID']
@@ -16,13 +18,28 @@ client = discord.Client()
 
 bot = essentialdkp_bot.EssentialDKPBot()
 
+
+def normalize_author(author):
+    if isinstance(author, discord.Member):
+        if author.nick:
+            normalized = author.nick
+        else:
+            normalized = author
+    else:
+        normalized = author
+        
+    normalized = "{0}".format(author)
+    normalized = normalized.split("#")[0].strip()
+    normalized = normalized.split("/")[0].strip()
+    normalized = normalized.split("\\")[0].strip()
+
+    return normalized
+
 async def discord_build_embed(data):
     return discord.Embed().from_dict(data)
 
-
 async def discord_build_file(data):
     return discord.File(data)
-
 
 async def discord_respond(channel, responses):
     if not responses:
@@ -43,14 +60,18 @@ async def discord_respond(channel, responses):
             await channel.send(file=await discord_build_file(response))
 
 
-async def discord_attachment_parse(message):
+async def discord_attachment_parse(message, normalized_author):
     if len(message.attachments) > 0:
         for attachment in message.attachments:
             if bot.CheckAttachmentName(attachment.filename):
                 attachment_bytes = await attachment.read()
-                print("Attachement on channel: {0}".format(message.channel.id))
+                info = {
+                    'comment' : message.content[:50] if message.content else None,
+                    'date' : message.created_at.astimezone(pytz.timezone("Europe/Paris")),
+                    'author' : normalized_author,
+                }
                 response = bot.BuildDatabase(
-                    str(attachment_bytes, 'utf-8'), message.content)
+                    str(attachment_bytes, 'utf-8'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
@@ -76,7 +97,7 @@ async def on_ready():
 
         if channel and isinstance(channel, discord.TextChannel):
             async for message in channel.history(limit=50):
-                status = await discord_attachment_parse(message)
+                status = await discord_attachment_parse(message, normalize_author(message.author))
                 if status == dkp_bot.ResponseStatus.SUCCESS:
                     break
 
@@ -103,18 +124,7 @@ async def on_message(message):
             return
 
         # Normalize author
-        author = None
-        if isinstance(message.author, discord.Member):
-            if message.author.nick:
-                author = message.author.nick
-            else:
-                author = message.author
-        else:
-            author = message.author
-        author = "{0}".format(author)
-        author = author.split("#")[0].strip()
-        author = author.split("/")[0].strip()
-        author = author.split("\\")[0].strip()
+        author = normalize_author(message.author)
 
         # Debug message receive print
         #print('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
@@ -162,7 +172,7 @@ async def on_message(message):
         # Check if we have attachment on registered channel
         #if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
         if message.channel.id == int(CHANNEL_ID):
-            await discord_attachment_parse(message)
+            await discord_attachment_parse(message, normalize_author(message.author))
 
     except (SystemExit, Exception):
         exc_type, exc_value, exc_traceback = sys.exc_info()

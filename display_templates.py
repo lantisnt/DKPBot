@@ -213,6 +213,7 @@ class BaseResponse:
             self._title = str(title)
 
     def _GetFooter(self):
+        #Database update by [Uploader] | [Uploader's note] | YYYY.MM.DD HH:MM
         return "{0._comment} updated {0._time}".format(self)
 
     def IsBuilt(self):
@@ -520,10 +521,7 @@ class LootMultipleResponse(MultipleResponse):
     #    self._embed.SetTitle(self.__user)
 
     def _overrideFieldLoop(self, response_id, field_id):
-        if field_id == 0:
-            self._embed.EditField(field_id, self.__user)
-        else:
-            self._embed.EditField(field_id, name="\u200b")
+        self._embed.EditField(field_id, name="\u200b")
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerLoot):

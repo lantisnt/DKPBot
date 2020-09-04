@@ -52,7 +52,7 @@ class DKPBot:
             'global': {},
             'group': {},   # Database for all grouped data. Indexed by group name. Sorted by DKP value descending
             'time': 0,
-            'comment': ""
+            'info': {}
         }
 
     def Enable(self):
@@ -267,7 +267,7 @@ class DKPBot:
                         p.SetLatestHistoryEntry(history_entry)
                         break
 
-    def BuildDatabase(self, inputString, comment):
+    def BuildDatabase(self, inputString, info):
         print('Building database')
 
         start = int(datetime.now(tz=timezone.utc).timestamp())
@@ -279,7 +279,12 @@ class DKPBot:
         if not isinstance(sv, dict):
             return Response(ResponseStatus.ERROR, "No SavedVariables found in .lua file.")
 
-        self.__db['comment'] = comment
+        comment = info.get('comment')
+        date = info.get('comment')
+        author = info.get('comment')
+        self.__db['info']['comment'] = comment if type(comment) == 'str' else ""
+        self.__db['info']['date'] = date if type(date) == 'str' else ""
+        self.__db['info']['author'] = author if type(author) == 'str' else ""
 
         self._buildDkpDatabase(sv)
         self._buildLootDatabase(sv)

@@ -296,6 +296,8 @@ class EssentialDKPBot(DKPBot):
             self._dbGetTime(), self._dbGetComment())
         self.__multiplePlayerLootOutputBuilder.SetDbInfo(
             self._dbGetTime(), self._dbGetComment())
+        self.__multipleLootOutputBuilder.SetDbInfo(
+            self._dbGetTime(), self._dbGetComment())
 
         # TODO remove inactive
 
