@@ -251,13 +251,16 @@ class DKPBot:
             if history and isinstance(history, list):
                 p.SetLatestHistoryEntry(history[0])
 
-    def _setPlayerLatestPositiveHistory(self):
+    def _setPlayerLatestPositiveHistoryAndActivity(self, inactive_time = 200000000000):
+        now = int(datetime.now(tz=timezone.utc).timestamp())
         for p in self.__db['global']['dkp'].values():
             history = self._getHistory(p.Player())
             if history and isinstance(history, list):
                 for history_entry in history:
                     if history_entry.Dkp() > 0:
                         p.SetLatestHistoryEntry(history_entry)
+                        if abs(now - history_entry.Timestamp()) > inactive_time:
+                            p.SetInactive()
                         break
 
     def BuildDatabase(self, inputString, info):

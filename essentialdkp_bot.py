@@ -10,7 +10,7 @@ class EssentialDKPBot(DKPBot):
     __DKP_SV = "MonDKP_DKPTable"
     __LOOT_SV = "MonDKP_Loot"
     __HISTORY_SV = "MonDKP_DKPHistory"
-    __30_DAYS_SECONDS = 2592000
+    __45_DAYS_SECONDS = 3888000
 
     __group_player_find = None
     __item_id_name_find = None
@@ -31,9 +31,9 @@ class EssentialDKPBot(DKPBot):
             "Essential DKP Profile")
 
         self.__multipleDkpOutputBuilder = DKPMultipleResponse("DKP values", 6, 16, True, True)
-        self.__multipleHistoryOutputBuilder = HistoryMultipleResponse("Latest DKP hstory", 1, 10, False, True)
+        self.__multipleHistoryOutputBuilder = HistoryMultipleResponse("Latest DKP history", 1, 10, False, True)
         self.__multiplePlayerLootOutputBuilder = PlayerLootMultipleResponse("Latest loot history", 1, 10, False, True)
-        self.__multipleLootOutputBuilder = LootMultipleResponse("Latest 30 items", 6, 5, False, False)
+        self.__multipleLootOutputBuilder = LootMultipleResponse("Latest 30 items awarded", 6, 5, False, False)
     ###
 
     def __getNamesFromParam(self, param):
@@ -282,7 +282,7 @@ class EssentialDKPBot(DKPBot):
             self._fillHistory(players, dkp, date, reason, index)
 
         self._sortHistory()
-        self._setPlayerLatestPositiveHistory()
+        self._setPlayerLatestPositiveHistoryAndActivity(self.__45_DAYS_SECONDS)
 
 
     # Called after whole database is built

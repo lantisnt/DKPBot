@@ -307,16 +307,23 @@ class MultipleResponse(BaseResponse):
     def _buildRow(self, data, requester):
         return str(data) + "\n"
 
-    def Build(self, data_list, requester="", thumbnail=None):
+    def _displayFilter(self, data):
+        return True
+
+    def Build(self, data_list_unfiltered, requester="", thumbnail=None):
         self._embed.Clear()
 
         if not requester or not isinstance(requester, str):
             requester = ""
 
-        if not isinstance(data_list, list):
+        if not isinstance(data_list_unfiltered, list):
             return None
 
-        data_list = data_list.copy()
+        #data_list = data_list.copy()
+        data_list = []
+        for data in data_list_unfiltered:
+            if self._displayFilter(data):
+                data_list.append(data)
 
         requester = requester.strip().capitalize()
 
@@ -397,6 +404,12 @@ class DKPMultipleResponse(MultipleResponse):
         value_width = max(len(str(int(data_list_min.Dkp()))),
                           len(str(int(data_list_max.Dkp())))) + 2
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
+
+    def _displayFilter(self, data):
+        if data and isinstance(data, PlayerInfo):
+            return data.IsActive()
+
+        return False
 
     def _buildRow(self, data, requester):
         if data and isinstance(data, PlayerInfo):
