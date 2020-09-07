@@ -28,7 +28,7 @@ def normalize_author(author):
     else:
         normalized = author
         
-    normalized = "{0}".format(author)
+    normalized = "{0}".format(normalized)
     normalized = normalized.split("#")[0].strip()
     normalized = normalized.split("/")[0].strip()
     normalized = normalized.split("\\")[0].strip()
@@ -70,7 +70,6 @@ async def discord_attachment_parse(message, normalized_author):
                     'date' : message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
                     'author' : normalized_author,
                 }
-                print(info)
                 response = bot.BuildDatabase(
                     str(attachment_bytes, 'utf-8'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:

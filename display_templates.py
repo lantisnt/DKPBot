@@ -220,17 +220,9 @@ class BaseResponse:
         return self._isBuilt
 
     def SetDbInfo(self, info):
-        date = info.get('date')
-        if date:
-            self._date = date
-
-        author = info.get('author')
-        if author:
-            self._author = str(author)
-
-        comment = info.get('comment')
-        if comment:
-            self._comment = str(comment)
+        self._date = info.get('date')
+        self._author = info.get('author')
+        self._comment = info.get('comment')
 
         return self
 

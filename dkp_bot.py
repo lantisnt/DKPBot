@@ -272,12 +272,9 @@ class DKPBot:
         if not isinstance(sv, dict):
             return Response(ResponseStatus.ERROR, "No SavedVariables found in .lua file.")
 
-        comment = info.get('comment')
-        date = info.get('date')
-        author = info.get('author')
-        self.__db['info']['comment'] = comment if type(comment) == 'str' else ""
-        self.__db['info']['date'] = date if type(date) == 'str' else datetime.now(tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M")
-        self.__db['info']['author'] = author if type(author) == 'str' else ""
+        self.__db['info']['comment'] = info.get('comment')
+        self.__db['info']['date'] = info.get('date')
+        self.__db['info']['author'] = info.get('author')
 
         self._buildDkpDatabase(sv)
         self._buildLootDatabase(sv)
