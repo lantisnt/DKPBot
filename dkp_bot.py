@@ -88,9 +88,9 @@ class DKPBot:
             self.__parser.add_argument(
                 'command', metavar='command', type=str, help='Actual command', nargs='?', default=None)
             self.__parser.add_argument(
-                'param', metavar='param', type=str, help='Command parameter', nargs='?', default=None)
-            self.__parser.add_argument('varargs', metavar='varargs', type=str,
-                                       help='All other string values will be put here', nargs='*', default=None)
+                'param', metavar='param', type=str, help='Command parameter', nargs='*', default=None)
+#            self.__parser.add_argument('varargs', metavar='varargs', type=str,
+#                                       help='All other string values will be put here', nargs='*', default=None)
         return self.__parser
 
     def __parseCommand(self, string):
@@ -132,6 +132,7 @@ class DKPBot:
                     if not requester_info or not requester_info.get('name'):
                         return Response(ResponseStatus.ERROR, "No param and no author. How?")
                     args.param = requester_info.get('name')
+                    args.param = " ".join(args.param)
                 return self.__handleCommand(args.command.lower(), args.param.lower(), requester_info)
             else:
                 # Empty message, attachement only probably
