@@ -191,7 +191,7 @@ class DKPBot:
         if not keyword or not isinstance(keyword, str) or len(keyword) == 0:
             return None
         keyword = keyword.strip()
-        loot_pattern = re.compile(keyword)
+        loot_pattern = re.compile(keyword, flags=re.IGNORECASE)
 
         def get_loot_if_matching(entry):
             if loot_pattern.match(entry.ItemName()):
