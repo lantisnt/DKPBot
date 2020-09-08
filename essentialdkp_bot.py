@@ -455,7 +455,7 @@ class EssentialDKPBot(DKPBot):
         if len(output_result_list) > 0:
             data = self.__buildLootOutputMultiple(output_result_list)
         else:
-            data = "Unable to find data loot data."
+            data = "No loot matching `{0}` found.".format(param)
 
         return Response(ResponseStatus.SUCCESS, data)
 
