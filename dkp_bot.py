@@ -199,7 +199,8 @@ class DKPBot:
             
             return None
 
-        return list(map(get_loot_if_matching, self.__db['global']['loot']))
+        l = list(map(get_loot_if_matching, self.__db['global']['loot']))
+        return list(filter(None, l))
 
 
     def _addPlayerLoot(self, player, entry):
