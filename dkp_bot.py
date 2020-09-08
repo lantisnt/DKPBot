@@ -4,6 +4,8 @@ import pytz
 
 from enum import Enum
 
+import re
+
 from savedvariables_parser import SavedVariablesParser
 
 
@@ -184,6 +186,21 @@ class DKPBot:
     def _sortLoot(self, newest=True):
             self.__db['global']['loot'].sort(
                 key=lambda info: info.Timestamp(), reverse=bool(newest))
+
+    def _findLoot(self, keyword):
+        if not keyword or not isinstance(keyword, str) or len(keyword) == 0:
+            return None
+        keyword = keyword.strip()
+        loot_pattern = re.compile(keyword)
+
+        def get_loot_if_matching(entry):
+            if loot_pattern.match(entry.ItemName()):
+                return entry
+            
+            return None
+
+        return list(map(get_loot_if_matching, self.__db['global']['loot']))
+
 
     def _addPlayerLoot(self, player, entry):
         if player and player != "":

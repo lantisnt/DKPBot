@@ -449,6 +449,16 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
+    def call_item(self, param, requester_info):
+        output_result_list = self._findLoot(param)
+
+        if len(output_result_list) > 0:
+            data = self.__buildLootOutputMultiple(output_result_list)
+        else:
+            data = "Unable to find data loot data."
+
+        return Response(ResponseStatus.SUCCESS, data)
+
     ### Aliases ###
 
     # def call_dkphistory(self, param, requester_info):
