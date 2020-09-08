@@ -28,11 +28,11 @@ class EssentialDKPBot(DKPBot):
         self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)")
         # Data outputs
         self.__singlePlayerProfileBuilder       = SinglePlayerProfile("Essential DKP Profile")
-        self.__multipleDkpOutputBuilder         = DKPMultipleResponse("DKP values", 6, 16, True, True)
-        self.__multipleHistoryOutputBuilder     = HistoryMultipleResponse("Latest DKP history", 1, 10, False, True)
-        self.__multiplePlayerLootOutputBuilder  = PlayerLootMultipleResponse("Latest loot history", 1, 10, False, True)
-        self.__multipleLootOutputBuilder        = LootMultipleResponse("Latest 30 items awarded", 6, 5, False, False)
-        self.__multipleItemSearchOutputBuilder  = LootMultipleResponse("Search results", 6, 5, True, False)
+        self.__multipleDkpOutputBuilder         = DKPMultipleResponse("DKP values", 6, 16, 10, True)
+        self.__multipleHistoryOutputBuilder     = HistoryMultipleResponse("Latest DKP history", 1, 10, 1, True)
+        self.__multiplePlayerLootOutputBuilder  = PlayerLootMultipleResponse("Latest loot history", 1, 10, 1, True)
+        self.__multipleLootOutputBuilder        = LootMultipleResponse("Latest 30 items awarded", 6, 5, 1, False)
+        self.__multipleItemSearchOutputBuilder  = LootMultipleResponse("Search results", 6, 5, 3, False)
     ###
 
     def __getNamesFromParam(self, param):
@@ -302,7 +302,8 @@ class EssentialDKPBot(DKPBot):
             self._dbGetInfo())
         self.__multipleLootOutputBuilder.SetDbInfo(
             self._dbGetInfo())
-
+        self.__multipleItemSearchOutputBuilder.SetDbInfo(
+            self._dbGetInfo())
     ### Essential related ###
 
     def __decodeAliases(self, groups):
@@ -455,6 +456,10 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_item(self, param, requester_info):
+
+        if len(param) < 3:
+            return Response(ResponseStatus.SUCCESS, "No loot matching `{0}` found.")
+
         output_result_list = self._findLoot(param)
 
         if len(output_result_list) > 0:
