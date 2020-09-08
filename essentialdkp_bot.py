@@ -28,11 +28,11 @@ class EssentialDKPBot(DKPBot):
         self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)")
         # Data outputs
         self.__singlePlayerProfileBuilder       = SinglePlayerProfile("Essential DKP Profile")
-        self.__multipleDkpOutputBuilder         = DKPMultipleResponse("DKP values", 6, 16, 10, True)
-        self.__multipleHistoryOutputBuilder     = HistoryMultipleResponse("Latest DKP history", 1, 10, 1, True)
-        self.__multiplePlayerLootOutputBuilder  = PlayerLootMultipleResponse("Latest loot history", 1, 10, 1, True)
-        self.__multipleLootOutputBuilder        = LootMultipleResponse("Latest 30 items awarded", 6, 5, 1, False)
-        self.__multipleItemSearchOutputBuilder  = LootMultipleResponse("Search results", 6, 5, 3, False)
+        self.__multipleDkpOutputBuilder         = DKPMultipleResponse("DKP values",                 6,  16, 5, True)
+        self.__multipleHistoryOutputBuilder     = HistoryMultipleResponse("Latest DKP history",     1,  10, 1, True)
+        self.__multiplePlayerLootOutputBuilder  = PlayerLootMultipleResponse("Latest loot history", 1,  10, 1, True)
+        self.__multipleLootOutputBuilder        = LootMultipleResponse("Latest 30 items awarded",   6,  5,  1, False)
+        self.__multipleItemSearchOutputBuilder  = LootMultipleResponse("Search results",            6,  5,  3, False)
     ###
 
     def __getNamesFromParam(self, param):
@@ -49,8 +49,6 @@ class EssentialDKPBot(DKPBot):
         if not info or not isinstance(info, PlayerInfo):
             return None
 
-        # TODO host the images
-        #thumbnail = "https://img.rankedboost.com/wp-content/uploads/2019/05/WoW-Classic-{0}-Guide.png".format(info.Class())
         return self.__singlePlayerProfileBuilder.Build(info, info.Class()).Get()
 
     def __buildDKPOutputMultiple(self, output_result_list, requester):
@@ -207,7 +205,7 @@ class EssentialDKPBot(DKPBot):
                 continue
 
             item_info = list(filter(None, self.__item_id_name_find.findall(loot))) #[0] -> id [1] -> name
-            #print(item_info)
+
             if not item_info or not isinstance(item_info, list) or len(item_info) != 1:
                 print("ERROR in entry: " + str(player.Player()) + " " + str(date) + " " + str(cost) + " " + str(loot))
                 continue
@@ -458,7 +456,7 @@ class EssentialDKPBot(DKPBot):
     def call_item(self, param, requester_info):
 
         if len(param) < 3:
-            return Response(ResponseStatus.SUCCESS, "No loot matching `{0}` found.")
+            return Response(ResponseStatus.SUCCESS, "Query to short. Please specify at least 3 letters.")
 
         output_result_list = self._findLoot(param)
 
@@ -468,17 +466,3 @@ class EssentialDKPBot(DKPBot):
             data = "No loot matching `{0}` found.".format(param)
 
         return Response(ResponseStatus.SUCCESS, data)
-
-    ### Aliases ###
-
-    # def call_dkphistory(self, param, requester_info):
-    #     return self.call_history(param, requester_info)
-
-    # def call_dkploot(self, param, requester_info):
-    #     return self.call_loot(param, requester_info)
-
-    # def call_dkploothistory(self, param, requester_info):
-    #     return self.call_items(param, requester_info)
-
-    # def call_item(self, param, requester_info):
-    #     return self.call_items(param, requester_info)

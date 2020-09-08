@@ -35,7 +35,6 @@ def get_class_color(c=None):
 
     return 10204605
 
-
 def get_icon_string(c=None):
     if not c:
         return ""
@@ -73,7 +72,7 @@ def get_thumbnail(c):
         return None
 
     c = c.lower()
-
+        # TODO host the images
     if c == 'rogue':
         return "https://media.discordapp.net/attachments/747858424540430457/750760643593765037/rogue.png"
 
