@@ -298,8 +298,6 @@ class EssentialDKPBot(DKPBot):
         self.__multipleLootOutputBuilder.SetDbInfo(
             self._dbGetInfo())
 
-        # TODO remove inactive
-
     ### Essential related ###
 
     def __decodeAliases(self, groups):
@@ -354,6 +352,7 @@ class EssentialDKPBot(DKPBot):
             "!loot [player]")
         help_string += '**{0}**\n Display latest 30 loot entries from raids.\n'.format(
             "!raidloot")
+        help_string += 'You can also preceed any command with **double exclamation mark !!** instead of single one to get the response in DM. Your request will be removed by the bot afterwards.\n'
         if requester_info['is_privileged'] == True:
             help_string += '\n\n'
             help_string += 'Administrator only options:\n'
