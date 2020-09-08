@@ -196,7 +196,7 @@ class DKPBot:
         loot_pattern = re.compile(keyword, flags=re.IGNORECASE)
 
         def get_loot_if_matching(entry):
-            if loot_pattern.match(entry.ItemName()) != None:
+            if loot_pattern.search(entry.ItemName()) != None:
                 return entry
             
             return None
