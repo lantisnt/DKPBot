@@ -279,7 +279,7 @@ class EssentialDKPBot(DKPBot):
                 dkp = list(map(lambda d: d, dkp.split(",")))
                 if len(dkp) == 1: # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
                     continue
-            elif not isinstance(dkp, int):
+            elif (not isinstance(dkp, int) and not isinstance(dkp, float)):
                 continue
 
             self._fillHistory(players, dkp, date, reason, index)
