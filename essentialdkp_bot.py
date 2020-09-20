@@ -93,7 +93,7 @@ class EssentialDKPBot(DKPBot):
         if not dkp:
             return
 
-        if isinstance(players, str) and isinstance(dkp, int):
+        if isinstance(players, str) and (isinstance(dkp, int) or isinstance(dkp, float)):
             self._addHistory(players, PlayerDKPHistory(
                 players, dkp, timestamp, reason, index))
         elif isinstance(players, list) and isinstance(dkp, int):
