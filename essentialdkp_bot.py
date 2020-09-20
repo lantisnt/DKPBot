@@ -21,8 +21,8 @@ class EssentialDKPBot(DKPBot):
     __multiplePlayerLootOutputBuilder = None
     __multipleLootOutputBuilder = None
 
-    def __init__(self, inputFileName="EssentialDKP.lua", channel=0, enabled=False, parser=None):
-        super().__init__(inputFileName, channel, enabled, parser)
+    def __init__(self, config):
+        super().__init__(config)
         # Matches either a,b,c,d or A / B or A \ B
         self.__group_player_find = re.compile("\s*([\d\w]*)[\s[\/\,]*")
         self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)")
@@ -96,7 +96,7 @@ class EssentialDKPBot(DKPBot):
         if isinstance(players, str) and (isinstance(dkp, int) or isinstance(dkp, float)):
             self._addHistory(players, PlayerDKPHistory(
                 players, dkp, timestamp, reason, index))
-        elif isinstance(players, list) and isinstance(dkp, int):
+        elif isinstance(players, list) and (isinstance(dkp, int) or isinstance(dkp, float)):
             for player in players:
                 self._addHistory(player, PlayerDKPHistory(
                     player, dkp, timestamp, reason, index))

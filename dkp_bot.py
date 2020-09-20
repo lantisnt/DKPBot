@@ -1,11 +1,9 @@
 import argparse
 from datetime import datetime, timezone
 import pytz
-
 from enum import Enum
-
 import re
-
+import configparser
 from savedvariables_parser import SavedVariablesParser
 
 
@@ -44,11 +42,8 @@ class DKPBot:
     __parser = None
     __db = {}
 
-    def __init__(self, inputFileName="SavedVariable.lua", channel=0, enabled=False, parser=None):
+    def __init__(self, id, inputFileName="SavedVariable.lua"):
         self.__inputFileName = inputFileName
-        self.__channel = channel
-        self.__enabled = enabled
-        self.__parser = parser
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
             'global': {},
@@ -73,7 +68,8 @@ class DKPBot:
         return (self.__channel != 0)
 
     def CheckChannel(self, channel):
-        return (self.__channel == channel)
+        #return (self.__channel == channel)
+        return True
 
     def CheckAttachmentName(self, filename):
         return (self.__inputFileName == filename)
