@@ -58,13 +58,12 @@ class BotConfig():
         self.__config = ConfigParser()
 
         if os.path.isfile(filepath):
-            print("1")
             result = self.__config.read(filepath)
             if filepath in result:
                 self.__load()
                 self.__type = BotConfigType.SPECIFIC
                 return
-        print("2")
+
         result = self.__config.read(DEFAULT_CONFIG)
         if DEFAULT_CONFIG in result:
             self.__load()

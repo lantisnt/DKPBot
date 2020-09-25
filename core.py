@@ -51,6 +51,7 @@ async def discord_respond(channel, responses):
             await channel.send(file=await discord_build_file(response))
 
 async def discord_attachment_parse(bot, message, normalized_author):
+    try:
     if len(message.attachments) > 0:
         for attachment in message.attachments:
             if bot.CheckAttachmentName(attachment.filename) and bot.CheckChannel(message.channel.id):
@@ -67,7 +68,9 @@ async def discord_attachment_parse(bot, message, normalized_author):
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
                     print('ERROR: {0}'.format(response.data))
                 return response.status
-
+    except Forbidden:
+        pass
+    
     return dkp_bot.ResponseStatus.IGNORE
 
 @client.event
@@ -86,7 +89,7 @@ async def on_ready():
                                 break
             else:
                 continue
-
+    
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
