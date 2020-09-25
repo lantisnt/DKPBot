@@ -102,7 +102,7 @@ async def on_ready():
                                 if status == dkp_bot.ResponseStatus.SUCCESS:
                                     break
                     except discord.Forbidden:
-                        pass
+                        continue
             else:
                 continue
     except Exception:
