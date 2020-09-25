@@ -156,9 +156,6 @@ class EssentialDKPBot(DKPBot):
             self._setDkp(player, info)
             self._setGroupDkp(info.Class(), info)
 
-        # Sort all class DKP
-        #self._sortGroupDkp() # not sure if needed as we do a sort on each request due to mixins
-
     # Called 2nd
     def _buildLootDatabase(self, sv):
         super()._buildLootDatabase(None)

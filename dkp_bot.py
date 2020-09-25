@@ -5,7 +5,7 @@ from enum import Enum
 import re
 import configparser
 from savedvariables_parser import SavedVariablesParser
-
+import footprint
 
 class ResponseStatus(Enum):
     SUCCESS = 0
@@ -300,8 +300,8 @@ class DKPBot:
 
         self._finalizeDatabase()
 
-        print('Building complete in {0} seconds'.format(
-            int(datetime.now(tz=timezone.utc).timestamp()) - start))
+        print('Building complete in {0} seconds. Total size: {1} B'.format(
+            int(datetime.now(tz=timezone.utc).timestamp()) - start), footprint.total_size(self))
 
         if len(self.__db['global']['dkp']) <= 0:
             # for table in self.__db['global']:

@@ -4,15 +4,11 @@ import discord
 import dkp_bot, bot_factory
 from bot_config import BotConfig
 
-TOKEN = os.environ['DISCORD_TOKEN']
-GUILD = os.environ['GUILD']
-CHANNEL_ID = os.environ['CHANNEL_ID']
-CFG_DIR = os.environ['WOWDKPBOTCFGDIR']
+TOKEN = 0
+CFG_DIR = "/tmp"
 
-if __name__ == "__main__":
-    client.run(TOKEN)
-    client = discord.Client()
-    bots = {}
+client = discord.Client()
+bots = {}
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
@@ -77,23 +73,19 @@ async def discord_attachment_parse(bot, message, normalized_author):
 @client.event
 async def on_ready():
     try:
-        for client_guild in client.guilds:
-            config_filename = "{0}/{1}.ini".format(CFG_DIR,client_guild.id)
+        for guild in client.guilds:
+            config_filename = "{0}/{1}.ini".format(CFG_DIR, guild.id)
             bot = bot_factory.New(BotConfig(config_filename))
             if bot:
-                bots[client_guild.id] = bot
+                bots[guild.id] = bot
+                for channel in guild.text_channels:
+                    if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
+                        async for message in channel.history(limit=50):
+                            status = await discord_attachment_parse(bot, message, normalize_author(message.author))
+                            if status == dkp_bot.ResponseStatus.SUCCESS:
+                                break
             else:
                 continue
-
-            for guild_channel in client_guild.text_channels:
-                if guild_channel.id == int(CHANNEL_ID):
-                    channel = guild_channel
-
-        if channel and isinstance(channel, discord.TextChannel):
-            async for message in channel.history(limit=50):
-                status = await discord_attachment_parse(message, normalize_author(message.author))
-                if status == dkp_bot.ResponseStatus.SUCCESS:
-                    break
 
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
@@ -115,6 +107,11 @@ async def on_message(message):
         # Block DMChannel at all
         if isinstance(message.channel, discord.DMChannel):
             #print('Received message {0.content} from {1} on DMChannel: {0.channel.id}'.format(message, message.author))
+            return
+        
+        # Check if we have proper bot for the requester
+        bot = bots.get(message.guild.id)
+        if not isinstance(bot, dkp_bot.DKPBot):
             return
 
         # Normalize author
@@ -164,11 +161,15 @@ async def on_message(message):
 
         # No ?!command response
         # Check if we have attachment on registered channel
-        #if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
-        if message.channel.id == int(CHANNEL_ID):
-            await discord_attachment_parse(message, normalize_author(message.author))
+        if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
+            await discord_attachment_parse(bot, message, normalize_author(message.author))
 
     except (SystemExit, Exception):
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
-        traceback.print_exc()
+        traceback.print_tb(exc_traceback, limit=15, file=sys.stdout)
+
+if __name__ == "__main__":
+    if len(sys.argv) < 3: exit(1)
+    TOKEN = sys.argv[1]
+    CFG_DIR = sys.argv[2]
+    client.run(TOKEN)
