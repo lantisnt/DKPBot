@@ -185,8 +185,12 @@ async def on_message(message):
             await discord_attachment_parse(bot, message, normalize_author(message.author))
 
     except (SystemExit, Exception):
+        print("=== EXCEPTION ===")
+        print(message.content)
+        print("=== TRACEBACK ===")
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_tb(exc_traceback, limit=15, file=sys.stdout)
+        print("====== END ======")
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
