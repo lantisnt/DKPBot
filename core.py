@@ -52,22 +52,22 @@ async def discord_respond(channel, responses):
 
 async def discord_attachment_parse(bot, message, normalized_author):
     try:
-    if len(message.attachments) > 0:
-        for attachment in message.attachments:
-            if bot.CheckAttachmentName(attachment.filename) and bot.CheckChannel(message.channel.id):
-                attachment_bytes = await attachment.read()
-                info = {
-                    'comment' : message.content[:50],
-                    'date' : message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
-                    'author' : normalized_author,
-                }
-                response = bot.BuildDatabase(
-                    str(attachment_bytes, 'utf-8'), info)
-                if response.status == dkp_bot.ResponseStatus.SUCCESS:
-                    await discord_respond(message.channel, response.data)
-                elif response.status == dkp_bot.ResponseStatus.ERROR:
-                    print('ERROR: {0}'.format(response.data))
-                return response.status
+        if len(message.attachments) > 0:
+            for attachment in message.attachments:
+                if bot.CheckAttachmentName(attachment.filename) and bot.CheckChannel(message.channel.id):
+                    attachment_bytes = await attachment.read()
+                    info = {
+                        'comment' : message.content[:50],
+                        'date' : message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
+                        'author' : normalized_author,
+                    }
+                    response = bot.BuildDatabase(
+                        str(attachment_bytes, 'utf-8'), info)
+                    if response.status == dkp_bot.ResponseStatus.SUCCESS:
+                        await discord_respond(message.channel, response.data)
+                    elif response.status == dkp_bot.ResponseStatus.ERROR:
+                        print('ERROR: {0}'.format(response.data))
+                    return response.status
     except Forbidden:
         pass
     
