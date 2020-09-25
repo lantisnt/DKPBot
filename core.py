@@ -65,8 +65,9 @@ async def discord_respond(channel, responses):
 
 async def discord_attachment_parse(bot, message, normalized_author):
     if len(message.attachments) > 0:
+        print("DAP")
         for attachment in message.attachments:
-            if bot.CheckAttachmentName(attachment.filename) and bot.CheckChannel(message.channel.id):
+            if bot.CheckAttachmentName(attachment.filename)
                 attachment_bytes = await attachment.read()
                 info = {
                     'comment': message.content[:50],
@@ -95,7 +96,6 @@ async def on_ready():
             if bot:
                 bots[guild.id] = bot
                 for channel in guild.text_channels:
-                    print("Checking channel {1} on server {0}".format(guild.name, channel.name))
                     try: # in case we dont have access we still want to check other channels not die here
                         if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
                             async for message in channel.history(limit=50):
@@ -103,7 +103,6 @@ async def on_ready():
                                 if status == dkp_bot.ResponseStatus.SUCCESS:
                                     break
                     except discord.Forbidden:
-                        print("Forbidden access to message history.")
                         continue
             else:
                 continue
@@ -111,7 +110,7 @@ async def on_ready():
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
         traceback.print_exc()
-
+    print("Ready!")
 
 @client.event
 async def on_message(message):
