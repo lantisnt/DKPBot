@@ -7,11 +7,12 @@ from bot_config import BotConfig
 TOKEN = os.environ['DISCORD_TOKEN']
 GUILD = os.environ['GUILD']
 CHANNEL_ID = os.environ['CHANNEL_ID']
+CFG_DIR = os.environ['WOWDKPBOTCFGDIR']
 
-client = discord.Client()
-
-#bot = essentialdkp_bot.EssentialDKPBot()
-bots = {}
+if __name__ == "__main__":
+    client.run(TOKEN)
+    client = discord.Client()
+    bots = {}
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
@@ -56,7 +57,7 @@ async def discord_respond(channel, responses):
 async def discord_attachment_parse(bot, message, normalized_author):
     if len(message.attachments) > 0:
         for attachment in message.attachments:
-            if bot.CheckAttachmentName(attachment.filename) and  bot.CheckChannel(message.channel.id):
+            if bot.CheckAttachmentName(attachment.filename) and bot.CheckChannel(message.channel.id):
                 attachment_bytes = await attachment.read()
                 info = {
                     'comment' : message.content[:50],
@@ -77,14 +78,14 @@ async def discord_attachment_parse(bot, message, normalized_author):
 async def on_ready():
     try:
         for client_guild in client.guilds:
-            config_filename = "{0}.ini".format(client_guild.id)
+            config_filename = "{0}/{1}.ini".format(CFG_DIR,client_guild.id)
             bot = bot_factory.New(BotConfig(config_filename))
             if bot:
                 bots[client_guild.id] = bot
             else:
                 continue
 
-            for guild_channel in guild.text_channels:
+            for guild_channel in client_guild.text_channels:
                 if guild_channel.id == int(CHANNEL_ID):
                     channel = guild_channel
 
@@ -171,5 +172,3 @@ async def on_message(message):
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
         traceback.print_exc()
-
-client.run(TOKEN)

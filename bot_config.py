@@ -55,17 +55,16 @@ class BotConfig():
 
     def __init__(self, filepath):
         self.__filepath = filepath
-
-        if not os.path.isfile(filepath):
-            return
-
         self.__config = ConfigParser()
-        result = self.__config.read(filepath)
-        if filepath in result:
-            self.__load()
-            self.__type = BotConfigType.SPECIFIC
-            return
-        
+
+        if os.path.isfile(filepath):
+            print("1")
+            result = self.__config.read(filepath)
+            if filepath in result:
+                self.__load()
+                self.__type = BotConfigType.SPECIFIC
+                return
+        print("2")
         result = self.__config.read(DEFAULT_CONFIG)
         if DEFAULT_CONFIG in result:
             self.__load()
@@ -115,17 +114,36 @@ class BotConfig():
 
     ## Store from config to dictionary
     def __store(self):
-        self.__config['Guild Info'] = public_to_dict(self.GuildInfo)
-        self.__config['DKP Display'] = public_to_dict(self.DKP)
-        self.__config['DKP History Display'] = public_to_dict(self.DKPHistory)
-        self.__config['Loot History Display'] = public_to_dict(self.LootHistory)
-        self.__config['Latest Loot Display'] = public_to_dict(self.LatestLoot)
-        self.__config['Item Search Display'] = public_to_dict(self.ItemSearch)
+
+        section_variable_mapping = {
+            'Guild Info' : self.GuildInfo,
+            'DKP Display' : self.DKP,
+            'DKP History Display' : self.DKPHistory,
+            'Loot History Display' : self.LootHistory,
+            'Latest Loot Display' : self.LatestLoot,
+            'Item Search Display' : self.ItemSearch
+        }
+
+        for section, variable in section_variable_mapping.items():
+            for option, value in public_to_dict(variable).items():
+                if not self.__config.has_section(section):
+                    self.__config.add_section(section)
+                self.__config.set(section, str(option), str(value))
 
     def Store(self):
-        if not os.path.isfile(self.__filepath):
-            return
-        
         with open(self.__filepath, "w") as file:
             self.__store()
             self.__config.write(file, space_around_delimiters=False)
+
+    def __str__(self):
+        s = ""
+        s += str(self.__type) + "\n"
+        s += str(self.__filepath) + "\n"
+
+        s += str(public_to_dict(self.GuildInfo)) + "\n"
+        s += str(public_to_dict(self.DKP)) + "\n"
+        s += str(public_to_dict(self.DKPHistory)) + "\n"
+        s += str(public_to_dict(self.LootHistory)) + "\n"
+        s += str(public_to_dict(self.LatestLoot)) + "\n"
+        s += str(public_to_dict(self.ItemSearch)) + "\n"
+        return s
