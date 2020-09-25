@@ -67,7 +67,7 @@ async def discord_attachment_parse(bot, message, normalized_author):
     if len(message.attachments) > 0:
         print("DAP")
         for attachment in message.attachments:
-            if bot.CheckAttachmentName(attachment.filename)
+            if bot.CheckAttachmentName(attachment.filename):
                 attachment_bytes = await attachment.read()
                 info = {
                     'comment': message.content[:50],
