@@ -1,8 +1,13 @@
-import os, sys, traceback, io, pytz
+import os
+import sys
+import traceback
+import io
+import pytz
 
 import discord
 
-import dkp_bot, bot_factory
+import dkp_bot
+import bot_factory
 from bot_config import BotConfig
 
 import footprint
@@ -70,7 +75,8 @@ async def discord_attachment_parse(bot, message, normalized_author):
                 }
                 response = bot.BuildDatabase(
                     str(attachment_bytes, 'utf-8'), info)
-                print("Bot for server {0} total footprint: {1} B".format(message.guild.name, footprint.total_size(self)))
+                print("Bot for server {0} total footprint: {1} B".format(
+                    message.guild.name, footprint.total_size(self)))
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
@@ -89,15 +95,16 @@ async def on_ready():
             if bot:
                 bots[guild.id] = bot
                 for channel in guild.text_channels:
-                    if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
-                        async for message in channel.history(limit=50):
-                            status = await discord_attachment_parse(bot, message, normalize_author(message.author))
-                            if status == dkp_bot.ResponseStatus.SUCCESS:
-                                break
+                    try: # in case we dont have access we still want to check other channels not die here
+                        if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
+                            async for message in channel.history(limit=50):
+                                status = await discord_attachment_parse(bot, message, normalize_author(message.author))
+                                if status == dkp_bot.ResponseStatus.SUCCESS:
+                                    break
+                    except discord.Forbidden:
+                        pass
             else:
                 continue
-    except discord.Forbidden:
-        pass
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
