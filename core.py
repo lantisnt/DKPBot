@@ -11,6 +11,9 @@ TOKEN = 0
 GUILD = 0
 CHANNEL_ID = 0
 
+client = discord.Client()
+bot = essentialdkp_bot.EssentialDKPBot()
+
 def normalize_author(author):
     if isinstance(author, discord.Member):
         if author.nick:
@@ -171,8 +174,6 @@ async def on_message(message):
         traceback.print_tb(exc_traceback, limit=15, file=sys.stdout)
 
 if __name__ == "__main__":
-    client = discord.Client()
-    bot = essentialdkp_bot.EssentialDKPBot()
     if len(sys.argv) < 4: exit(1)
     TOKEN = sys.argv[1]
     GUILD_ID = sys.argv[2]
