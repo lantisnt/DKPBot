@@ -299,7 +299,7 @@ class DKPBot:
 
         self._finalizeDatabase()
 
-        print('Building complete in {0} secondsB'.format(
+        print('Building complete in {0} seconds'.format(
             int(datetime.now(tz=timezone.utc).timestamp()) - start))
 
         if len(self.__db['global']['dkp']) <= 0:
