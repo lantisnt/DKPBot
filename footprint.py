@@ -43,6 +43,13 @@ def total_size(o, handlers={}, verbose=False):
             if isinstance(o, typ):
                 s += sum(map(sizeof, handler(o)))
                 break
+            else:
+                if not hasattr(o.__class__, '__slots__'):
+                    if hasattr(o, '__dict__'):
+                        s+=sizeof(o.__dict__) # no __slots__ *usually* means a __dict__, but some special builtin classes (such as `type(None)`) have neither
+                    # else, `o` has no attributes at all, so sys.getsizeof() actually returned the correct value
+                else:
+                    s += sum(sizeof(getattr(o, x)) for x in o.__class__.__slots__ if hasattr(o, x))
         return s
 
     return sizeof(o)
