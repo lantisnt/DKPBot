@@ -1,7 +1,12 @@
-import os, sys, traceback, io, pytz
+import os
+import sys
+import traceback
+import io
+import pytz
 
 import discord
-import dkp_bot, bot_factory
+import dkp_bot
+import bot_factory
 from bot_config import BotConfig
 
 TOKEN = 0
@@ -9,6 +14,7 @@ CFG_DIR = "/tmp"
 
 client = discord.Client()
 bots = {}
+
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
@@ -18,7 +24,7 @@ def normalize_author(author):
             normalized = author
     else:
         normalized = author
-        
+
     normalized = "{0}".format(normalized)
     normalized = normalized.split("#")[0].strip()
     normalized = normalized.split("/")[0].strip()
@@ -26,11 +32,14 @@ def normalize_author(author):
 
     return normalized
 
+
 async def discord_build_embed(data):
     return discord.Embed().from_dict(data)
 
+
 async def discord_build_file(data):
     return discord.File(data)
+
 
 async def discord_respond(channel, responses):
     if not responses:
@@ -50,28 +59,27 @@ async def discord_respond(channel, responses):
         elif isinstance(response, io.IOBase):
             await channel.send(file=await discord_build_file(response))
 
+
 async def discord_attachment_parse(bot, message, normalized_author):
-    try:
-        if len(message.attachments) > 0:
-            for attachment in message.attachments:
-                if bot.CheckAttachmentName(attachment.filename) and bot.CheckChannel(message.channel.id):
-                    attachment_bytes = await attachment.read()
-                    info = {
-                        'comment' : message.content[:50],
-                        'date' : message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
-                        'author' : normalized_author,
-                    }
-                    response = bot.BuildDatabase(
-                        str(attachment_bytes, 'utf-8'), info)
-                    if response.status == dkp_bot.ResponseStatus.SUCCESS:
-                        await discord_respond(message.channel, response.data)
-                    elif response.status == dkp_bot.ResponseStatus.ERROR:
-                        print('ERROR: {0}'.format(response.data))
-                    return response.status
-    except discord.Forbidden:
-        pass
-    
+    if len(message.attachments) > 0:
+        for attachment in message.attachments:
+            if bot.CheckAttachmentName(attachment.filename) and bot.CheckChannel(message.channel.id):
+                attachment_bytes = await attachment.read()
+                info = {
+                    'comment': message.content[:50],
+                    'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
+                    'author': normalized_author,
+                }
+                response = bot.BuildDatabase(
+                    str(attachment_bytes, 'utf-8'), info)
+                if response.status == dkp_bot.ResponseStatus.SUCCESS:
+                    await discord_respond(message.channel, response.data)
+                elif response.status == dkp_bot.ResponseStatus.ERROR:
+                    print('ERROR: {0}'.format(response.data))
+                return response.status
+
     return dkp_bot.ResponseStatus.IGNORE
+
 
 @client.event
 async def on_ready():
@@ -89,7 +97,8 @@ async def on_ready():
                                 break
             else:
                 continue
-    
+    except discord.Forbidden:
+        pass
     except Exception:
         exc_type, exc_value, exc_traceback = sys.exc_info()
         traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
@@ -100,7 +109,7 @@ async def on_ready():
 async def on_message(message):
     try:
         # TODO very later on
-        #if enabled != True:
+        # if enabled != True:
         #    return
 
         # Don't react to own messages
@@ -109,9 +118,9 @@ async def on_message(message):
 
         # Block DMChannel at all
         if isinstance(message.channel, discord.DMChannel):
-            #print('Received message {0.content} from {1} on DMChannel: {0.channel.id}'.format(message, message.author))
+            # print('Received message {0.content} from {1} on DMChannel: {0.channel.id}'.format(message, message.author))
             return
-        
+
         # Check if we have proper bot for the requester
         bot = bots.get(message.guild.id)
         if not isinstance(bot, dkp_bot.DKPBot):
@@ -121,7 +130,7 @@ async def on_message(message):
         author = normalize_author(message.author)
 
         # Debug message receive print
-        #print('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
+        # print('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
         # await message.channel.send('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
 
         # Check if user is privileged user (administrator)
@@ -131,8 +140,8 @@ async def on_message(message):
                 message.channel).administrator
 
         requester_info = {
-            'name'  : author,
-            'is_privileged' : is_privileged
+            'name': author,
+            'is_privileged': is_privileged
         }
 
         # Handle ?!command
@@ -146,8 +155,9 @@ async def on_message(message):
                         await message.author.create_dm()
                         dm_channel = message.author.dm_channel
                         if dm_channel == None:
-                             print('ERROR: Unable to create DM channel with {0}'.format(message.author))
-                             return
+                            print('ERROR: Unable to create DM channel with {0}'.format(
+                                message.author))
+                            return
                     response_channel = dm_channel
                 await discord_respond(response_channel, response.data)
                 if response.dm:
@@ -172,7 +182,8 @@ async def on_message(message):
         traceback.print_tb(exc_traceback, limit=15, file=sys.stdout)
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3: exit(1)
+    if len(sys.argv) < 3:
+        exit(1)
     TOKEN = sys.argv[1]
     CFG_DIR = sys.argv[2]
     client.run(TOKEN)
