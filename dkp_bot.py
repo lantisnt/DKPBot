@@ -1,10 +1,9 @@
-import argparse
+import argparse, re, pytz
 from datetime import datetime, timezone
-import pytz
 from enum import Enum
-import re
-import configparser
+
 from savedvariables_parser import SavedVariablesParser
+from bot_config import BotConfig
 
 class ResponseStatus(Enum):
     SUCCESS = 0
@@ -41,8 +40,9 @@ class DKPBot:
     __parser = None
     __db = {}
 
-    def __init__(self, id, inputFileName="SavedVariable.lua"):
-        self.__inputFileName = inputFileName
+    def __init__(self, config: BotConfig):
+        self.__inputFileName = config.GuildInfo.FileName
+        self.__channel = int(config.GuildInfo.FileUploadChannel)
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
             'global': {},
