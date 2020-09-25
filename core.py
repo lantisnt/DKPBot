@@ -95,14 +95,15 @@ async def on_ready():
             if bot:
                 bots[guild.id] = bot
                 for channel in guild.text_channels:
-                    #try: # in case we dont have access we still want to check other channels not die here
+                    try: # in case we dont have access we still want to check other channels not die here
                         if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
                             async for message in channel.history(limit=50):
                                 status = await discord_attachment_parse(bot, message, normalize_author(message.author))
                                 if status == dkp_bot.ResponseStatus.SUCCESS:
                                     break
-                    #except discord.Forbidden:
-                    #    continue
+                    except discord.Forbidden:
+                        print("Forbidden access to message history for channel {0} on server {1}".format(guild.name, channel.name))
+                        continue
             else:
                 continue
     except Exception:
