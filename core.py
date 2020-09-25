@@ -68,7 +68,7 @@ async def discord_attachment_parse(bot, message, normalized_author):
                     elif response.status == dkp_bot.ResponseStatus.ERROR:
                         print('ERROR: {0}'.format(response.data))
                     return response.status
-    except Forbidden:
+    except discord.Forbidden:
         pass
     
     return dkp_bot.ResponseStatus.IGNORE
