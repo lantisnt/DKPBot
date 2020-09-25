@@ -7,21 +7,9 @@ import essentialdkp_bot
 
 import pytz
 
-#TOKEN = os.environ['DISCORD_TOKEN']
 TOKEN = 0
-#GUILD = os.environ['GUILD']
 GUILD = 0
-#CHANNEL_ID = os.environ['CHANNEL_ID']
 CHANNEL_ID = 0
-
-if __name__ == "__main__":
-    client = discord.Client()
-    bot = essentialdkp_bot.EssentialDKPBot()
-    if len(sys.argv) < 4: exit(1)
-    TOKEN = sys.argv[1]
-    GUILD_ID = sys.argv[2]
-    CHANNEL_ID = sys.argv[3]
-    client.run(TOKEN)
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
@@ -180,5 +168,13 @@ async def on_message(message):
 
     except (SystemExit, Exception):
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
-        traceback.print_exc()
+        traceback.print_tb(exc_traceback, limit=15, file=sys.stdout)
+
+if __name__ == "__main__":
+    client = discord.Client()
+    bot = essentialdkp_bot.EssentialDKPBot()
+    if len(sys.argv) < 4: exit(1)
+    TOKEN = sys.argv[1]
+    GUILD_ID = sys.argv[2]
+    CHANNEL_ID = sys.argv[3]
+    client.run(TOKEN)
