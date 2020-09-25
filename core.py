@@ -75,7 +75,7 @@ async def discord_attachment_parse(bot, message, normalized_author):
                 }
                 response = bot.BuildDatabase(
                     str(attachment_bytes, 'utf-8'), info)
-                print("Bot for server {0} total footprint: {1} B".format(
+                #print("Bot for server {0} total footprint: {1} B".format(
                     message.guild.name, footprint.total_size(self)))
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     await discord_respond(message.channel, response.data)
