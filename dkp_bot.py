@@ -5,6 +5,8 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 
+import footprint
+
 class ResponseStatus(Enum):
     SUCCESS = 0
     ERROR = 1
@@ -301,6 +303,8 @@ class DKPBot:
 
         print('Building complete in {0} seconds'.format(
             int(datetime.now(tz=timezone.utc).timestamp()) - start))
+
+        print(footprint.total_size(self.__db, verbose=True))
 
         if len(self.__db['global']['dkp']) <= 0:
             # for table in self.__db['global']:
