@@ -128,7 +128,7 @@ def generate_loot_entry(loot_entry, format_string=None, player=False):
         if player:
             row += " - "
             row += "{0}".format(get_icon_string(loot_entry.Player().Class()))
-            row += "{0}".format(loot_entry.Player().Player())
+            row += "{0}".format(loot_entry.Player().Name())
         row += "\n"
         return row
     return "- No data available -"
@@ -239,7 +239,7 @@ class SinglePlayerProfile(BaseResponse):
 
         self._embed.Build(
             author_name=self._title,
-            title=info.Player(),
+            title=info.Player().Name(),
             description=info.Class(),
             thumbnail_url=thumbnail,
             color=get_class_color(info.Class()),
@@ -420,10 +420,10 @@ class DKPMultipleResponse(MultipleResponse):
             row = "{0}".format(get_icon_string(data.Class()))
             row += self._value_format_string.format(data.Dkp())
             row += " "
-            if requester == data.Player():
-                row += "**{0}**".format(data.Player())
+            if requester == data.Player().Name():
+                row += "**{0}**".format(data.Player().Name())
             else:
-                row += "{0}".format(data.Player())
+                row += "{0}".format(data.Player().Name())
             row += "\n"
             return row
 
@@ -451,7 +451,7 @@ class HistoryMultipleResponse(MultipleResponse):
 
         for data in data_list:
             if data and isinstance(data, PlayerDKPHistory):
-                self.__user = data.Player()
+                self.__user = data.Player().Name()
                 break
 
     #def _overrideResponseLoop(self, response_id):
@@ -490,7 +490,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
         for data in data_list:
             if data and isinstance(data, PlayerLoot):
-                self.__user = data.Player().Player()
+                self.__user = data.Player().Name()
                 break
 
     #def _overrideResponseLoop(self, response_id):
@@ -529,7 +529,7 @@ class LootMultipleResponse(MultipleResponse):
 
         for data in data_list:
             if data and isinstance(data, PlayerLoot):
-                self.__user = data.Player().Player()
+                self.__user = data.Player().Name()
                 break
 
     #def _overrideResponseLoop(self, response_id):

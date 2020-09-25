@@ -17,8 +17,11 @@ class PlayerInfo:
         self.__ingame_class = str(ingame_class).lower().capitalize()
         self.__role = str(role).lower().capitalize()
 
-    def Player(self):
+    def Name(self):
         return self.__player
+
+    def Player(self):
+        return self
 
     def Dkp(self):
         return self.__dkp
@@ -134,7 +137,8 @@ class PlayerDKPHistory:
     __officer = ""
 
     def __init__(self, player, dkp, timestamp, reason, index):
-        self.__player = str(player).lower().capitalize()
+        if not isinstance(player, PlayerInfo): #Workaround as we expect player to be connected to the 
+            player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN")
         self.__dkp = float(dkp)
         self.__timestamp = int(timestamp)
         self.__reason = str(reason)
