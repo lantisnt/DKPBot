@@ -24,10 +24,11 @@ class Manager:
         self.__restore_fn = restore_fn
 
     ## Remove oldest used bot and push newer one
-    def __swap(self, server_id: int):
+    def __swap(self, server_id: int, restore = True):
         item = self.__tracker.popitem(False)
         self.__save(item[0])
-        self.__restore(server_id)
+        if restore:
+            self.__restore(server_id)
         self.__add(server_id)
 
     ## Update one bot status
@@ -63,7 +64,7 @@ class Manager:
         # If memory storage is full handle swap
         print("Memory {0} tracker elements.".format(len(self.__tracker)))
         if len(self.__tracker) >= self.__limit:
-            self.__swap(server_id)
+            self.__swap(server_id, server_id in self.__tracker.keys())
         # Else if we have still spot check if we are tracking the requester
         elif server_id in self.__tracker.keys():
             self.__update(server_id)
