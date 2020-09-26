@@ -238,6 +238,7 @@ class DKPBot:
         if not player:
             return
 
+        player = player.Name().lower()
         player_history = self.__db['global']['history'].get(player)
         if not player_history:
             self.__db['global']['history'][player] = []
