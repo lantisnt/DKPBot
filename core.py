@@ -23,10 +23,12 @@ memory_manager = None
 
 ## Data related
 def pickle_data(uid, data):
+    global STORAGE_DIR
     with open("{0}/pickle.{1}.bin".format(STORAGE_DIR, uid), "wb") as fp:
         pickle.dump(data, fp)
 
 def unpickle_data(uid):
+    global STORAGE_DIR
     data = None
     with open("{0}/pickle.{1}.bin".format(STORAGE_DIR, uid), "rb") as fp:
         data = pickle.load(fp)

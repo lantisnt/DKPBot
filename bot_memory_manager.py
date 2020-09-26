@@ -61,6 +61,7 @@ class Manager:
     ## Main Handler
     def Handle(self, server_id: int) -> None:
         # If memory storage is full handle swap
+        print("Memory {0} tracker elements.".format(len(self.__tracker)))
         if len(self.__tracker) >= self.__limit:
             self.__swap(server_id)
         # Else if we have still spot check if we are tracking the requester
