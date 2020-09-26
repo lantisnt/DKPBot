@@ -49,7 +49,7 @@ def PERFORMANCE_TEST_INJECTION(gid, attachment):
         for i in range(1, PERFORMANCE_TEST_BOTS + 1):
             bots[i] = bot_factory.New(BotConfig('1.ini'))
             bots[i].BuildDatabase(attachment, {})
-            memory_manager.Handle(i)
+            memory_manager.Handle(i, True)
         PERFORMANCE_TEST_DONE = True
 
 ## Discord related
@@ -140,7 +140,7 @@ async def on_ready():
                                     break
                     except discord.Forbidden:
                         continue
-                memory_manager.Handle(guild.id) # We call it here so we will have it tracked from beginning
+                memory_manager.Handle(guild.id, True) # We call it here so we will have it tracked from beginning
             else:
                 continue
     except Exception:
@@ -174,7 +174,7 @@ async def on_message(message):
         if not isinstance(bot, dkp_bot.DKPBot):
             return
         
-        memory_manager.Handle(message.guild.id)
+        memory_manager.Handle(message.guild.id, False)
 
         # Normalize author
         author = normalize_author(message.author)

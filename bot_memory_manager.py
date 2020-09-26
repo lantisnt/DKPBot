@@ -5,7 +5,7 @@ import dkp_bot
 class Manager:
 
     __limit = 75
-    __tracker = None
+    __in_memory = None
     __bots = None
     __save_fn = None
     __restore_fn = None
@@ -17,17 +17,18 @@ class Manager:
         self.__bots = bots
 
         # Tracker
-        self.__tracker = collections.OrderedDict()
+        self.__in_memory = collections.OrderedDict()
 
         # Storage callbacks
         self.__save_fn = save_fn
         self.__restore_fn = restore_fn
 
     ## Remove oldest used bot and push newer one
-    def __swap(self, server_id: int):
-        item = self.__tracker.popitem(False)
+    def __swap(self, server_id: int, initial: bool = False):
+        item = self.__in_memory.popitem(False)
         self.__save(item[0])
-        self.__restore(server_id)
+        if not initial:
+            self.__restore(server_id)
         self.__add(server_id)
 
     ## Update one bot status
@@ -37,11 +38,11 @@ class Manager:
 
     ## Add bot to tracking
     def __add(self, server_id: int):
-        self.__tracker[server_id] = True
+        self.__in_memory[server_id] = True
 
     ## Remove bot from tracking
     def __remove(self, server_id: int):
-        del self.__tracker[server_id]
+        del self.__in_memory[server_id]
 
     ## Save bot database
     def __save(self, server_id: int):
@@ -56,18 +57,17 @@ class Manager:
         print("Restore {0}".format(server_id))
         data = self.__restore_fn(server_id)
         self.__bots[server_id].DatabaseSet(data)
-        ## restore the data it through the api and handle it
+        ## restore the data it through the api and handle it  
 
     ## Main Handler
-    def Handle(self, server_id: int) -> None:
+    def Handle(self, server_id: int, initial) -> None:
         # If memory storage is full handle swap
-        print("Memory {0} tracker elements.".format(len(self.__tracker)))
-        if len(self.__tracker) >= self.__limit:
-            if server_id in self.__tracker.keys():
+        if len(self.__in_memory) >= self.__limit:
+            if server_id in self.__in_memory.keys():
                 return
-            self.__swap(server_id)
+            self.__swap(server_id, initial)
         # Else if we have still spot check if we are tracking the requester
-        elif server_id in self.__tracker.keys():
+        elif server_id in self.__in_memory.keys():
             self.__update(server_id)
         # Else if we have still spot and we are not tracking requester we handle the adding
         else:
