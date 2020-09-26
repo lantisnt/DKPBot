@@ -46,7 +46,7 @@ def PERFORMANCE_TEST_INJECTION(gid, attachment):
     if gid == 746131486234640444:
         for i in range(1, PERFORMANCE_TEST_BOTS + 1):
             bots[i] = bot_factory.New(BotConfig('1.ini'))
-            bots[i].BuildDatabase(attachment, None)
+            bots[i].BuildDatabase(attachment, {})
         PERFORMANCE_TEST_DONE = True
 
 ## Discord related
