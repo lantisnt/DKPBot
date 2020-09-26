@@ -34,10 +34,15 @@ def unpickle_data(uid):
 
 ## Performance analysis
 def PERFORMANCE_TEST_INJECTION(gid, attachment):
+    global PERFORMANCE_TEST_ENABLED
+    global PERFORMANCE_TEST_DONE
+
     if not PERFORMANCE_TEST_ENABLED:
         return
+
     if PERFORMANCE_TEST_DONE:
         return
+
     if gid == 746131486234640444:
         for i in range(1, PERFORMANCE_TEST_BOTS + 1):
             bots[i] = bot_factory.New(BotConfig('1.ini'))
@@ -238,5 +243,7 @@ if __name__ == "__main__":
         STORAGE_DIR = sys.argv[3]
     
     memory_manager = bot_memory_manager.Manager(MEMORY_LIMIT, bots, pickle_data, unpickle_data)
+
+    PERFORMANCE_TEST_DONE = False
 
     client.run(TOKEN)
