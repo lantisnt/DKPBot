@@ -5,8 +5,6 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 
-import footprint
-
 class ResponseStatus(Enum):
     SUCCESS = 0
     ERROR = 1
@@ -77,6 +75,18 @@ class DKPBot:
 
     def IsDatabaseLoaded(self):
         return (len(self.__db) > 0)
+
+    ### Direct access for pickling
+    def DatabaseGet(self):
+        return self.__db
+
+    def DatabaseSet(self, db):
+        self.__db = db
+
+    # Try requesting garbage collecting
+    def DatabaseFree(self):
+        del self.__db
+        self.__db = {}
 
     ### Command handling and parsing ###
 
@@ -324,12 +334,9 @@ class DKPBot:
         print('Building complete in {0} seconds'.format(
             int(datetime.now(tz=timezone.utc).timestamp()) - start))
 
-        print(footprint.total_size(self.__db))
-
-        if len(self.__db['global']['dkp']) <= 0:
-            # for table in self.__db['global']:
-            #    if len(table) <= 0:
-            return Response(ResponseStatus.SUCCESS, "(DKP) Database building failed.")
+        for table in self.__db['global']:
+            if len(table) <= 0:
+                return Response(ResponseStatus.SUCCESS, "(DKP) Database building failed.")
 
         if len(self.__db['global']['history']) <= 0:
             return Response(ResponseStatus.SUCCESS, "(DKP History) Database building failed.")

@@ -1,23 +1,35 @@
-import os
-import sys
-import traceback
-import io
-import pytz
+import os, sys, traceback, io, pytz, pickle
 
 import discord
 
-import dkp_bot
-import bot_factory
+import dkp_bot, bot_factory, bot_memory_manager
 from bot_config import BotConfig
 
 import footprint
 
+
+MEMORY_LIMIT = 10
 TOKEN = 0
 CFG_DIR = "/tmp"
+STORAGE_DIR = "/tmp"
 
+## Global objects
 client = discord.Client()
 bots = {}
+memory_manager = None
 
+## Data related
+def pickle_data(uid, data):
+    with open("{0}/pickle.{1}.bin".format(STORAGE_DIR, uid), "wb") as fp:
+        pickle.dump(data, fp)
+
+def unpickle_data(uid):
+    data = None
+    with open("{0}/pickle.{1}.bin".format(STORAGE_DIR, uid), "rb") as fp:
+        data = pickle.load(fp)
+    return data
+
+## Discord related
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
@@ -85,6 +97,7 @@ async def discord_attachment_parse(bot, message, normalized_author):
 
     return dkp_bot.ResponseStatus.IGNORE
 
+## Discord API
 
 @client.event
 async def on_ready():
@@ -103,12 +116,17 @@ async def on_ready():
                                     break
                     except discord.Forbidden:
                         continue
+                memory_manager.Handle(guild.id) # We call it here so we will have it tracked from beginning
             else:
                 continue
     except Exception:
+        print("=== EXCEPTION ===")
+        print(message.content)
+        print("=== TRACEBACK ===")
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_tb(exc_traceback, limit=10, file=sys.stdout)
-        traceback.print_exc()
+        traceback.print_tb(exc_traceback, limit=15, file=sys.stdout)
+        print("====== END ======")
+
     print("Ready!")
 
 @client.event
@@ -131,6 +149,8 @@ async def on_message(message):
         bot = bots.get(message.guild.id)
         if not isinstance(bot, dkp_bot.DKPBot):
             return
+
+        memory_manager.Handle(message.guild.id)
 
         # Normalize author
         author = normalize_author(message.author)
@@ -174,7 +194,7 @@ async def on_message(message):
             elif response.status == dkp_bot.ResponseStatus.REQUEST:
                 if response.data == dkp_bot.Request.CHANNEL_ID:
                     bot.RegisterChannel(message.channel.id)
-                    await discord_respond(message.channel, 'Registed to expect SavedVariable lua file on channel {0.name}'.format(message.channel))
+                    await discord_respond(message.channel, 'Registered to expect SavedVariable lua file on channel {0.name}'.format(message.channel))
 
                 return
 
@@ -192,8 +212,15 @@ async def on_message(message):
         print("====== END ======")
 
 if __name__ == "__main__":
-    if len(sys.argv) < 3:
+    if len(sys.argv) < 2:
         exit(1)
+    
     TOKEN = sys.argv[1]
-    CFG_DIR = sys.argv[2]
+    if len(sys.argv) > 2:
+        CFG_DIR = sys.argv[2]
+    if len(sys.argv) > 3:
+        STORAGE_DIR = sys.argv[3]
+    
+    memory_manager = bot_memory_manager.Manager(MEMORY_LIMIT, bots, pickle_data, unpickle_data)
+
     client.run(TOKEN)
