@@ -199,14 +199,31 @@ class DKPBot:
         l = list(map(get_loot_if_matching, self.__db['global']['loot']))
         return list(filter(None, l))
 
+    def _validatePlayer(self, player):
+        if not player:
+            return None
+
+        if isinstance(player, str):
+            player = self._getDkp(player)
+            if not player:
+                return None
+
+        name = getattr(player, "Name", None)
+        if callable(name):
+            return player
+
+        return None
 
     def _addPlayerLoot(self, player, entry):
-        if player and player != "":
-            player = player.lower()
-            player_loot = self.__db['global']['player_loot'].get(player)
-            if not player_loot:
-                self.__db['global']['player_loot'][player] = []
-            self.__db['global']['player_loot'][player].append(entry)
+        player = self._validatePlayer(player)
+        if not player:
+            return
+
+        player = player.Name().lower()
+        player_loot = self.__db['global']['player_loot'].get(player)
+        if not player_loot:
+            self.__db['global']['player_loot'][player] = []
+        self.__db['global']['player_loot'][player].append(entry)
 
     def _sortPlayerLoot(self, newest=True, player=None):
         if self.__db['global']['player_loot'].get(player):
@@ -217,12 +234,14 @@ class DKPBot:
                 p.sort(key=lambda info: info.Timestamp(), reverse=bool(newest))
 
     def _addHistory(self, player, entry):
-        if player and player != "":
-            player = player.lower()
-            player_history = self.__db['global']['history'].get(player)
-            if not player_history:
-                self.__db['global']['history'][player] = []
-            self.__db['global']['history'][player].append(entry)
+        player = self._validatePlayer(player)
+        if not player:
+            return
+
+        player_history = self.__db['global']['history'].get(player)
+        if not player_history:
+            self.__db['global']['history'][player] = []
+        self.__db['global']['history'][player].append(entry)
 
     def _sortHistory(self, newest=True, player=None):
         if self.__db['global']['history'].get(player):
