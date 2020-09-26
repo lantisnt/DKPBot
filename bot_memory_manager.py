@@ -34,7 +34,7 @@ class Manager(object):
         self.__restore_fn = restore_fn
 
     ## Remove oldest used bot and push newer one
-    def __swap(self, server_id: int, initial: bool)
+    def __swap(self, server_id: int, initial: bool):
         item = self.__in_memory.popitem(False)
         self.__save(item[0])
         if not initial:
