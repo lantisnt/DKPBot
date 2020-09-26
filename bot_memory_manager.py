@@ -24,10 +24,10 @@ class Manager:
         self.__restore_fn = restore_fn
 
     ## Remove oldest used bot and push newer one
-    def __swap(self, server_id: int, restore = True):
+    def __swap(self, server_id: int, missing = True):
         item = self.__tracker.popitem(False)
         self.__save(item[0])
-        if restore:
+        if missing:
             self.__restore(server_id)
         self.__add(server_id)
 

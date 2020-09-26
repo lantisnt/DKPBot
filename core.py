@@ -148,7 +148,7 @@ async def on_ready():
         print(message.content)
         print("=== TRACEBACK ===")
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_tb(exc_traceback, limit=15, file=sys.stdout)
+        traceback.print_exception(exc_type, exc_value, exc_traceback, limit=15, file=sys.stdout)
         print("====== END ======")
 
     print("Ready!")
@@ -173,7 +173,7 @@ async def on_message(message):
         bot = bots.get(message.guild.id)
         if not isinstance(bot, dkp_bot.DKPBot):
             return
-
+        
         memory_manager.Handle(message.guild.id)
 
         # Normalize author
@@ -232,7 +232,7 @@ async def on_message(message):
         print(message.content)
         print("=== TRACEBACK ===")
         exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_tb(exc_traceback, limit=15, file=sys.stdout)
+        traceback.print_exception(exc_type, exc_value, exc_traceback, limit=15, file=sys.stdout)
         print("====== END ======")
 
 if __name__ == "__main__":
