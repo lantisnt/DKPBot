@@ -25,7 +25,9 @@ class Manager:
 
     ## Remove oldest used bot and push newer one
     def __swap(self, server_id: int):
-        self.__tracker.popitem(False)
+        item = self.__tracker.popitem(False)
+        self.__save(item[0])
+        self.__restore(server_id)
         self.__add(server_id)
 
     ## Update one bot status
@@ -35,12 +37,10 @@ class Manager:
 
     ## Add bot to tracking
     def __add(self, server_id: int):
-        self.__restore(server_id)
         self.__tracker[server_id] = True
 
     ## Remove bot from tracking
     def __remove(self, server_id: int):
-        self.__save(server_id)
         del self.__tracker[server_id]
 
     ## Save bot database
