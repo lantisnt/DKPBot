@@ -342,7 +342,7 @@ class EssentialDKPBot(DKPBot):
 
     ### Commands ###
 
-    def call_dkphelp(self, param, requester_info):
+    def call_dkphelp(self, param, request_info):
         help_string = 'EssentialDKP Bot allows access to dkp information.\n'
         help_string += 'Currently supported commands:\n'
         help_string += '**{0}**\n Display this help\n'.format("!dkphelp")
@@ -363,7 +363,7 @@ class EssentialDKPBot(DKPBot):
         help_string += '**{0}**\n Display latest 30 loot entries from raids.\n'.format(
             "!raidloot")
         help_string += 'You can also preceed any command with **double exclamation mark !!** instead of single one to get the response in DM. Your request will be removed by the bot afterwards.\n'
-        if requester_info['is_privileged'] == True:
+        if request_info['is_privileged'] == True:
             help_string += '\n\n'
             help_string += 'Administrator only options:\n'
             help_string += '**{0}**\n Register current channel as EssentialDKP.lua file source.\n'.format(
@@ -372,7 +372,7 @@ class EssentialDKPBot(DKPBot):
                 "!dkpmanage reload")
         return Response(ResponseStatus.SUCCESS, help_string)
 
-    def call_dkp(self, param, requester_info):
+    def call_dkp(self, param, request_info):
         if not self.IsDatabaseLoaded():
             return
 
@@ -398,14 +398,14 @@ class EssentialDKPBot(DKPBot):
             data = self.__buildDKPOutputSingle(output_result_list[0])
         elif len(output_result_list) > 0:
             output_result_list.sort(key=lambda info: info.Dkp(), reverse=True)
-            data = self.__buildDKPOutputMultiple(output_result_list, requester_info.get('name'))
+            data = self.__buildDKPOutputMultiple(output_result_list, request_info.get('name'))
         else:
             data = "{0}'s DKP was not found in database.".format(
                 param.capitalize())
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_dkphistory(self, param, requester_info):
+    def call_dkphistory(self, param, request_info):
         targets = self.__getNamesFromParam(param)
         output_result_list = []
 
@@ -427,7 +427,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_loot(self, param, requester_info):
+    def call_loot(self, param, request_info):
         targets = self.__getNamesFromParam(param)
         output_result_list = []
 
@@ -449,7 +449,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_raidloot(self, param, requester_info):
+    def call_raidloot(self, param, request_info):
         output_result_list = self._getLoot()
 
         if len(output_result_list) > 0:
@@ -459,7 +459,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_item(self, param, requester_info):
+    def call_item(self, param, request_info):
 
         if len(param) < 3:
             return Response(ResponseStatus.SUCCESS, "Query to short. Please specify at least 3 letters.")

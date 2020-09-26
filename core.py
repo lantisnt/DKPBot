@@ -11,7 +11,7 @@ PERFORMANCE_TEST_ENABLED = False
 PERFORMANCE_TEST_BOTS = 45
 PERFORMANCE_TEST_DONE = False
 
-MEMORY_LIMIT = 2
+MEMORY_LIMIT = 80
 TOKEN = 0
 CFG_DIR = "/tmp"
 STORAGE_DIR = "/tmp"
@@ -19,7 +19,6 @@ STORAGE_DIR = "/tmp"
 ## Global objects
 client = discord.Client()
 bots = {}
-memory_manager = None
 
 ## Data related
 def pickle_data(uid, data):
@@ -49,7 +48,7 @@ def PERFORMANCE_TEST_INJECTION(gid, attachment):
         for i in range(1, PERFORMANCE_TEST_BOTS + 1):
             bots[i] = bot_factory.New(BotConfig('1.ini'))
             bots[i].BuildDatabase(attachment, {})
-            memory_manager.Handle(i, True)
+            bot_memory_manager.Manager().Handle(i, True)
         PERFORMANCE_TEST_DONE = True
 
 ## Discord related
@@ -140,7 +139,7 @@ async def on_ready():
                                     break
                     except discord.Forbidden:
                         continue
-                memory_manager.Handle(guild.id, True) # We call it here so we will have it tracked from beginning
+                bot_memory_manager.Manager().Handle(guild.id, True) # We call it here so we will have it tracked from beginning
             else:
                 continue
     except Exception:
@@ -174,8 +173,6 @@ async def on_message(message):
         if not isinstance(bot, dkp_bot.DKPBot):
             return
         
-        memory_manager.Handle(message.guild.id, False)
-
         # Normalize author
         author = normalize_author(message.author)
 
@@ -189,13 +186,14 @@ async def on_message(message):
             is_privileged = message.author.permissions_in(
                 message.channel).administrator
 
-        requester_info = {
+        request_info = {
             'name': author,
-            'is_privileged': is_privileged
+            'is_privileged': is_privileged,
+            'guild_id' : message.guild.id
         }
 
         # Handle ?!command
-        response = bot.Handle(message.content, requester_info)
+        response = bot.Handle(message.content, request_info)
         if response and isinstance(response, dkp_bot.Response):
             if response.status == dkp_bot.ResponseStatus.SUCCESS:
                 response_channel = message.channel
@@ -245,7 +243,7 @@ if __name__ == "__main__":
     if len(sys.argv) > 3:
         STORAGE_DIR = sys.argv[3]
     
-    memory_manager = bot_memory_manager.Manager(MEMORY_LIMIT, bots, pickle_data, unpickle_data)
+    bot_memory_manager.Manager().Initialize(MEMORY_LIMIT, bots, pickle_data, unpickle_data)
 
     PERFORMANCE_TEST_DONE = False
 

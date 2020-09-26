@@ -5,6 +5,8 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 
+import bot_memory_manager
+
 class ResponseStatus(Enum):
     SUCCESS = 0
     ERROR = 1
@@ -108,7 +110,7 @@ class DKPBot:
         else:
             return None
 
-    def __handleCommand(self, command, param, requester_info):
+    def __handleCommand(self, command, param, request_info):
         method = ''
         dm = False
         if command[0] == '?':
@@ -125,7 +127,8 @@ class DKPBot:
 
         callback = getattr(self, method, None)
         if callback and callable(callback):
-            response = callback(param, requester_info) # pylint: disable=not-callable
+            bot_memory_manager.Manager().Handle(request_info['guild_id'])
+            response = callback(param, request_info) # pylint: disable=not-callable
 
             response.dm = dm
 
@@ -133,16 +136,16 @@ class DKPBot:
         else:
             return Response(ResponseStatus.IGNORE)
 
-    def Handle(self, message, requester_info):
+    def Handle(self, message, request_info):
         args = self.__parseCommand(message)
         if args:
             if args.command:
                 if not args.param:
-                    if not requester_info or not requester_info.get('name'):
+                    if not request_info or not request_info.get('name'):
                         return Response(ResponseStatus.ERROR, "No param and no author. How?")
-                    args.param = [requester_info.get('name')]
+                    args.param = [request_info.get('name')]
                 args.param = " ".join(args.param)
-                return self.__handleCommand(args.command.lower(), args.param.lower(), requester_info)
+                return self.__handleCommand(args.command.lower(), args.param.lower(), request_info)
             else:
                 # Empty message, attachement only probably
                 return Response(ResponseStatus.IGNORE)
@@ -348,8 +351,8 @@ class DKPBot:
 
     ### Command callbacks ###
 
-    def call_dkpmanage(self, param, requester_info):
-        if requester_info.get('is_privileged') != True:
+    def call_dkpmanage(self, param, request_info):
+        if request_info.get('is_privileged') != True:
             return Response(ResponseStatus.IGNORE)
 
         if param == 'register':
@@ -358,4 +361,4 @@ class DKPBot:
         if param == 'reload':
             return self.ReloadData()
 
-        return Response(ResponseStatus.SUCCESS, "Sorry :frowning: !dkpmanage {0} is not yet implemented.".format(str(requester_info.get('name'))))
+        return Response(ResponseStatus.SUCCESS, "Sorry :frowning: !dkpmanage {0} is not yet implemented.".format(str(request_info.get('name'))))

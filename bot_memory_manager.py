@@ -2,16 +2,26 @@ import os, collections, time
 
 import dkp_bot
 
-class Manager:
+class Manager(object):
+    class __Manager:
+        True
 
-    __limit = 75
-    __in_memory = None
-    __bots = None
-    __save_fn = None
-    __restore_fn = None
-    def __init__(self, limit, bots, save_fn, restore_fn):
-        if isinstance(limit, int):
-            self.__limit = limit
+    instance = None
+
+    def __new__(cls): # __new__ always a classmethod
+        if not Manager.instance:
+            Manager.instance = Manager.__Manager()
+        return Manager.instance
+
+    def __getattr__(self, name):
+        return getattr(self.instance, name)
+
+    def __setattr__(self, name, value):
+        return setattr(self.instance, name, value)
+
+    def Initialize(self, limit, bots, save_fn, restore_fn):
+        # In Memory bots limit
+        self.__limit = limit
         
         # Bots handled by core
         self.__bots = bots
@@ -47,14 +57,14 @@ class Manager:
     ## Save bot database
     def __save(self, server_id: int):
         ## handle the data and save it through the api
-        print("Save {0}".format(server_id))
+        #print("Save {0}".format(server_id))
         data = self.__bots[server_id].DatabaseGet()
         self.__save_fn(server_id, data)
         self.__bots[server_id].DatabaseFree()
 
     ## Restore bot database
     def __restore(self, server_id: int):
-        print("Restore {0}".format(server_id))
+        #print("Restore {0}".format(server_id))
         data = self.__restore_fn(server_id)
         self.__bots[server_id].DatabaseSet(data)
         ## restore the data it through the api and handle it  
