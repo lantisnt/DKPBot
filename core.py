@@ -7,8 +7,10 @@ from bot_config import BotConfig
 
 import footprint
 
+PERFORMANCE_TEST_ENABLED = True
+PERFORMANCE_TEST_BOTS = 70
 
-MEMORY_LIMIT = 10
+MEMORY_LIMIT = 100
 TOKEN = 0
 CFG_DIR = "/tmp"
 STORAGE_DIR = "/tmp"
@@ -28,6 +30,14 @@ def unpickle_data(uid):
     with open("{0}/pickle.{1}.bin".format(STORAGE_DIR, uid), "rb") as fp:
         data = pickle.load(fp)
     return data
+
+## Performance analysis
+def PERFORMANCE_TEST_INJECTION(id):
+    if not PERFORMANCE_TEST_ENABLED:
+        return
+    if id == 746131486234640444:
+        for i in range(1, PERFORMANCE_TEST_BOTS + 1):
+            bots[i] = bot_factory.New(BotConfig('1.ini'))
 
 ## Discord related
 
@@ -107,6 +117,7 @@ async def on_ready():
             bot = bot_factory.New(BotConfig(config_filename))
             if bot:
                 bots[guild.id] = bot
+                PERFORMANCE_TEST_INJECTION(guild.id)
                 for channel in guild.text_channels:
                     try: # in case we dont have access we still want to check other channels not die here
                         if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
