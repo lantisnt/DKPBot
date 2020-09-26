@@ -324,7 +324,7 @@ class DKPBot:
         print('Building complete in {0} seconds'.format(
             int(datetime.now(tz=timezone.utc).timestamp()) - start))
 
-        print(footprint.total_size(self.__db, verbose=True))
+        print(footprint.total_size(self.__db))
 
         if len(self.__db['global']['dkp']) <= 0:
             # for table in self.__db['global']:
