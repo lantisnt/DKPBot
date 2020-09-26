@@ -9,6 +9,7 @@ import footprint
 
 PERFORMANCE_TEST_ENABLED = True
 PERFORMANCE_TEST_BOTS = 70
+PERFORMANCE_TEST_DONE = False
 
 MEMORY_LIMIT = 100
 TOKEN = 0
@@ -32,12 +33,16 @@ def unpickle_data(uid):
     return data
 
 ## Performance analysis
-def PERFORMANCE_TEST_INJECTION(id):
+def PERFORMANCE_TEST_INJECTION(gid, attachment):
     if not PERFORMANCE_TEST_ENABLED:
         return
-    if id == 746131486234640444:
+    if PERFORMANCE_TEST_DONE:
+        return
+    if gid == 746131486234640444:
         for i in range(1, PERFORMANCE_TEST_BOTS + 1):
             bots[i] = bot_factory.New(BotConfig('1.ini'))
+            bots[i].BuildDatabase(attachment, None)
+        PERFORMANCE_TEST_DONE = True
 
 ## Discord related
 
@@ -95,6 +100,7 @@ async def discord_attachment_parse(bot, message, normalized_author):
                     'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
                     'author': normalized_author,
                 }
+                PERFORMANCE_TEST_INJECTION(message.guild.id, str(attachment_bytes, 'utf-8'))
                 response = bot.BuildDatabase(
                     str(attachment_bytes, 'utf-8'), info)
                 print("Bot for server {0} total footprint: {1} B".format(
@@ -117,7 +123,6 @@ async def on_ready():
             bot = bot_factory.New(BotConfig(config_filename))
             if bot:
                 bots[guild.id] = bot
-                PERFORMANCE_TEST_INJECTION(guild.id)
                 for channel in guild.text_channels:
                     try: # in case we dont have access we still want to check other channels not die here
                         if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
