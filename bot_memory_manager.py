@@ -34,7 +34,7 @@ class Manager(object):
         self.__restore_fn = restore_fn
 
     ## Remove oldest used bot and push newer one
-    def __swap(self, server_id: int, initial: bool = False):
+    def __swap(self, server_id: int, initial: bool)
         item = self.__in_memory.popitem(False)
         self.__save(item[0])
         if not initial:
@@ -70,7 +70,7 @@ class Manager(object):
         ## restore the data it through the api and handle it  
 
     ## Main Handler
-    def Handle(self, server_id: int, initial) -> None:
+    def Handle(self, server_id: int, initial = False):
         # If memory storage is full handle swap
         if len(self.__in_memory) >= self.__limit:
             if server_id in self.__in_memory.keys():
