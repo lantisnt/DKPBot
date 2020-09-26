@@ -7,11 +7,11 @@ from bot_config import BotConfig
 
 import footprint
 
-PERFORMANCE_TEST_ENABLED = True
+PERFORMANCE_TEST_ENABLED = False
 PERFORMANCE_TEST_BOTS = 45
 PERFORMANCE_TEST_DONE = False
 
-MEMORY_LIMIT = 15
+MEMORY_LIMIT = 2
 TOKEN = 0
 CFG_DIR = "/tmp"
 STORAGE_DIR = "/tmp"
