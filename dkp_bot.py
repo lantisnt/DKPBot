@@ -276,20 +276,20 @@ class DKPBot:
 
     def _setPlayerLatestLoot(self):
         for p in self.__db['global']['dkp'].values():
-            loot = self._getPlayerLoot(p.Player())
+            loot = self._getPlayerLoot(p.Name())
             if loot and isinstance(loot, list):
                 p.SetLatestLootEntry(loot[0])
 
     def _setPlayerLatestHistory(self):
         for p in self.__db['global']['dkp'].values():
-            history = self._getHistory(p.Player())
+            history = self._getHistory(p.Name())
             if history and isinstance(history, list):
                 p.SetLatestHistoryEntry(history[0])
 
     def _setPlayerLatestPositiveHistoryAndActivity(self, inactive_time = 200000000000):
         now = int(datetime.now(tz=timezone.utc).timestamp())
         for p in self.__db['global']['dkp'].values():
-            history = self._getHistory(p.Player())
+            history = self._getHistory(p.Name())
             if history and isinstance(history, list):
                 for history_entry in history:
                     if history_entry.Dkp() > 0:
