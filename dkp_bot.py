@@ -379,10 +379,13 @@ class DKPBot:
         print(param)
         params = list(map(lambda p: p.lower().replace("-", "_"), param))
         num_params = len(params)
+        print(num_params)
+        print(params)
         if num_params == 0:
             return Response(ResponseStatus.IGNORE)
 
         command = params[0]
+        print(command)
         if command == 'list': # list current config
             return self.__list_configs()
         elif command == 'set': # set config
