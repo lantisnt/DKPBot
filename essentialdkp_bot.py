@@ -91,19 +91,18 @@ class EssentialDKPBot(DKPBot):
 
         if not dkp:
             return
-
-        if isinstance(players, str) and (isinstance(dkp, int) or isinstance(dkp, float)):
+        if isinstance(players, str) and isinstance(dkp, (int, float)):
             players = self._get_dkp(players)
             if players is None:
                 return
-            self._add_history(players, PlayerDKPHistory(
+            self._add_history(players.name(), PlayerDKPHistory(
                 players, dkp, timestamp, reason, index))
-        elif isinstance(players, list) and (isinstance(dkp, int) or isinstance(dkp, float)):
+        elif isinstance(players, list) and isinstance(dkp, (int, float)):
             for player in players:
                 player = self._get_dkp(player)
                 if player is None:
                     return
-                self._add_history(player, PlayerDKPHistory(
+                self._add_history(player.name(), PlayerDKPHistory(
                     player, dkp, timestamp, reason, index))
         elif isinstance(players, list) and isinstance(dkp, list):
             # Remove the % entry
@@ -114,7 +113,7 @@ class EssentialDKPBot(DKPBot):
                 player = self._get_dkp(player)
                 if player is None:
                     continue
-                self._add_history(player, PlayerDKPHistory(
+                self._add_history(player.name(), PlayerDKPHistory(
                     player, float(dkp.pop(0)), timestamp, reason, index))
 
     # Called 1st
@@ -231,7 +230,7 @@ class EssentialDKPBot(DKPBot):
     def _build_history_database(self, saved_variable):
         super()._build_history_database(None)
         history = saved_variable.get(self.__HISTORY_SV)
-
+ 
         if not history:
             return
         if not isinstance(history, dict):
@@ -284,7 +283,7 @@ class EssentialDKPBot(DKPBot):
                 dkp = list(map(lambda d: d, dkp.split(",")))
                 if len(dkp) == 1: # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
                     continue
-            elif (not isinstance(dkp, int) and not isinstance(dkp, float)):
+            elif not isinstance(dkp, (int, float)):
                 continue
 
             self._fill_history(players, dkp, date, reason, index)

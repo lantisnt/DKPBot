@@ -17,6 +17,7 @@ import footprint
 # PERFORMANCE_TEST_BOTS = 45
 # PERFORMANCE_TEST_DONE = False
 
+MAX_ATTACHMENT_BYTES = 2097152 # 2MB
 
 class ScriptControl():
     __initialized = False
@@ -150,7 +151,7 @@ async def discord_respond(channel, responses):
 async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Message, normalized_author: str):
     if len(message.attachments) > 0:
         for attachment in message.attachments:
-            if bot.check_attachment_name(attachment.filename):
+            if bot.check_attachment_name(attachment.filename) and attachment.size < MAX_ATTACHMENT_BYTES:
                 attachment_bytes = await attachment.read()
                 info = {
                     'comment': message.content[:50],
