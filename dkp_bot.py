@@ -356,6 +356,7 @@ class DKPBot:
         pass
 
     def __set_config(self, group, config, value):
+        print("set config {0} {1} {2}".format(group, config, value))
         internal_group = getattr(self.__config, group, None)
         if internal_group:
             if hasattr(internal_group, config):
