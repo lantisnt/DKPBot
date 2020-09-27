@@ -92,29 +92,29 @@ class EssentialDKPBot(DKPBot):
         if not dkp:
             return
         if isinstance(players, str) and isinstance(dkp, (int, float)):
-            players = self._get_dkp(players)
-            if players is None:
+            player_info = self._get_dkp(players)
+            if player_info is None:
                 return
-            self._add_history(players.name(), PlayerDKPHistory(
-                players, dkp, timestamp, reason, index))
+            self._add_history(players, PlayerDKPHistory(
+                player_info, dkp, timestamp, reason, index))
         elif isinstance(players, list) and isinstance(dkp, (int, float)):
             for player in players:
-                player = self._get_dkp(player)
-                if player is None:
+                player_info = self._get_dkp(player)
+                if player_info is None:
                     return
-                self._add_history(player.name(), PlayerDKPHistory(
-                    player, dkp, timestamp, reason, index))
+                self._add_history(player, PlayerDKPHistory(
+                    player_info, dkp, timestamp, reason, index))
         elif isinstance(players, list) and isinstance(dkp, list):
             # Remove the % entry
             del players[-1]
             del dkp[-1]
             # In case of unequal length we only add as many entries as there are players
             for player in players:
-                player = self._get_dkp(player)
-                if player is None:
+                player_info = self._get_dkp(player)
+                if player_info is None:
                     continue
-                self._add_history(player.name(), PlayerDKPHistory(
-                    player, float(dkp.pop(0)), timestamp, reason, index))
+                self._add_history(player, PlayerDKPHistory(
+                    player_info, float(dkp.pop(0)), timestamp, reason, index))
 
     # Called 1st
     def _build_dkp_database(self, saved_variable):
@@ -279,7 +279,7 @@ class EssentialDKPBot(DKPBot):
                 continue
 
             if isinstance(dkp, str):
-                # multiple entry
+                # multiple entries
                 dkp = list(map(lambda d: d, dkp.split(",")))
                 if len(dkp) == 1: # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
                     continue

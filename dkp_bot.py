@@ -216,25 +216,20 @@ class DKPBot:
 
     def _validate_player(self, player):
         if not player:
-            return None
+            return False
 
         if isinstance(player, str):
             player = self._get_dkp(player)
             if not player:
-                return None
+                return False
 
-        name = getattr(player, "name", None)
-        if callable(name):
-            return player
-
-        return None
+        return True
 
     def _add_player_loot(self, player, entry):
-        player = self._validate_player(player)
-        if not player:
+        if not self._validate_player(player):
             return
 
-        player = player.name().lower()
+        player = player.lower()
         player_loot = self.__db['global']['player_loot'].get(player)
         if not player_loot:
             self.__db['global']['player_loot'][player] = []
@@ -249,11 +244,10 @@ class DKPBot:
                 loot.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
 
     def _add_history(self, player, entry):
-        player = self._validate_player(player)
-        if not player:
+        if not self._validate_player(player):
             return
 
-        player = player.name().lower()
+        player = player.lower()
         player_history = self.__db['global']['history'].get(player)
         if not player_history:
             self.__db['global']['history'][player] = []
