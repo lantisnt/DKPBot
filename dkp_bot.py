@@ -50,8 +50,8 @@ class DKPBot:
 
     def __init__(self, guild_id: int, config: BotConfig):
         self.__guild_id = int(guild_id)
-        self.__input_file_name = config.GuildInfo.filename
-        self.__channel = int(config.GuildInfo.file_upload_channel)
+        self.__input_file_name = config.guild_info.filename
+        self.__channel = int(config.guild_info.file_upload_channel)
         self.__prefix = str(config.guild_info.prefix)
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
