@@ -31,12 +31,12 @@ class Response:
     # Request type on REQUEST
     # None on IGNORE
     message = None
-    direct_message_response = False
+    direct_message = False
 
-    def __init__(self, status=ResponseStatus.IGNORE, data=None, direct_message_response=False):
+    def __init__(self, status=ResponseStatus.IGNORE, data=None, direct_message=False):
         self.status = status
         self.data = data
-        self.direct_message_response = bool(direct_message_response)
+        self.direct_message = bool(direct_message)
 
 
 class DKPBot:
@@ -138,7 +138,7 @@ class DKPBot:
             bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
             response = callback(param, request_info)  # pylint: disable=not-callable
 
-            response.dm = direct_message
+            response.direct_message = direct_message
 
             return response
         else:
