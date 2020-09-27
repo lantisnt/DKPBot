@@ -269,7 +269,7 @@ async def on_message(message):
                             return
                     response_channel = dm_channel
                 await discord_respond(response_channel, response.data)
-                if response.dm:
+                if response.direct_message:
                     await message.delete()
             elif response.status == dkp_bot.ResponseStatus.ERROR:
                 print('ERROR: {0}'.format(response.data))
