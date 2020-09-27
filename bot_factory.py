@@ -1,6 +1,8 @@
-import bot_config, dkp_bot, essentialdkp_bot
+import bot_config
+import essentialdkp_bot
 
-def New(guild_id, config):
+
+def new(guild_id, config):
     if not isinstance(config, bot_config.BotConfig):
         return None
 
@@ -8,9 +10,7 @@ def New(guild_id, config):
         return essentialdkp_bot.EssentialDKPBot(guild_id, config)
     elif config.GuildInfo.BotType == 'EssentialDKP':
         return essentialdkp_bot.EssentialDKPBot(guild_id, config)
-    elif  config.GuildInfo.BotType == 'CommunityDKP':
+    elif config.GuildInfo.BotType == 'CommunityDKP':
         return None
     else:
         return None
-    
-    

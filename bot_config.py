@@ -5,41 +5,46 @@ from enum import Enum
 
 DEFAULT_CONFIG = "default.ini"
 
-def public_to_dict(o):
-    d = {}
-    a = filter(lambda x: not str(x).startswith("_"), dir(o))
-    for i in a:
-        d[i] = getattr(o, i)
-    return d
+
+def public_to_dict(obj):
+    dictionary = {}
+    public = filter(lambda x: not str(x).startswith("_"), dir(obj))
+    for attr in public:
+        dictionary[attr] = getattr(obj, attr)
+    return dictionary
+
 
 class BotConfigType(Enum):
-    SPECIFIC  = 0 # Server specific ini
-    DEFAULT   = 1 # Default ini
-    HARDCODED = 2 # Hardcoded
+    SPECIFIC = 0  # Server specific ini
+    DEFAULT = 1  # Default ini
+    HARDCODED = 2  # Hardcoded
+
 
 class GuildInfo():
-    BotType = ''
+    bot_type = ''
     FileUploadChannel = 0
     FileName = ''
     Premium = False
-    
-    def __init__(self, BotType, FileUploadChannel, FileName, Premium):
-        self.BotType = BotType
+
+    def __init__(self, bot_type, FileUploadChannel, FileName, Premium):
+        self.bot_type = bot_type
         self.FileUploadChannel = FileUploadChannel
         self.FileName = FileName
         self.Premium = bool(Premium)
+
 
 class DisplayConfig():
     MaxFields = 0
     MaxEntriesPerField = 0
     MaxSeparateMessages = 0
     UseMultipleColumns = False
-    
+
     def __init__(self, MaxFields, MaxEntriesPerField, MaxSeparateMessages, UseMultipleColumns):
         self.MaxFields = MaxFields
         self.MaxEntriesPerField = MaxEntriesPerField
         self.MaxSeparateMessages = MaxSeparateMessages
         self.UseMultipleColumns = UseMultipleColumns
+
 
 class BotConfig():
     __type = BotConfigType.HARDCODED
@@ -72,55 +77,55 @@ class BotConfig():
         else:
             print("Error loading DEFAULT_CONFIG file")
 
-    ## Load from config to dictionary
+    # Load from config to dictionary
     def __load(self):
         self.GuildInfo = GuildInfo(
-            self.__config.get('Guild Info', 'BotType', fallback = 'EssentialDKP'),
-            self.__config.getint('Guild Info', 'FileUploadChannel', fallback = 0),
-            self.__config.get('Guild Info', 'FileName', fallback = 'EssentialDKP.lua'),
-            self.__config.getint('Guild Info', 'Premium', fallback = False),
+            self.__config.get('Guild Info', 'BotType', fallback='EssentialDKP'),
+            self.__config.getint('Guild Info', 'FileUploadChannel', fallback=0),
+            self.__config.get('Guild Info', 'FileName', fallback='EssentialDKP.lua'),
+            self.__config.getint('Guild Info', 'Premium', fallback=False),
         )
         self.DKP = DisplayConfig(
-            self.__config.getint('DKP Display', 'MaxFields', fallback = 1),
-            self.__config.getint('DKP Display', 'MaxEntriesPerField', fallback = 1),
-            self.__config.getint('DKP Display', 'MaxSeparateMessages', fallback = 1),
-            self.__config.getboolean('DKP Display', 'UseMultipleColumns', fallback = False)
+            self.__config.getint('DKP Display', 'MaxFields', fallback=1),
+            self.__config.getint('DKP Display', 'MaxEntriesPerField', fallback=1),
+            self.__config.getint('DKP Display', 'MaxSeparateMessages', fallback=1),
+            self.__config.getboolean('DKP Display', 'UseMultipleColumns', fallback=False)
         )
         self.DKPHistory = DisplayConfig(
-            self.__config.getint('DKP History Display', 'MaxFields', fallback = 1),
-            self.__config.getint('DKP History Display', 'MaxEntriesPerField', fallback = 1),
-            self.__config.getint('DKP History Display', 'MaxSeparateMessages', fallback = 1),
-            self.__config.getboolean('DKP History Display', 'UseMultipleColumns', fallback = False)
+            self.__config.getint('DKP History Display', 'MaxFields', fallback=1),
+            self.__config.getint('DKP History Display', 'MaxEntriesPerField', fallback=1),
+            self.__config.getint('DKP History Display', 'MaxSeparateMessages', fallback=1),
+            self.__config.getboolean('DKP History Display', 'UseMultipleColumns', fallback=False)
         )
         self.LootHistory = DisplayConfig(
-            self.__config.getint('Loot History Display', 'MaxFields', fallback = 1),
-            self.__config.getint('Loot History Display', 'MaxEntriesPerField', fallback = 1),
-            self.__config.getint('Loot History Display', 'MaxSeparateMessages', fallback = 1),
-            self.__config.getboolean('Loot History Display', 'UseMultipleColumns', fallback = False)
+            self.__config.getint('Loot History Display', 'MaxFields', fallback=1),
+            self.__config.getint('Loot History Display', 'MaxEntriesPerField', fallback=1),
+            self.__config.getint('Loot History Display', 'MaxSeparateMessages', fallback=1),
+            self.__config.getboolean('Loot History Display', 'UseMultipleColumns', fallback=False)
         )
         self.LatestLoot = DisplayConfig(
-            self.__config.getint('Latest Loot Display', 'MaxFields', fallback = 1),
-            self.__config.getint('Latest Loot Display', 'MaxEntriesPerField', fallback = 1),
-            self.__config.getint('Latest Loot Display', 'MaxSeparateMessages', fallback = 1),
-            self.__config.getboolean('Latest Loot Display', 'UseMultipleColumns', fallback = False)
+            self.__config.getint('Latest Loot Display', 'MaxFields', fallback=1),
+            self.__config.getint('Latest Loot Display', 'MaxEntriesPerField', fallback=1),
+            self.__config.getint('Latest Loot Display', 'MaxSeparateMessages', fallback=1),
+            self.__config.getboolean('Latest Loot Display', 'UseMultipleColumns', fallback=False)
         )
         self.ItemSearch = DisplayConfig(
-            self.__config.getint('Item Search Display', 'MaxFields', fallback = 1),
-            self.__config.getint('Item Search Display', 'MaxEntriesPerField', fallback = 1),
-            self.__config.getint('Item Search Display', 'MaxSeparateMessages', fallback = 1),
-            self.__config.getboolean('Item Search Display', 'UseMultipleColumns', fallback = False)
+            self.__config.getint('Item Search Display', 'MaxFields', fallback=1),
+            self.__config.getint('Item Search Display', 'MaxEntriesPerField', fallback=1),
+            self.__config.getint('Item Search Display', 'MaxSeparateMessages', fallback=1),
+            self.__config.getboolean('Item Search Display', 'UseMultipleColumns', fallback=False)
         )
 
-    ## Store from config to dictionary
+    # Store from config to dictionary
     def __store(self):
 
         section_variable_mapping = {
-            'Guild Info' : self.GuildInfo,
-            'DKP Display' : self.DKP,
-            'DKP History Display' : self.DKPHistory,
-            'Loot History Display' : self.LootHistory,
-            'Latest Loot Display' : self.LatestLoot,
-            'Item Search Display' : self.ItemSearch
+            'Guild Info': self.GuildInfo,
+            'DKP Display': self.DKP,
+            'DKP History Display': self.DKPHistory,
+            'Loot History Display': self.LootHistory,
+            'Latest Loot Display': self.LatestLoot,
+            'Item Search Display': self.ItemSearch
         }
 
         for section, variable in section_variable_mapping.items():

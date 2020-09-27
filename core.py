@@ -1,27 +1,66 @@
-import os, sys, traceback, io, pytz, pickle
+import sys
+import traceback
+import io
+import pickle
+import pytz
 
 import discord
 
-import dkp_bot, bot_factory, bot_memory_manager
+import dkp_bot
+import bot_factory
+import bot_memory_manager
 from bot_config import BotConfig
 
 import footprint
 
-PERFORMANCE_TEST_ENABLED = False
-PERFORMANCE_TEST_BOTS = 45
-PERFORMANCE_TEST_DONE = False
+# PERFORMANCE_TEST_ENABLED = False
+# PERFORMANCE_TEST_BOTS = 45
+# PERFORMANCE_TEST_DONE = False
 
-MEMORY_LIMIT = 2
-TOKEN = 0
-CFG_DIR = "/tmp"
-STORAGE_DIR = "/tmp"
 
-## Global objects
+class ScriptControl():
+    __initialized = False
+    token = 0
+    config_dir = "/tmp"
+    storage_dir = "/tmp"
+    in_memory_objects_limit = 2
+
+    def initialize(self, token, config_dir="/tmp", storage_dir="/tmp", in_memory_objects_limit=2):
+        self.token = token
+        self.config_dir = config_dir
+        self.storage_dir = storage_dir
+        self.in_memory_objects_limit = in_memory_objects_limit
+
+    def is_initialized(self):
+        return self.__initialized
+
+    def set_initialized(self):
+        self.__initialized = True
+
+
+# Global objects
+script_control = ScriptControl()
 client = discord.Client()
 bots = {}
-initialized = False
 
-## Error handling
+# Main
+
+
+def main(control: ScriptControl):
+    if len(sys.argv) > 3:
+        control.initialize(sys.argv[1], sys.argv[2], sys.argv[3])
+    elif len(sys.argv) > 2:
+        control.initialize(sys.argv[1], sys.argv[2])
+    else:
+        control.initialize(sys.argv[1])
+
+    bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
+
+    client.run(control.token)
+
+# Error handling
+
+
 def handle_exception(text):
     print("=== EXCEPTION ===")
     print(text)
@@ -31,38 +70,38 @@ def handle_exception(text):
     print("====== END ======")
 
 
-## Data related
+# Data related
 def pickle_data(uid, data):
-    global STORAGE_DIR
-    with open("{0}/pickle.{1}.bin".format(STORAGE_DIR, uid), "wb") as fp:
-        pickle.dump(data, fp)
+    with open("{0}/pickle.{1}.bin".format(script_control.storage_dir, uid), "wb") as file_pointer:
+        pickle.dump(data, file_pointer)
+
 
 def unpickle_data(uid):
-    global STORAGE_DIR
     data = None
-    with open("{0}/pickle.{1}.bin".format(STORAGE_DIR, uid), "rb") as fp:
-        data = pickle.load(fp)
+    with open("{0}/pickle.{1}.bin".format(script_control.storage_dir, uid), "rb") as file_pointer:
+        data = pickle.load(file_pointer)
     return data
 
-## Performance analysis
-def PERFORMANCE_TEST_INJECTION(gid, attachment):
-    global PERFORMANCE_TEST_ENABLED
-    global PERFORMANCE_TEST_DONE
+# Performance analysis
 
-    if not PERFORMANCE_TEST_ENABLED:
-        return
 
-    if PERFORMANCE_TEST_DONE:
-        return
+# def PERFORMANCE_TEST_INJECTION(gid, attachment):
 
-    if gid == 746131486234640444:
-        for i in range(1, PERFORMANCE_TEST_BOTS + 1):
-            bots[i] = bot_factory.New(i, BotConfig('1.ini'))
-            bots[i].BuildDatabase(attachment, {})
-            bot_memory_manager.Manager().Handle(i, True)
-        PERFORMANCE_TEST_DONE = True
+#     if not PERFORMANCE_TEST_ENABLED:
+#         return
 
-## Discord related
+#     if PERFORMANCE_TEST_DONE:
+#         return
+
+#     if gid == 746131486234640444:
+#         for i in range(1, PERFORMANCE_TEST_BOTS + 1):
+#             bots[i] = bot_factory.New(i, BotConfig('1.ini'))
+#             bots[i].build_database(attachment, {})
+#             bot_memory_manager.Manager().Handle(i, True)
+#         PERFORMANCE_TEST_DONE = True
+
+# Discord related
+
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
@@ -108,18 +147,18 @@ async def discord_respond(channel, responses):
             await channel.send(file=await discord_build_file(response))
 
 
-async def discord_attachment_parse(bot, message, normalized_author):
+async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Message, normalized_author: str):
     if len(message.attachments) > 0:
         for attachment in message.attachments:
-            if bot.CheckAttachmentName(attachment.filename):
+            if bot.check_attachment_name(attachment.filename):
                 attachment_bytes = await attachment.read()
                 info = {
                     'comment': message.content[:50],
                     'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
                     'author': normalized_author,
                 }
-                PERFORMANCE_TEST_INJECTION(message.guild.id, str(attachment_bytes, 'utf-8'))
-                response = bot.BuildDatabase(
+#                PERFORMANCE_TEST_INJECTION(message.guild.id, str(attachment_bytes, 'utf-8'))
+                response = bot.build_database(
                     str(attachment_bytes, 'utf-8'), info)
                 print("Bot for server {0} total footprint: {1} B".format(
                     message.guild.name, footprint.total_size(bot)))
@@ -131,23 +170,26 @@ async def discord_attachment_parse(bot, message, normalized_author):
 
     return dkp_bot.ResponseStatus.IGNORE
 
+
 async def spawn_bot(guild):
-    config_filename = "{0}/{1}.ini".format(CFG_DIR, guild.id)
-    bot = bot_factory.New(guild.id, BotConfig(config_filename))
+    config_filename = "{0}/{1}.ini".format(script_control.config_dir, guild.id)
+    bot = bot_factory.new(guild.id, BotConfig(config_filename))
     if bot:
         bots[guild.id] = bot
         for channel in guild.text_channels:
-            try: # in case we dont have access we still want to check other channels not die here
-                if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
+            try:  # in case we dont have access we still want to check other channels not die here
+                if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
                     async for message in channel.history(limit=50):
                         status = await discord_attachment_parse(bot, message, normalize_author(message.author))
                         if status == dkp_bot.ResponseStatus.SUCCESS:
                             break
             except discord.Forbidden:
                 continue
-        bot_memory_manager.Manager().Handle(guild.id, True) # We call it here so we will have it tracked from beginning
+        # We call it here so we will have it tracked from beginning
+        bot_memory_manager.Manager().Handle(guild.id, True)
 
-## Discord API
+# Discord API
+
 
 @client.event
 async def on_guild_join(guild):
@@ -157,10 +199,11 @@ async def on_guild_join(guild):
     except (SystemExit, Exception):
         handle_exception("on_guild_join()")
 
+
 @client.event
 async def on_ready():
     try:
-        if initialized:
+        if script_control.is_initialized():
             return
 
         for guild in client.guilds:
@@ -169,8 +212,9 @@ async def on_ready():
     except (SystemExit, Exception):
         handle_exception("on_ready()")
 
-    initialized = True
+    script_control.set_initialized()
     print("Ready!")
+
 
 @client.event
 async def on_message(message):
@@ -187,7 +231,7 @@ async def on_message(message):
         bot = bots.get(message.guild.id)
         if not isinstance(bot, dkp_bot.DKPBot):
             return
-        
+
         # Normalize author
         author = normalize_author(message.author)
 
@@ -203,16 +247,16 @@ async def on_message(message):
         }
 
         # Handle !command
-        response = bot.Handle(message.content, request_info)
+        response = bot.handle(message.content, request_info)
         if response and isinstance(response, dkp_bot.Response):
             if response.status == dkp_bot.ResponseStatus.SUCCESS:
                 response_channel = message.channel
                 if response.dm:
                     dm_channel = message.author.dm_channel
-                    if dm_channel == None:
+                    if dm_channel is None:
                         await message.author.create_dm()
                         dm_channel = message.author.dm_channel
-                        if dm_channel == None:
+                        if dm_channel is None:
                             print('ERROR: Unable to create DM channel with {0}'.format(
                                 message.author))
                             return
@@ -225,7 +269,7 @@ async def on_message(message):
                 return
             elif response.status == dkp_bot.ResponseStatus.REQUEST:
                 if response.data == dkp_bot.Request.CHANNEL_ID:
-                    bot.RegisterChannel(message.channel.id)
+                    bot.register_channel(message.channel.id)
                     await discord_respond(message.channel, 'Registered to expect SavedVariable lua file on channel {0.name}'.format(message.channel))
 
                 return
@@ -238,20 +282,8 @@ async def on_message(message):
     except (SystemExit, Exception):
         handle_exception(message.content)
 
+
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         exit(1)
-    
-    TOKEN = sys.argv[1]
-    if len(sys.argv) > 2:
-        CFG_DIR = sys.argv[2]
-    if len(sys.argv) > 3:
-        STORAGE_DIR = sys.argv[3]
-    
-    bot_memory_manager.Manager().Initialize(MEMORY_LIMIT, bots, pickle_data, unpickle_data)
-
-    PERFORMANCE_TEST_DONE = False
-
-    initialized = False
-
-    client.run(TOKEN)
+    main(script_control)

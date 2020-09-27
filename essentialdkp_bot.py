@@ -1,4 +1,3 @@
-from datetime import datetime
 import re
 
 from dkp_bot import DKPBot, Response, ResponseStatus
@@ -16,10 +15,10 @@ class EssentialDKPBot(DKPBot):
     __item_id_name_find = None
 
     __singleDkpOutputBuilder = None
-    __multipleDkpOutputBuilder = None
-    __multipleHistoryOutputBuilder = None
-    __multiplePlayerLootOutputBuilder = None
-    __multipleLootOutputBuilder = None
+    __multiple_dkp_output_builder = None
+    __multiple_history_output_builder = None
+    __multiple_player_loot_output_builder = None
+    __multiple_loot_output_builder = None
 
     def __init__(self, guild_id, config):
         super().__init__(guild_id, config)
@@ -27,66 +26,66 @@ class EssentialDKPBot(DKPBot):
         self.__group_player_find = re.compile("\s*([\d\w]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
         self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)") # pylint: disable=anomalous-backslash-in-string
         # Data outputs
-        self.__singlePlayerProfileBuilder       = SinglePlayerProfile("Essential DKP Profile")
-        self.__multipleDkpOutputBuilder         = DKPMultipleResponse("DKP values",                 6,  16, 5, True)
-        self.__multipleHistoryOutputBuilder     = HistoryMultipleResponse("Latest DKP history",     1,  10, 1, True)
-        self.__multiplePlayerLootOutputBuilder  = PlayerLootMultipleResponse("Latest loot history", 1,  10, 1, True)
-        self.__multipleLootOutputBuilder        = LootMultipleResponse("Latest 30 items awarded",   6,  5,  1, False)
-        self.__multipleItemSearchOutputBuilder  = LootMultipleResponse("Search results",            6,  5,  3, False)
+        self.__single_player_profile_builder       = SinglePlayerProfile("Essential DKP Profile")
+        self.__multiple_dkp_output_builder         = DKPMultipleResponse("DKP values",                 6,  16, 5, True)
+        self.__multiple_history_output_builder     = HistoryMultipleResponse("Latest DKP history",     1,  10, 1, True)
+        self.__multiple_player_loot_output_builder  = PlayerLootMultipleResponse("Latest loot history", 1,  10, 1, True)
+        self.__multiple_loot_output_builder        = LootMultipleResponse("Latest 30 items awarded",   6,  5,  1, False)
+        self.__multiple_item_search_output_builder  = LootMultipleResponse("Search results",            6,  5,  3, False)
     ###
 
-    def __getNamesFromParam(self, param):
+    def __get_names_from_param(self, param):
         # Remove empty strings
         targets = list(filter(None, self.__group_player_find.findall(param)))
         # Decode aliases
-        targets = self.__decodeAliases(targets)
+        targets = self.__decode_aliases(targets)
         # Remove duplicates either from input or introduced by aliases
         targets = list(dict.fromkeys(targets))
         # Lowercase all
         return list(map(lambda x: x.strip().lower(), targets))
 
-    def __buildDKPOutputSingle(self, info):
+    def __build_dkp_output_single(self, info):
         if not info or not isinstance(info, PlayerInfo):
             return None
 
-        return self.__singlePlayerProfileBuilder.Build(info, info.Class()).Get()
+        return self.__single_player_profile_builder.build(info, info.ingame_class()).get()
 
-    def __buildDKPOutputMultiple(self, output_result_list, requester):
+    def __build_dkp_output_multiple(self, output_result_list, requester):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
         if not requester:
             requester = ""
 
-        return self.__multipleDkpOutputBuilder.Build(output_result_list, requester).Get()
+        return self.__multiple_dkp_output_builder.build(output_result_list, requester).get()
 
-    def __buildHistoryOutputMultiple(self, output_result_list):
+    def __build_history_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
-        return self.__multipleHistoryOutputBuilder.Build(output_result_list).Get()
+        return self.__multiple_history_output_builder.build(output_result_list).get()
 
-    def __buildPlayerLootOutputMultiple(self, output_result_list):
+    def __build_player_loot_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
-        return self.__multiplePlayerLootOutputBuilder.Build(output_result_list).Get()
+        return self.__multiple_player_loot_output_builder.build(output_result_list).get()
 
-    def __buildLootOutputMultiple(self, output_result_list):
+    def __build_loot_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
-        return self.__multipleLootOutputBuilder.Build(output_result_list).Get()
+        return self.__multiple_loot_output_builder.build(output_result_list).get()
 
-    def __buildItemSearchOutputMultiple(self, output_result_list):
+    def __build_item_search_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
-        return self.__multipleItemSearchOutputBuilder.Build(output_result_list).Get()
+        return self.__multiple_item_search_output_builder.build(output_result_list).get()
 
     ### Database - Variables parsing ###
 
-    def _fillHistory(self, players, dkp, timestamp, reason, index):
+    def _fill_history(self, players, dkp, timestamp, reason, index):
         if not players:
             return
 
@@ -94,17 +93,17 @@ class EssentialDKPBot(DKPBot):
             return
 
         if isinstance(players, str) and (isinstance(dkp, int) or isinstance(dkp, float)):
-            players = self._getDkp(players)
-            if players == None:
+            players = self._get_dkp(players)
+            if players is None:
                 return
-            self._addHistory(players, PlayerDKPHistory(
+            self._add_history(players, PlayerDKPHistory(
                 players, dkp, timestamp, reason, index))
         elif isinstance(players, list) and (isinstance(dkp, int) or isinstance(dkp, float)):
             for player in players:
-                player = self._getDkp(player)
-                if player == None:
+                player = self._get_dkp(player)
+                if player is None:
                     return
-                self._addHistory(player, PlayerDKPHistory(
+                self._add_history(player, PlayerDKPHistory(
                     player, dkp, timestamp, reason, index))
         elif isinstance(players, list) and isinstance(dkp, list):
             # Remove the % entry
@@ -112,17 +111,17 @@ class EssentialDKPBot(DKPBot):
             del dkp[-1]
             # In case of unequal length we only add as many entries as there are players
             for player in players:
-                player = self._getDkp(player)
-                if player == None:
+                player = self._get_dkp(player)
+                if player is None:
                     continue
-                self._addHistory(player, PlayerDKPHistory(
+                self._add_history(player, PlayerDKPHistory(
                     player, float(dkp.pop(0)), timestamp, reason, index))
 
     # Called 1st
-    def _buildDkpDatabase(self, sv):
-        super()._buildDkpDatabase(None)
+    def _build_dkp_database(self, saved_variable):
+        super()._build_dkp_database(None)
 
-        dkp_list = sv.get(self.__DKP_SV)
+        dkp_list = saved_variable.get(self.__DKP_SV)
         if not dkp_list:
             return
 
@@ -133,43 +132,43 @@ class EssentialDKPBot(DKPBot):
         # if timestamp - updated > self.__30_DAYS_SECONDS: continue
 
         for entry in dkp_list:
-            if entry == None:
+            if entry is None:
                 continue
 
             player = entry.get("player")
-            if player == None:
+            if player is None:
                 continue
 
             dkp = entry.get("dkp")
-            if dkp == None:
+            if dkp is None:
                 continue
 
             lifetime_gained = entry.get("lifetime_gained")
-            if lifetime_gained == None:
+            if lifetime_gained is None:
                 continue
 
             lifetime_spent = entry.get("lifetime_spent")
-            if lifetime_spent == None:
+            if lifetime_spent is None:
                 continue
 
-            ingame_class = entry.get("class")
-            if ingame_class == None:
+            ingame_class = entry.get("ingame_class")
+            if ingame_class is None:
                 continue
 
             role = entry.get("role")
-            if role == None:
+            if role is None:
                 continue
 
             info = PlayerInfo(player, dkp, lifetime_gained,
                               lifetime_spent, ingame_class, role)
-            self._setDkp(player, info)
-            self._setGroupDkp(info.Class(), info)
+            self._set_dkp(player, info)
+            self._set_group_dkp(info.ingame_class(), info)
 
     # Called 2nd
-    def _buildLootDatabase(self, sv):
-        super()._buildLootDatabase(None)
+    def _build_loot_database(self, saved_variable):
+        super()._build_loot_database(None)
 
-        loot_list = sv.get(self.__LOOT_SV)
+        loot_list = saved_variable.get(self.__LOOT_SV)
 
         if not loot_list:
             return
@@ -177,30 +176,30 @@ class EssentialDKPBot(DKPBot):
             return  # dict because there is ["seed"] field...
 
         for entry in loot_list.values():
-            if entry == None:
+            if entry is None:
                 continue
 
             if not isinstance(entry, dict):
                 continue
 
             player = entry.get("player")
-            if player == None:
+            if player is None:
                 continue
 
-            player = self._getDkp(player)
-            if player == None:
+            player = self._get_dkp(player)
+            if player is None:
                 continue
 
             cost = entry.get("cost")
-            if cost == None:
+            if cost is None:
                 continue
 
             loot = entry.get("loot")
-            if loot == None:
+            if loot is None:
                 continue
 
             date = entry.get("date")
-            if date == None:
+            if date is None:
                 continue
 
             ## Skip deletetion and deleted entries ##
@@ -213,7 +212,7 @@ class EssentialDKPBot(DKPBot):
             item_info = list(filter(None, self.__item_id_name_find.findall(loot))) #[0] -> id [1] -> name
 
             if not item_info or not isinstance(item_info, list) or len(item_info) != 1:
-                print("ERROR in entry: " + str(player.Player()) + " " + str(date) + " " + str(cost) + " " + str(loot))
+                print("ERROR in entry: " + str(player.player()) + " " + str(date) + " " + str(cost) + " " + str(loot))
                 continue
 
             if not item_info[0] or not isinstance(item_info[0], tuple) or len(item_info[0]) != 2:
@@ -221,17 +220,17 @@ class EssentialDKPBot(DKPBot):
                 continue
 
             player_loot =  PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date)
-            self._addLoot(player_loot)
-            self._addPlayerLoot(player.Player(), player_loot)
+            self._add_loot(player_loot)
+            self._add_player_loot(player.player(), player_loot)
 
-        self._sortLoot()
-        self._sortPlayerLoot()
-        self._setPlayerLatestLoot()
+        self._sort_loot()
+        self._sort_player_loot()
+        self._set_player_latest_loot()
 
     # Called 3rd
-    def _buildHistoryDatabase(self, sv):
-        super()._buildHistoryDatabase(None)
-        history = sv.get(self.__HISTORY_SV)
+    def _build_history_database(self, saved_variable):
+        super()._build_history_database(None)
+        history = saved_variable.get(self.__HISTORY_SV)
 
         if not history:
             return
@@ -239,30 +238,30 @@ class EssentialDKPBot(DKPBot):
             return  # dict because there is ["seed"] field...
 
         for entry in history.values():
-            if entry == None:
+            if entry is None:
                 continue
 
             if not isinstance(entry, dict):
                 continue
 
             players = entry.get("players")
-            if players == None:
+            if players is None:
                 continue
 
             dkp = entry.get("dkp")
-            if dkp == None:
+            if dkp is None:
                 continue
 
             date = entry.get("date")
-            if date == None:
+            if date is None:
                 continue
 
             reason = entry.get("reason")
-            if reason == None:
+            if reason is None:
                 continue
 
             index = entry.get("index")
-            if index == None:
+            if index is None:
                 continue
 
             ## Skip deletetion and deleted entries ##
@@ -288,29 +287,29 @@ class EssentialDKPBot(DKPBot):
             elif (not isinstance(dkp, int) and not isinstance(dkp, float)):
                 continue
 
-            self._fillHistory(players, dkp, date, reason, index)
+            self._fill_history(players, dkp, date, reason, index)
 
-        self._sortHistory()
-        self._setPlayerLatestPositiveHistoryAndActivity(self.__45_DAYS_SECONDS)
+        self._sort_history()
+        self._set_player_latest_positive_history_and_activity(self.__45_DAYS_SECONDS)
 
 
     # Called after whole database is built
-    def _finalizeDatabase(self):
-        self.__singlePlayerProfileBuilder.SetDbInfo(
-            self._dbGetInfo())
-        self.__multipleDkpOutputBuilder.SetDbInfo(
-            self._dbGetInfo())
-        self.__multipleHistoryOutputBuilder.SetDbInfo(
-            self._dbGetInfo())
-        self.__multiplePlayerLootOutputBuilder.SetDbInfo(
-            self._dbGetInfo())
-        self.__multipleLootOutputBuilder.SetDbInfo(
-            self._dbGetInfo())
-        self.__multipleItemSearchOutputBuilder.SetDbInfo(
-            self._dbGetInfo())
+    def _finalize_database(self):
+        self.__single_player_profile_builder.set_database_info(
+            self._db_get_info())
+        self.__multiple_dkp_output_builder.set_database_info(
+            self._db_get_info())
+        self.__multiple_history_output_builder.set_database_info(
+            self._db_get_info())
+        self.__multiple_player_loot_output_builder.set_database_info(
+            self._db_get_info())
+        self.__multiple_loot_output_builder.set_database_info(
+            self._db_get_info())
+        self.__multiple_item_search_output_builder.set_database_info(
+            self._db_get_info())
     ### Essential related ###
 
-    def __decodeAliases(self, groups):
+    def __decode_aliases(self, groups):
         new_groups = groups.copy()
         for group in groups:
             if group == 'all':
@@ -342,28 +341,36 @@ class EssentialDKPBot(DKPBot):
 
     ### Commands ###
 
-    def call_dkphelp(self, param, request_info):
+    def call_dkphelp(self, param, request_info): # pylint: disable=unused-argument
         help_string = 'EssentialDKP Bot allows access to dkp information.\n'
         help_string += 'Currently supported commands:\n'
         help_string += '**{0}**\n Display this help\n'.format("!dkphelp")
         help_string += '**{0}**\n Display summary information of the requester.\n'.format(
             "!dkp")
+
         help_string += '**{0}**\n Display summary information of [player].\n'.format(
-            "!dkp [player]")
-        help_string += '**{0}**\n Display current DKP for player, class or alias mixed together. Supported aliases: all, tanks, healers, dps, casters, physical, ranged, melee. Example: !dkp Shadowlifes,healers,mage\n'.format(
-            "!dkp <class,alias,player>")
+            "!dkp player")
+
+        help_string += '**{0}**\n Display current DKP for player, class or alias mixed together.'.format(
+            "!dkp class alias player")
+        help_string +='Supported aliases: all, tanks, healers, dps, casters, physical, ranged, melee.'
+        help_string +='Example: !dkp shadowlifes healers mage\n'
+
         help_string += '**{0}**\n Display DKP history of the requester.\n'.format(
             "!dkphistory ")
         help_string += '**{0}**\n Display DKP history of [player].\n'.format(
-            "!dkphistory [player]")
+            "!dkphistory player")
         help_string += '**{0}**\n Display latest loot of the requester.\n'.format(
             "!loot" )
         help_string += '**{0}**\n Display latest loot of [player].\n'.format(
-            "!loot [player]")
+            "!loot player")
         help_string += '**{0}**\n Display latest 30 loot entries from raids.\n'.format(
             "!raidloot")
-        help_string += 'You can also preceed any command with **double exclamation mark !!** instead of single one to get the response in DM. Your request will be removed by the bot afterwards.\n'
-        if request_info['is_privileged'] == True:
+        help_string += '**{0}**\n Find loot entries matching __name__.\n'.format(
+            "!item name")
+        help_string += 'You can also preceed any command with **double prefix !!** instead of single one to get the response in DM.'
+        help_string += 'Your request will be removed by the bot afterwards if it has proper accesses.\n'
+        if request_info['is_privileged']:
             help_string += '\n\n'
             help_string += 'Administrator only options:\n'
             help_string += '**{0}**\n Register current channel as EssentialDKP.lua file source.\n'.format(
@@ -373,20 +380,20 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, help_string)
 
     def call_dkp(self, param, request_info):
-        if not self.IsDatabaseLoaded():
+        if not self.is_database_loaded():
             return
 
-        targets = self.__getNamesFromParam(param)
+        targets = self.__get_names_from_param(param)
         output_result_list = []
         if len(targets) > 0:
             for target in targets:
                 # Single player
-                info = self._getDkp(target)
+                info = self._get_dkp(target)
                 if info and isinstance(info, PlayerInfo):
                     output_result_list.append(info)
                 else:
                     # Group request
-                    group_info = self._getGroupDkp(target)
+                    group_info = self._get_group_dkp(target)
                     if group_info and len(group_info) > 0:
                         for info in group_info:
                             if info and isinstance(info, PlayerInfo):
@@ -395,24 +402,24 @@ class EssentialDKPBot(DKPBot):
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
 
         if len(output_result_list) == 1:
-            data = self.__buildDKPOutputSingle(output_result_list[0])
+            data = self.__build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
-            output_result_list.sort(key=lambda info: info.Dkp(), reverse=True)
-            data = self.__buildDKPOutputMultiple(output_result_list, request_info.get('name'))
+            output_result_list.sort(key=lambda info: info.dkp(), reverse=True)
+            data = self.__build_dkp_output_multiple(output_result_list, request_info.get('name'))
         else:
             data = "{0}'s DKP was not found in database.".format(
                 param.capitalize())
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_dkphistory(self, param, request_info):
-        targets = self.__getNamesFromParam(param)
+    def call_dkphistory(self, param, request_info): # pylint: disable=unused-argument
+        targets = self.__get_names_from_param(param)
         output_result_list = []
 
         if len(targets) > 0:
             for target in targets:
                 # Single player
-                info = self._getHistory(target)
+                info = self._get_history(target)
                 if info and isinstance(info, list):
                     output_result_list = info
                     break  # Yes single only
@@ -420,21 +427,21 @@ class EssentialDKPBot(DKPBot):
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
 
         if len(output_result_list) > 0:
-            data = self.__buildHistoryOutputMultiple(output_result_list)
+            data = self.__build_history_output_multiple(output_result_list)
         else:
             data = "{0}'s DKP history was not found in database.".format(
                 param.capitalize())
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_loot(self, param, request_info):
-        targets = self.__getNamesFromParam(param)
+    def call_loot(self, param, request_info): # pylint: disable=unused-argument
+        targets = self.__get_names_from_param(param)
         output_result_list = []
 
         if len(targets) > 0:
             for target in targets:
                 # Single player
-                info = self._getPlayerLoot(target)
+                info = self._get_player_loot(target)
                 if info and isinstance(info, list):
                     output_result_list = info
                     break  # Yes single only
@@ -442,32 +449,32 @@ class EssentialDKPBot(DKPBot):
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
 
         if len(output_result_list) > 0:
-            data = self.__buildPlayerLootOutputMultiple(output_result_list)
+            data = self.__build_player_loot_output_multiple(output_result_list)
         else:
             data = "{0}'s DKP loot was not found in database.".format(
                 param.capitalize())
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_raidloot(self, param, request_info):
-        output_result_list = self._getLoot()
+    def call_raidloot(self, param, request_info): # pylint: disable=unused-argument
+        output_result_list = self._get_loot()
 
         if len(output_result_list) > 0:
-            data = self.__buildLootOutputMultiple(output_result_list)
+            data = self.__build_loot_output_multiple(output_result_list)
         else:
             data = "Unable to find data loot data."
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_item(self, param, request_info):
+    def call_item(self, param, request_info): # pylint: disable=unused-argument
 
         if len(param) < 3:
             return Response(ResponseStatus.SUCCESS, "Query to short. Please specify at least 3 letters.")
 
-        output_result_list = self._findLoot(param)
+        output_result_list = self._find_oot(param)
 
         if len(output_result_list) > 0:
-            data = self.__buildItemSearchOutputMultiple(output_result_list)
+            data = self.__build_item_search_output_multiple(output_result_list)
         else:
             data = "No loot matching `{0}` found.".format(param)
 

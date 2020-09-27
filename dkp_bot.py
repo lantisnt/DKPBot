@@ -1,4 +1,6 @@
-import argparse, re, pytz
+import argparse
+import re
+
 from datetime import datetime, timezone
 from enum import Enum
 
@@ -6,6 +8,7 @@ from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 
 import bot_memory_manager
+
 
 class ResponseStatus(Enum):
     SUCCESS = 0
@@ -27,17 +30,17 @@ class Response:
     # Request type on REQUEST
     # None on IGNORE
     message = None
-    dm = False
+    direct_message_response = False
 
-    def __init__(self, status=ResponseStatus.IGNORE, data=None, dm=False):
+    def __init__(self, status=ResponseStatus.IGNORE, data=None, direct_message_response=False):
         self.status = status
         self.data = data
-        self.dm = bool(dm)
+        self.direct_message_response = bool(direct_message_response)
 
 
 class DKPBot:
     __guild_id = 0
-    __inputFileName = ""
+    __input_file_name = ""
     __channel = 0
     __enabled = False
     __parser = None
@@ -45,7 +48,7 @@ class DKPBot:
 
     def __init__(self, guild_id: int, config: BotConfig):
         self.__guild_id = int(guild_id)
-        self.__inputFileName = config.GuildInfo.FileName
+        self.__input_file_name = config.GuildInfo.FileName
         self.__channel = int(config.GuildInfo.FileUploadChannel)
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
@@ -55,46 +58,45 @@ class DKPBot:
             'info': {}
         }
 
-    def Enable(self):
+    def enable(self):
         self.__enabled = True
 
-    def Disable(self):
+    def disable(self):
         self.__enabled = False
 
-    def IsEnabled(self):
-        return (self.__enabled == True)
+    def is_enabled(self):
+        return self.__enabled
 
-    def RegisterChannel(self, channel):
+    def register_channel(self, channel):
         self.__channel = channel
 
-    def IsChannelRegistered(self):
-        return (self.__channel != 0)
+    def is_channel_registered(self):
+        return self.__channel != 0
 
-    def CheckChannel(self, channel):
-        #return (self.__channel == channel)
-        return True
+    def check_channel(self, channel):
+        return self.__channel == channel
 
-    def CheckAttachmentName(self, filename):
-        return (self.__inputFileName == filename)
+    def check_attachment_name(self, filename):
+        return self.__input_file_name == filename
 
-    def IsDatabaseLoaded(self):
-        return (len(self.__db) > 0)
+    def is_database_loaded(self):
+        return len(self.__db) > 0
 
-    ### Direct access for pickling
-    def DatabaseGet(self):
+    # Direct access for pickling
+    def database_get(self):
         return self.__db
 
-    def DatabaseSet(self, db):
-        self.__db = db
+    def database_set(self, database):
+        self.__db = database
 
     # Try requesting garbage collecting
-    def DatabaseFree(self):
+    def database_free(self):
         del self.__db
         self.__db = {}
 
     ### Command handling and parsing ###
 
-    def __getCommandParser(self):
+    def __get_command_parser(self):
         if not(self.__parser and isinstance(self.__parser, argparse.ArgumentParser)):
             self.__parser = argparse.ArgumentParser(
                 description='Process commands.')
@@ -106,20 +108,20 @@ class DKPBot:
 #                                       help='All other string values will be put here', nargs='*', default=None)
         return self.__parser
 
-    def __parseCommand(self, string):
+    def __parse_command(self, string):
         if string:
-            return self.__getCommandParser().parse_args(string.split())
+            return self.__get_command_parser().parse_args(string.split())
         else:
             return None
 
-    def __handleCommand(self, command, param, request_info):
+    def __handle_command(self, command, param, request_info):
         method = ''
-        dm = False
+        direct_message = False
         if command[0] == '!':
             method = 'call_'
             if command[1] == '!':
-                dm = True # direct message
-                method += command[2:] #remove second ! also
+                direct_message = True  # direct message
+                method += command[2:]  # remove second ! also
             else:
                 method += command[1:]
         else:
@@ -127,17 +129,17 @@ class DKPBot:
 
         callback = getattr(self, method, None)
         if callback and callable(callback):
-            bot_memory_manager.Manager().Handle(self.__guild_id)# pylint: disable=no-value-for-parameter
-            response = callback(param, request_info) # pylint: disable=not-callable
+            bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
+            response = callback(param, request_info)  # pylint: disable=not-callable
 
-            response.dm = dm
+            response.dm = direct_message
 
             return response
         else:
             return Response(ResponseStatus.IGNORE)
 
-    def Handle(self, message, request_info):
-        args = self.__parseCommand(message)
+    def handle(self, message, request_info):
+        args = self.__parse_command(message)
         if args:
             if args.command:
                 if not args.param:
@@ -145,7 +147,7 @@ class DKPBot:
                         return Response(ResponseStatus.ERROR, "No param and no author. How?")
                     args.param = [request_info.get('name')]
                 args.param = " ".join(args.param)
-                return self.__handleCommand(args.command.lower(), args.param.lower(), request_info)
+                return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
             else:
                 # Empty message, attachement only probably
                 return Response(ResponseStatus.IGNORE)
@@ -155,184 +157,184 @@ class DKPBot:
 
     ### File handling and parsing ###
 
-    def __getSavedVariables(self, inputString):
-        return SavedVariablesParser().ParseString(inputString)
+    def __get_saved_variables(self, input_string):
+        return SavedVariablesParser().parse_string(input_string)
 
-    def _dbGetInfo(self):
+    def _db_get_info(self):
         return self.__db['info']
 
-    def _buildDkpDatabase(self, sv):
+    def _build_dkp_database(self, saved_variable):  # pylint: disable=unused-argument
         self.__db['global']['dkp'] = {}
         self.__db['group'] = {}
 
-    def _buildLootDatabase(self, sv):
+    def _build_loot_database(self, saved_variable):  # pylint: disable=unused-argument
         self.__db['global']['loot'] = []
         self.__db['global']['player_loot'] = {}
 
-    def _buildHistoryDatabase(self, sv):
+    def _build_history_database(self, saved_variable):  # pylint: disable=unused-argument
         self.__db['global']['history'] = {}
 
-    def _finalizeDatabase(self):
+    def _finalize_database(self):
         return
 
-    def _getDkp(self, player):
+    def _get_dkp(self, player):
         return self.__db['global']['dkp'].get(player.lower())
 
-    def _getPlayerLoot(self, player):
+    def _get_player_loot(self, player):
         return self.__db['global']['player_loot'].get(player.lower())
 
-    def _getLoot(self,):
+    def _get_loot(self,):
         return self.__db['global']['loot']
 
-    def _getHistory(self, player):
+    def _get_history(self, player):
         return self.__db['global']['history'].get(player.lower())
 
-    def _setDkp(self, player, entry):
+    def _set_dkp(self, player, entry):
         self.__db['global']['dkp'][player.lower()] = entry
 
-    def _addLoot(self, entry):
+    def _add_loot(self, entry):
         self.__db['global']['loot'].append(entry)
 
-    def _sortLoot(self, newest=True):
-            self.__db['global']['loot'].sort(
-                key=lambda info: info.Timestamp(), reverse=bool(newest))
+    def _sort_loot(self, newest=True):
+        self.__db['global']['loot'].sort(
+            key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _findLoot(self, keyword):
+    def _find_oot(self, keyword):
         if not keyword or not isinstance(keyword, str) or len(keyword) == 0:
             return list()
 
         loot_pattern = re.compile(keyword.strip(), flags=re.IGNORECASE)
 
         def get_loot_if_matching(entry):
-            if loot_pattern.search(entry.ItemName()) != None:
+            if loot_pattern.search(entry.item_name()) is not None:
                 return entry
-            
+
             return None
 
-        l = list(map(get_loot_if_matching, self.__db['global']['loot']))
-        return list(filter(None, l))
+        matching_loot = list(map(get_loot_if_matching, self.__db['global']['loot']))
+        return list(filter(None, matching_loot))
 
-    def _validatePlayer(self, player):
+    def _validate_player(self, player):
         if not player:
             return None
 
         if isinstance(player, str):
-            player = self._getDkp(player)
+            player = self._get_dkp(player)
             if not player:
                 return None
 
-        name = getattr(player, "Name", None)
+        name = getattr(player, "name", None)
         if callable(name):
             return player
 
         return None
 
-    def _addPlayerLoot(self, player, entry):
-        player = self._validatePlayer(player)
+    def _add_player_loot(self, player, entry):
+        player = self._validate_player(player)
         if not player:
             return
 
-        player = player.Name().lower()
+        player = player.name().lower()
         player_loot = self.__db['global']['player_loot'].get(player)
         if not player_loot:
             self.__db['global']['player_loot'][player] = []
         self.__db['global']['player_loot'][player].append(entry)
 
-    def _sortPlayerLoot(self, newest=True, player=None):
+    def _sort_player_loot(self, newest=True, player=None):
         if self.__db['global']['player_loot'].get(player):
             self.__db['global']['player_loot'][player].sort(
-                key=lambda info: info.Timestamp(), reverse=bool(newest))
+                key=lambda info: info.timestamp(), reverse=bool(newest))
         else:
-            for p in self.__db['global']['player_loot'].values():
-                p.sort(key=lambda info: info.Timestamp(), reverse=bool(newest))
+            for loot in self.__db['global']['player_loot'].values():
+                loot.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _addHistory(self, player, entry):
-        player = self._validatePlayer(player)
+    def _add_history(self, player, entry):
+        player = self._validate_player(player)
         if not player:
             return
 
-        player = player.Name().lower()
+        player = player.name().lower()
         player_history = self.__db['global']['history'].get(player)
         if not player_history:
             self.__db['global']['history'][player] = []
         self.__db['global']['history'][player].append(entry)
 
-    def _sortHistory(self, newest=True, player=None):
+    def _sort_history(self, newest=True, player=None):
         if self.__db['global']['history'].get(player):
             self.__db['global']['history'][player].sort(
-                key=lambda info: info.Timestamp(), reverse=bool(newest))
+                key=lambda info: info.timestamp(), reverse=bool(newest))
         else:
-            for p in self.__db['global']['history'].values():
-                p.sort(key=lambda info: info.Timestamp(), reverse=bool(newest))
+            for history in self.__db['global']['history'].values():
+                history.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _sortGroupDkp(self, group=None):
+    def _sort_group_dkp(self, group=None):
         if self.__db['group'].get(group):
             self.__db['group'][group].sort(
-                key=lambda info: info.Dkp(), reverse=True)
+                key=lambda info: info.dkp(), reverse=True)
         else:
-            for g in self.__db['group'].values():
-                g.sort(key=lambda info: info.Dkp(), reverse=True)
+            for values in self.__db['group'].values():
+                values.sort(key=lambda info: info.dkp(), reverse=True)
 
-    def _setGroupDkp(self, group, entry, sort=False):
+    def _set_group_dkp(self, group, entry, sort=False):
         if group:
             group = group.lower()
             if not group in self.__db['group']:
                 self.__db['group'][group] = []
             self.__db['group'][group].append(entry)
-            if sort and sort == True:
-                self._sortGroupDkp(group)
+            if sort:
+                self._sort_group_dkp(group)
 
-    def _getGroupDkp(self, group):
+    def _get_group_dkp(self, group):
         if group:
             return self.__db['group'].get(group.lower())
 
         return None
 
-    def _setPlayerLatestLoot(self):
-        for p in self.__db['global']['dkp'].values():
-            loot = self._getPlayerLoot(p.Name())
+    def _set_player_latest_loot(self):
+        for dkp in self.__db['global']['dkp'].values():
+            loot = self._get_player_loot(dkp.name())
             if loot and isinstance(loot, list):
-                p.SetLatestLootEntry(loot[0])
+                dkp.set_latest_loot_entry(loot[0])
 
-    def _setPlayerLatestHistory(self):
-        for p in self.__db['global']['dkp'].values():
-            history = self._getHistory(p.Name())
+    def _set_player_latest_history(self):
+        for dkp in self.__db['global']['dkp'].values():
+            history = self._get_history(dkp.name())
             if history and isinstance(history, list):
-                p.SetLatestHistoryEntry(history[0])
+                dkp.set_latest_history_entry(history[0])
 
-    def _setPlayerLatestPositiveHistoryAndActivity(self, inactive_time = 200000000000):
+    def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000):
         now = int(datetime.now(tz=timezone.utc).timestamp())
-        for p in self.__db['global']['dkp'].values():
-            history = self._getHistory(p.Name())
+        for dkp in self.__db['global']['dkp'].values():
+            history = self._get_history(dkp.name())
             if history and isinstance(history, list):
                 for history_entry in history:
-                    if history_entry.Dkp() > 0:
-                        p.SetLatestHistoryEntry(history_entry)
-                        if abs(now - history_entry.Timestamp()) > inactive_time:
-                            p.SetInactive()
+                    if history_entry.dkp() > 0:
+                        dkp.set_latest_history_entry(history_entry)
+                        if abs(now - history_entry.timestamp()) > inactive_time:
+                            dkp.set_inactive()
                         break
 
-    def BuildDatabase(self, inputString, info):
+    def build_database(self, input_string, info):
         print('Building database')
 
         start = int(datetime.now(tz=timezone.utc).timestamp())
 
-        sv = self.__getSavedVariables(inputString)
-        if sv == None:
+        saved_variable = self.__get_saved_variables(input_string)
+        if saved_variable is None:
             return Response(ResponseStatus.ERROR, "Error Parsing .lua file.")
 
-        if not isinstance(sv, dict):
+        if not isinstance(saved_variable, dict):
             return Response(ResponseStatus.ERROR, "No SavedVariables found in .lua file.")
 
         self.__db['info']['comment'] = info.get('comment')
         self.__db['info']['date'] = info.get('date')
         self.__db['info']['author'] = info.get('author')
 
-        self._buildDkpDatabase(sv)
-        self._buildLootDatabase(sv)
-        self._buildHistoryDatabase(sv)
+        self._build_dkp_database(saved_variable)
+        self._build_loot_database(saved_variable)
+        self._build_history_database(saved_variable)
 
-        self._finalizeDatabase()
+        self._finalize_database()
 
         print('Building complete in {0} seconds'.format(
             int(datetime.now(tz=timezone.utc).timestamp()) - start))
@@ -346,19 +348,19 @@ class DKPBot:
 
         return Response(ResponseStatus.SUCCESS, "Database building complete.")
 
-    def ReloadData(self):
+    def reload_data(self):
         return Response(ResponseStatus.REQUEST, Request.ATTACHEMENT)
 
     ### Command callbacks ###
 
     def call_dkpmanage(self, param, request_info):
-        if request_info.get('is_privileged') != True:
+        if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)
 
         if param == 'register':
             return Response(ResponseStatus.REQUEST, Request.CHANNEL_ID)
 
         if param == 'reload':
-            return self.ReloadData()
+            return self.reload_data()
 
         return Response(ResponseStatus.SUCCESS, "Sorry :frowning: !dkpmanage {0} is not yet implemented.".format(str(request_info.get('name'))))
