@@ -155,7 +155,9 @@ class DKPBot:
                     if not request_info or not request_info.get('name'):
                         return Response(ResponseStatus.ERROR, "No param and no author. How?")
                     args.param = [request_info.get('name')]
+                print(args.param)
                 args.param = " ".join(args.param)
+                print(args.param)
                 return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
             else:
                 # Empty message, attachement only probably
