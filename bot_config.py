@@ -14,14 +14,14 @@ def public_to_dict(obj):
     return dictionary
 
 
+
 class BotConfigType(Enum):
     SPECIFIC = 0  # Server specific ini
     DEFAULT = 1  # Default ini
     HARDCODED = 2  # Hardcoded
 
-
 class GuildInfo():
-    bot_type = ''
+    __bot_type = ''
     file_upload_channel = 0
     filename = ''
     prefix = "!"
@@ -34,25 +34,97 @@ class GuildInfo():
         self.prefix = prefix
         self.premium = bool(premium)
 
-class DisplayConfig():
-    max_fields = 0
-    max_entries_per_field = 0
-    max_separate_messages = 0
-    use_multiple_columns = False
+class DisplayConfig(object):
+    __max_fields = 0
+    __max_entries_per_field = 0
+    __max_separate_messages = 0
+    __use_multiple_columns = False
 
     def __init__(self, max_fields, max_entries_per_field, max_separate_messages, use_multiple_columns):
-        self.max_fields = max_fields
-        self.max_entries_per_field = max_entries_per_field
-        self.max_separate_messages = max_separate_messages
-        self.use_multiple_columns = use_multiple_columns
+        self.__max_fields = max_fields
+        self.__max_entries_per_field = max_entries_per_field
+        self.__max_separate_messages = max_separate_messages
+        self.__use_multiple_columns = use_multiple_columns
 
+    def __getattr__(self, name):
+        if not name.startswith('__get_') and hasattr(self,'__get_' + name):
+            return getattr(self,'__get_' + name)()
+
+        raise AttributeError("no such attribute: {0}".format(name))
+
+    def __setattr__(self, name, value):
+        try:
+            return getattr(self,'__set_' + name)(value)
+        except AttributeError:
+            return super(DisplayConfig,self).__setattr__(name, value)
+
+    @staticmethod
+    def __supported_max_fields():
+        return (0, 6)
+
+    def __get_max_fields(self):
+        return self.__max_fields
+
+    def __set_max_fields(self, max_fields):
+        if isinstance(max_fields, int):
+            val = self.__supported_max_fields()
+            if val[0] <= max_fields <= val[1]:
+                self.__max_fields = max_fields
+
+    max_fields = property(__get_max_fields, __set_max_fields)
+
+    @staticmethod
+    def __supported_max_entries_per_field():
+        return (1, 16)
+
+    def __get_max_entries_per_field(self):
+        return self.__max_entries_per_field
+
+    def __set_max_entries_per_field(self, max_entries_per_field):
+        if isinstance(max_entries_per_field, int):
+            val = self.__supported_max_entries_per_field()
+            if val[0] <= max_entries_per_field <= val[1]:
+                self.__max_entries_per_field = max_entries_per_field
+
+    max_entries_per_field = property(__get_max_entries_per_field, __set_max_entries_per_field)
+
+    @staticmethod
+    def __supported_max_separate_messages():
+        return (1, 16)
+
+    def __get_max_separate_messages(self):
+        return self.__max_separate_messages
+
+    def __set_max_separate_messages(self, max_separate_messages):
+        if isinstance(max_separate_messages, int):
+            val = self.__supported_max_separate_messages()
+            if val[0] <= max_separate_messages <= val[1]:
+                self.__max_separate_messages = max_separate_messages
+
+    max_separate_messages = property(__get_max_separate_messages, __set_max_separate_messages)
+
+    @staticmethod
+    def __supported_use_multiple_columns():
+        return [True, False]
+
+    def __get_use_multiple_columns(self):
+        return self.__use_multiple_columns
+
+    def __set_use_multiple_columns(self, use_multiple_columns):
+        if isinstance(use_multiple_columns, str):
+            if use_multiple_columns.lower() == 'true':
+                self.__use_multiple_columns = True
+            elif use_multiple_columns.lower() == 'false':
+                self.__use_multiple_columns = False
+
+    use_multiple_columns = property(__get_use_multiple_columns, __set_use_multiple_columns)
 
 class BotConfig():
     __type = BotConfigType.HARDCODED
     __filepath = ""
     __config = None
 
-    guild_info = GuildInfo('EssentialDKP', 0, 'EssentialDKP.lua', '!', False)
+    guild_info = GuildInfo('essential', 0, 'EssentialDKP.lua', '!', False)
     dkp = DisplayConfig(6, 16, 5, True)
     dkp_history = DisplayConfig(1, 10, 1, True)
     loot_history = DisplayConfig(1, 10, 1, True)
@@ -81,7 +153,7 @@ class BotConfig():
     # Load from config to dictionary
     def __load(self):
         self.guild_info = GuildInfo(
-            self.__config.get('Guild Info', 'BotType', fallback='EssentialDKP'),
+            self.__config.get('Guild Info', 'BotType', fallback='essential'),
             self.__config.getint('Guild Info', 'FileUploadChannel', fallback=0),
             self.__config.get('Guild Info', 'FileName', fallback='EssentialDKP.lua'),
             self.__config.getint('Guild Info', 'Prefix', fallback='!'),
@@ -140,6 +212,10 @@ class BotConfig():
         with open(self.__filepath, "w") as file:
             self.__store()
             self.__config.write(file, space_around_delimiters=False)
+
+    @staticmethod
+    def get_directly_accessible_configs():
+        return ['dkp', 'dkp_history', 'loot_history', 'latest_loot', 'item_search']
 
     def __str__(self):
         string = ""

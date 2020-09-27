@@ -246,7 +246,10 @@ async def on_message(message):
 
         request_info = {
             'name': author,
-            'channel': message.channel.id,
+            'channel': {
+                'id' : message.channel.id,
+                'name' : message.channel.name[:50]
+            },
             'is_privileged': is_privileged
         }
 

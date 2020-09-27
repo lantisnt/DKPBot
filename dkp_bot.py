@@ -351,6 +351,22 @@ class DKPBot:
 
         return Response(ResponseStatus.SUCCESS, "Database building complete.")
 
+    ### Setting Handlers
+    def __list_configs(self):
+        pass
+
+    def __set_config(self, group, config, value):
+        internal_group = getattr(self.__config, group, None)
+        if internal_group:
+            if hasattr(internal_group, config):
+                setattr(internal_group, config, value)
+                if getattr(internal_group, config) == value:
+                    return "New value set"
+        return "Invalid value"
+
+    def __set_config_specific(self, config, value):
+        return "Invalid value"
+
     ### Command callbacks ###
 
     def call_dkphelp(self, param, request_info): # pylint: disable:unused-argument
@@ -359,15 +375,36 @@ class DKPBot:
     def call_dkpbotconfig(self, param, request_info):
         if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)
-
         print(param)
+        params = list(map(lambda p: p.lower().replace("-", "_"), param))
+        num_params = len(params)
+        if num_params == 0:
+            return Response(ResponseStatus.IGNORE)
 
-#        if param == 'register':
-#            if request_info['channel'] > 0:
-#                self.__register_file_upload_channel(request_info['channel'])
-#                return Response(ResponseStatus.SUCCESS, 'Registered to expect SavedVariable lua file on channel {0.name}'.format(message.channel))
+        command = params[0]
+        if command == 'list': # list current config
+            return self.__list_configs()
+        elif command == 'set': # set config
+            if num_params == 1:
+                return Response(ResponseStatus.IGNORE)
 
-#        if param == 'reload':
-#            return Response(ResponseStatus.REQUEST, Request.RELOAD)
+            if num_params == 3:
+                config = params[1]
+                value = params[2]
+
+                return Response(ResponseStatus.SUCCESS, self.__set_config_specific(config, value))
+
+            if num_params == 4:
+                group = params[1]
+                config = params[2]
+                value = params[3]
+                if group in self.__config.get_directly_accessible_configs():
+                    return Response(ResponseStatus.SUCCESS, self.__set_config(group, config, value))
+
+        elif command == 'register':
+            if request_info['channel'] > 0:
+                self.__register_file_upload_channel(request_info['channel']['id'])
+                return Response(ResponseStatus.SUCCESS, 
+                    'Registered to expect Saved Variable lua file on channel {0.name}'.format(request_info['channel']['name']))
 
         return Response(ResponseStatus.IGNORE)
