@@ -258,7 +258,7 @@ async def on_message(message):
         if response and isinstance(response, dkp_bot.Response):
             if response.status == dkp_bot.ResponseStatus.SUCCESS:
                 response_channel = message.channel
-                if response.dm:
+                if response.direct_message:
                     dm_channel = message.author.dm_channel
                     if dm_channel is None:
                         await message.author.create_dm()
