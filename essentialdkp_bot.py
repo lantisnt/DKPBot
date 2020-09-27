@@ -231,7 +231,7 @@ class EssentialDKPBot(DKPBot):
     def _build_history_database(self, saved_variable):
         super()._build_history_database(None)
         history = saved_variable.get(self.__HISTORY_SV)
- 
+
         if not history:
             return
         if not isinstance(history, dict):
@@ -346,37 +346,38 @@ class EssentialDKPBot(DKPBot):
         help_string += 'Currently supported commands:\n'
         help_string += '**{0}**\n Display this help\n'.format("!dkphelp")
         help_string += '**{0}**\n Display summary information of the requester.\n'.format(
-            "!dkp")
+            self.get_prefix() + "dkp")
 
         help_string += '**{0}**\n Display summary information of [player].\n'.format(
-            "!dkp player")
-
-        help_string += '**{0}**\n Display current DKP for player, class or alias mixed together.'.format(
-            "!dkp class alias player")
-        help_string +='Supported aliases: all, tanks, healers, dps, casters, physical, ranged, melee.'
-        help_string +='Example: !dkp shadowlifes healers mage\n'
+            self.get_prefix() + "dkp player")
 
         help_string += '**{0}**\n Display DKP history of the requester.\n'.format(
-            "!dkphistory ")
+            self.get_prefix() + "dkphistory ")
         help_string += '**{0}**\n Display DKP history of [player].\n'.format(
-            "!dkphistory player")
+            self.get_prefix() + "dkphistory player")
         help_string += '**{0}**\n Display latest loot of the requester.\n'.format(
-            "!loot" )
+            self.get_prefix() + "loot" )
         help_string += '**{0}**\n Display latest loot of [player].\n'.format(
-            "!loot player")
+            self.get_prefix() + "loot player")
+        help_string += '\n\n'
+        help_string += 'Supporter only options:\n'
+        help_string += '**{0}**\n Display current DKP for player, class or alias mixed together.'.format(
+            self.get_prefix() + "dkp class alias player")
+        help_string +='Supported aliases: all, tanks, healers, dps, casters, physical, ranged, melee.'
+        help_string +='Example: !dkp shadowlifes healers mage\n'
         help_string += '**{0}**\n Display latest 30 loot entries from raids.\n'.format(
-            "!raidloot")
+            self.get_prefix() + "raidloot")
         help_string += '**{0}**\n Find loot entries matching __name__.\n'.format(
-            "!item name")
+            self.get_prefix() + "item name")
         help_string += 'You can also preceed any command with **double prefix !!** instead of single one to get the response in DM.'
         help_string += 'Your request will be removed by the bot afterwards if it has proper accesses.\n'
         if request_info['is_privileged']:
             help_string += '\n\n'
             help_string += 'Administrator only options:\n'
             help_string += '**{0}**\n Register current channel as EssentialDKP.lua file source.\n'.format(
-                "!dkpmanage register")
+                self.get_prefix() + "dkpbotconfig register")
             help_string += '**{0}**\n Force reload data from newest EssentialDKP.lua file found in registered channel.'.format(
-                "!dkpmanage reload")
+                self.get_prefix() + "dkpbotconfig reload")
         return Response(ResponseStatus.SUCCESS, help_string)
 
     def call_dkp(self, param, request_info):

@@ -21,6 +21,7 @@ class Request(Enum):
     NONE = 0
     CHANNEL_ID = 1
     ATTACHEMENT = 2
+    RELOAD = 3
 
 
 class Response:
@@ -42,14 +43,16 @@ class DKPBot:
     __guild_id = 0
     __input_file_name = ""
     __channel = 0
+    __prefix = '!'
     __enabled = False
     __parser = None
     __db = {}
 
     def __init__(self, guild_id: int, config: BotConfig):
         self.__guild_id = int(guild_id)
-        self.__input_file_name = config.GuildInfo.FileName
-        self.__channel = int(config.GuildInfo.FileUploadChannel)
+        self.__input_file_name = config.GuildInfo.filename
+        self.__channel = int(config.GuildInfo.file_upload_channel)
+        self.__prefix = str(config.guild_info.prefix)
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
             'global': {},
@@ -81,6 +84,9 @@ class DKPBot:
 
     def is_database_loaded(self):
         return len(self.__db) > 0
+
+    def get_prefix(self):
+        return self.__prefix
 
     # Direct access for pickling
     def database_get(self):
@@ -117,9 +123,9 @@ class DKPBot:
     def __handle_command(self, command, param, request_info):
         method = ''
         direct_message = False
-        if command[0] == '!':
+        if command[0] == self.__prefix:
             method = 'call_'
-            if command[1] == '!':
+            if command[1] == self.__prefix:
                 direct_message = True  # direct message
                 method += command[2:]  # remove second ! also
             else:
@@ -347,7 +353,7 @@ class DKPBot:
 
     ### Command callbacks ###
 
-    def call_dkpmanage(self, param, request_info):
+    def call_dkpbotconfig(self, param, request_info):
         if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)
 
@@ -355,6 +361,6 @@ class DKPBot:
             return Response(ResponseStatus.REQUEST, Request.CHANNEL_ID)
 
         if param == 'reload':
-            return self.reload_data()
+            return Response(ResponseStatus.REQUEST, Request.RELOAD)
 
-        return Response(ResponseStatus.SUCCESS, "Sorry :frowning: !dkpmanage {0} is not yet implemented.".format(str(request_info.get('name'))))
+        return Response(ResponseStatus.IGNORE)
