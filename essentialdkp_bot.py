@@ -221,7 +221,7 @@ class EssentialDKPBot(DKPBot):
 
             player_loot =  PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date)
             self._add_loot(player_loot)
-            self._add_player_loot(player.player(), player_loot)
+            self._add_player_loot(player.name(), player_loot)
 
         self._sort_loot()
         self._sort_player_loot()
