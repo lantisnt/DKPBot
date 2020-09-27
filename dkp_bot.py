@@ -19,9 +19,7 @@ class ResponseStatus(Enum):
 
 class Request(Enum):
     NONE = 0
-    CHANNEL_ID = 1
-    ATTACHEMENT = 2
-    RELOAD = 3
+    RELOAD = 1
 
 
 class Response:
@@ -40,6 +38,7 @@ class Response:
 
 
 class DKPBot:
+    __config = None
     __guild_id = 0
     __input_file_name = ""
     __channel = 0
@@ -49,6 +48,7 @@ class DKPBot:
     __db = {}
 
     def __init__(self, guild_id: int, config: BotConfig):
+        self.__config = config
         self.__guild_id = int(guild_id)
         self.__input_file_name = config.guild_info.filename
         self.__channel = int(config.guild_info.file_upload_channel)
@@ -70,9 +70,6 @@ class DKPBot:
     def is_enabled(self):
         return self.__enabled
 
-    def register_channel(self, channel):
-        self.__channel = channel
-
     def is_channel_registered(self):
         return self.__channel != 0
 
@@ -87,6 +84,12 @@ class DKPBot:
 
     def get_prefix(self):
         return self.__prefix
+
+    # Config
+    def __register_file_upload_channel(self, channel):
+        self.__channel = channel
+        self.__config.guild_info.file_upload_channel = channel
+        self.__config.store()
 
     # Direct access for pickling
     def database_get(self):
@@ -348,9 +351,6 @@ class DKPBot:
 
         return Response(ResponseStatus.SUCCESS, "Database building complete.")
 
-    def reload_data(self):
-        return Response(ResponseStatus.REQUEST, Request.ATTACHEMENT)
-
     ### Command callbacks ###
 
     def call_dkphelp(self, param, request_info): # pylint: disable:unused-argument
@@ -360,10 +360,14 @@ class DKPBot:
         if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)
 
-        if param == 'register':
-            return Response(ResponseStatus.REQUEST, Request.CHANNEL_ID)
+        print(param)
 
-        if param == 'reload':
-            return Response(ResponseStatus.REQUEST, Request.RELOAD)
+#        if param == 'register':
+#            if request_info['channel'] > 0:
+#                self.__register_file_upload_channel(request_info['channel'])
+#                return Response(ResponseStatus.SUCCESS, 'Registered to expect SavedVariable lua file on channel {0.name}'.format(message.channel))
+
+#        if param == 'reload':
+#            return Response(ResponseStatus.REQUEST, Request.RELOAD)
 
         return Response(ResponseStatus.IGNORE)

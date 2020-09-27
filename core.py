@@ -176,6 +176,8 @@ async def spawn_bot(guild):
     config_filename = "{0}/{1}.ini".format(script_control.config_dir, guild.id)
     bot = bot_factory.new(guild.id, BotConfig(config_filename))
     if bot:
+        if guild.id in bots.keys():
+            del bots[guild.id]
         bots[guild.id] = bot
         for channel in guild.text_channels:
             try:  # in case we dont have access we still want to check other channels not die here
@@ -244,9 +246,9 @@ async def on_message(message):
 
         request_info = {
             'name': author,
+            'channel': message.channel.id,
             'is_privileged': is_privileged
         }
-
 
         if client.user in message.mentions:
             # Handle bot mention
@@ -275,14 +277,12 @@ async def on_message(message):
                 print('ERROR: {0}'.format(response.data))
                 return
             elif response.status == dkp_bot.ResponseStatus.REQUEST:
-                if response.data == dkp_bot.Request.CHANNEL_ID:
-                    bot.register_channel(message.channel.id)
-                    await discord_respond(message.channel, 'Registered to expect SavedVariable lua file on channel {0.name}'.format(message.channel))
-                return
+                if response.message == dkp_bot.Request.RELOAD:
+                    await spawn_bot(message.guild.id) # Respawn bot
 
-        # No ?!command response
+        # No command response
         # Check if we have attachment on registered channel
-        if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
+        if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
             await discord_attachment_parse(bot, message, normalize_author(message.author))
 
     except (SystemExit, Exception):
@@ -291,5 +291,5 @@ async def on_message(message):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        exit(1)
+        sys.exit(1)
     main(script_control)
