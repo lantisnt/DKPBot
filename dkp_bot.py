@@ -36,13 +36,15 @@ class Response:
 
 
 class DKPBot:
+    __guild_id = 0
     __inputFileName = ""
     __channel = 0
     __enabled = False
     __parser = None
     __db = {}
 
-    def __init__(self, config: BotConfig):
+    def __init__(self, guild_id: int, config: BotConfig):
+        self.__guild_id = int(guild_id)
         self.__inputFileName = config.GuildInfo.FileName
         self.__channel = int(config.GuildInfo.FileUploadChannel)
         self.__db = {
@@ -113,9 +115,7 @@ class DKPBot:
     def __handleCommand(self, command, param, request_info):
         method = ''
         dm = False
-        if command[0] == '?':
-            method = 'help_'
-        elif command[0] == '!':
+        if command[0] == '!':
             method = 'call_'
             if command[1] == '!':
                 dm = True # direct message
@@ -127,7 +127,7 @@ class DKPBot:
 
         callback = getattr(self, method, None)
         if callback and callable(callback):
-            bot_memory_manager.Manager().Handle(request_info['guild_id'])
+            bot_memory_manager.Manager().Handle(self.__guild_id)# pylint: disable=no-value-for-parameter
             response = callback(param, request_info) # pylint: disable=not-callable
 
             response.dm = dm

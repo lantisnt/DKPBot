@@ -21,11 +21,11 @@ class EssentialDKPBot(DKPBot):
     __multiplePlayerLootOutputBuilder = None
     __multipleLootOutputBuilder = None
 
-    def __init__(self, config):
-        super().__init__(config)
+    def __init__(self, guild_id, config):
+        super().__init__(guild_id, config)
         # Matches either a,b,c,d or A / B or A \ B
-        self.__group_player_find = re.compile("\s*([\d\w]*)[\s[\/\,]*")
-        self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)")
+        self.__group_player_find = re.compile("\s*([\d\w]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
+        self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)") # pylint: disable=anomalous-backslash-in-string
         # Data outputs
         self.__singlePlayerProfileBuilder       = SinglePlayerProfile("Essential DKP Profile")
         self.__multipleDkpOutputBuilder         = DKPMultipleResponse("DKP values",                 6,  16, 5, True)

@@ -14,7 +14,7 @@ class SavedVariablesParser:
         if not isinstance(strings, list):
             print("Something not ok with split")
             return None
-        pattern = re.compile("^\s*([a-zA-Z0-9-_]*)\s*=\s*")
+        pattern = re.compile("^\s*([a-zA-Z0-9-_]*)\s*=\s*") # pylint: disable=anomalous-backslash-in-string
         SavedVariables = {}
         for s in strings:
             if(len(s) == 0):

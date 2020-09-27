@@ -19,6 +19,17 @@ STORAGE_DIR = "/tmp"
 ## Global objects
 client = discord.Client()
 bots = {}
+initialized = False
+
+## Error handling
+def handle_exception(text):
+    print("=== EXCEPTION ===")
+    print(text)
+    print("=== TRACEBACK ===")
+    exc_type, exc_value, exc_traceback = sys.exc_info()
+    traceback.print_exception(exc_type, exc_value, exc_traceback, limit=15, file=sys.stdout)
+    print("====== END ======")
+
 
 ## Data related
 def pickle_data(uid, data):
@@ -46,7 +57,7 @@ def PERFORMANCE_TEST_INJECTION(gid, attachment):
 
     if gid == 746131486234640444:
         for i in range(1, PERFORMANCE_TEST_BOTS + 1):
-            bots[i] = bot_factory.New(BotConfig('1.ini'))
+            bots[i] = bot_factory.New(i, BotConfig('1.ini'))
             bots[i].BuildDatabase(attachment, {})
             bot_memory_manager.Manager().Handle(i, True)
         PERFORMANCE_TEST_DONE = True
@@ -120,52 +131,56 @@ async def discord_attachment_parse(bot, message, normalized_author):
 
     return dkp_bot.ResponseStatus.IGNORE
 
+async def spawn_bot(guild):
+    config_filename = "{0}/{1}.ini".format(CFG_DIR, guild.id)
+    bot = bot_factory.New(guild.id, BotConfig(config_filename))
+    if bot:
+        bots[guild.id] = bot
+        for channel in guild.text_channels:
+            try: # in case we dont have access we still want to check other channels not die here
+                if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
+                    async for message in channel.history(limit=50):
+                        status = await discord_attachment_parse(bot, message, normalize_author(message.author))
+                        if status == dkp_bot.ResponseStatus.SUCCESS:
+                            break
+            except discord.Forbidden:
+                continue
+        bot_memory_manager.Manager().Handle(guild.id, True) # We call it here so we will have it tracked from beginning
+
 ## Discord API
+
+@client.event
+async def on_guild_join(guild):
+    try:
+        await spawn_bot(guild)
+
+    except (SystemExit, Exception):
+        handle_exception("on_guild_join()")
 
 @client.event
 async def on_ready():
     try:
-        for guild in client.guilds:
-            config_filename = "{0}/{1}.ini".format(CFG_DIR, guild.id)
-            bot = bot_factory.New(BotConfig(config_filename))
-            if bot:
-                bots[guild.id] = bot
-                for channel in guild.text_channels:
-                    try: # in case we dont have access we still want to check other channels not die here
-                        if (bot.IsChannelRegistered() and bot.CheckChannel(message.channel.id)) or not bot.IsChannelRegistered():
-                            async for message in channel.history(limit=50):
-                                status = await discord_attachment_parse(bot, message, normalize_author(message.author))
-                                if status == dkp_bot.ResponseStatus.SUCCESS:
-                                    break
-                    except discord.Forbidden:
-                        continue
-                bot_memory_manager.Manager().Handle(guild.id, True) # We call it here so we will have it tracked from beginning
-            else:
-                continue
-    except Exception:
-        print("=== EXCEPTION ===")
-        print(message.content)
-        print("=== TRACEBACK ===")
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_traceback, limit=15, file=sys.stdout)
-        print("====== END ======")
+        if initialized:
+            return
 
+        for guild in client.guilds:
+            await spawn_bot(guild)
+
+    except (SystemExit, Exception):
+        handle_exception("on_ready()")
+
+    initialized = True
     print("Ready!")
 
 @client.event
 async def on_message(message):
     try:
-        # TODO very later on
-        # if enabled != True:
-        #    return
-
         # Don't react to own messages
         if message.author == client.user:
             return
 
         # Block DMChannel at all
         if isinstance(message.channel, discord.DMChannel):
-            # print('Received message {0.content} from {1} on DMChannel: {0.channel.id}'.format(message, message.author))
             return
 
         # Check if we have proper bot for the requester
@@ -176,10 +191,6 @@ async def on_message(message):
         # Normalize author
         author = normalize_author(message.author)
 
-        # Debug message receive print
-        # print('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
-        # await message.channel.send('Received message {0.content} from {1} on channel: {0.channel.id}'.format(message, author))
-
         # Check if user is privileged user (administrator)
         is_privileged = False
         if isinstance(message.author, discord.Member):
@@ -188,11 +199,10 @@ async def on_message(message):
 
         request_info = {
             'name': author,
-            'is_privileged': is_privileged,
-            'guild_id' : message.guild.id
+            'is_privileged': is_privileged
         }
 
-        # Handle ?!command
+        # Handle !command
         response = bot.Handle(message.content, request_info)
         if response and isinstance(response, dkp_bot.Response):
             if response.status == dkp_bot.ResponseStatus.SUCCESS:
@@ -226,12 +236,7 @@ async def on_message(message):
             await discord_attachment_parse(bot, message, normalize_author(message.author))
 
     except (SystemExit, Exception):
-        print("=== EXCEPTION ===")
-        print(message.content)
-        print("=== TRACEBACK ===")
-        exc_type, exc_value, exc_traceback = sys.exc_info()
-        traceback.print_exception(exc_type, exc_value, exc_traceback, limit=15, file=sys.stdout)
-        print("====== END ======")
+        handle_exception(message.content)
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
@@ -246,5 +251,7 @@ if __name__ == "__main__":
     bot_memory_manager.Manager().Initialize(MEMORY_LIMIT, bots, pickle_data, unpickle_data)
 
     PERFORMANCE_TEST_DONE = False
+
+    initialized = False
 
     client.run(TOKEN)

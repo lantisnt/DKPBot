@@ -18,16 +18,16 @@ class BotConfigType(Enum):
     HARDCODED = 2 # Hardcoded
 
 class GuildInfo():
-    GuildId = 0
     BotType = ''
     FileUploadChannel = 0
     FileName = ''
+    Premium = False
     
-    def __init__(self, GuildId, BotType, FileUploadChannel, FileName):
-        self.GuildId = GuildId
+    def __init__(self, BotType, FileUploadChannel, FileName, Premium):
         self.BotType = BotType
         self.FileUploadChannel = FileUploadChannel
         self.FileName = FileName
+        self.Premium = bool(Premium)
 
 class DisplayConfig():
     MaxFields = 0
@@ -46,7 +46,7 @@ class BotConfig():
     __filepath = ""
     __config = None
 
-    GuildInfo = GuildInfo(0, 'EssentialDKP', 0, 'EssentialDKP.lua')
+    GuildInfo = GuildInfo('EssentialDKP', 0, 'EssentialDKP.lua', False)
     DKP = DisplayConfig(6, 16, 5, True)
     DKPHistory = DisplayConfig(1, 10, 1, True)
     LootHistory = DisplayConfig(1, 10, 1, True)
@@ -75,10 +75,10 @@ class BotConfig():
     ## Load from config to dictionary
     def __load(self):
         self.GuildInfo = GuildInfo(
-            self.__config.getint('Guild Info', 'GuildId', fallback = 0),
             self.__config.get('Guild Info', 'BotType', fallback = 'EssentialDKP'),
             self.__config.getint('Guild Info', 'FileUploadChannel', fallback = 0),
-            self.__config.get('Guild Info', 'FileName', fallback = 'EssentialDKP.lua')
+            self.__config.get('Guild Info', 'FileName', fallback = 'EssentialDKP.lua'),
+            self.__config.getint('Guild Info', 'Premium', fallback = False),
         )
         self.DKP = DisplayConfig(
             self.__config.getint('DKP Display', 'MaxFields', fallback = 1),
