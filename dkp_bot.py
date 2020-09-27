@@ -386,6 +386,7 @@ class DKPBot:
         if command == 'list': # list current config
             return self.__list_configs()
         elif command == 'set': # set config
+            print(num_params)
             if num_params == 1:
                 return Response(ResponseStatus.IGNORE)
 
@@ -399,6 +400,8 @@ class DKPBot:
                 group = params[1]
                 config = params[2]
                 value = params[3]
+                print(group)
+                print(self.__config.get_directly_accessible_configs())
                 if group in self.__config.get_directly_accessible_configs():
                     return Response(ResponseStatus.SUCCESS, self.__set_config(group, config, value))
 
