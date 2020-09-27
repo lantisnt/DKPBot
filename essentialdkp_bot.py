@@ -91,6 +91,7 @@ class EssentialDKPBot(DKPBot):
 
         if not dkp:
             return
+
         if isinstance(players, str) and isinstance(dkp, (int, float)):
             player_info = self._get_dkp(players)
             if player_info is None:
@@ -150,7 +151,7 @@ class EssentialDKPBot(DKPBot):
             if lifetime_spent is None:
                 continue
 
-            ingame_class = entry.get("ingame_class")
+            ingame_class = entry.get("class")
             if ingame_class is None:
                 continue
 
