@@ -353,6 +353,9 @@ class DKPBot:
 
     ### Command callbacks ###
 
+    def call_dkphelp(self, param, request_info): # pylint: disable:unused-argument
+        pass
+
     def call_dkpbotconfig(self, param, request_info):
         if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)

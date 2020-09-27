@@ -247,8 +247,14 @@ async def on_message(message):
             'is_privileged': is_privileged
         }
 
-        # Handle !command
-        response = bot.handle(message.content, request_info)
+
+        if client.user in message.mentions:
+            # Handle bot mention
+            response = bot.call_dkphelp(None, request_info)
+        else:
+            # Handle command
+            response = bot.handle(message.content, request_info)
+
         if response and isinstance(response, dkp_bot.Response):
             if response.status == dkp_bot.ResponseStatus.SUCCESS:
                 response_channel = message.channel
@@ -272,7 +278,6 @@ async def on_message(message):
                 if response.data == dkp_bot.Request.CHANNEL_ID:
                     bot.register_channel(message.channel.id)
                     await discord_respond(message.channel, 'Registered to expect SavedVariable lua file on channel {0.name}'.format(message.channel))
-
                 return
 
         # No ?!command response
