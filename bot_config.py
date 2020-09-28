@@ -85,6 +85,9 @@ class DisplayConfig(object):
     def __set_max_entries_per_field(self, max_entries_per_field):
         max_entries_per_field = int(max_entries_per_field)
         val = self.__supported_max_entries_per_field()
+        print(val[0])
+        print(val[1])
+        print(max_entries_per_field)
         if val[0] <= max_entries_per_field <= val[1]:
             self.__max_entries_per_field = max_entries_per_field
 
@@ -126,12 +129,12 @@ class BotConfig():
     __filepath = ""
     __config = None
 
-    guild_info = GuildInfo('essential', 0, 'EssentialDKP.lua', '!', False)
-    dkp = DisplayConfig(6, 16, 5, True)
-    dkp_history = DisplayConfig(1, 10, 1, True)
-    loot_history = DisplayConfig(1, 10, 1, True)
-    latest_loot = DisplayConfig(6, 5, 1, False)
-    item_search = DisplayConfig(6, 5, 3, False)
+    guild_info = None
+    dkp = None
+    dkp_history = None
+    loot_history = None
+    latest_loot = None
+    item_search = None
 
     def __init__(self, filepath):
         self.__filepath = filepath
@@ -150,7 +153,14 @@ class BotConfig():
             self.__type = BotConfigType.DEFAULT
             return
         else:
-            print("Error loading DEFAULT_CONFIG file")
+            print("Error loading DEFAULT_CONFIG file. Falling back to hardcoded settings.")
+            self.guild_info = GuildInfo('essential', 0, 'EssentialDKP.lua', '!', False)
+            self.dkp = DisplayConfig(6, 16, 5, True)
+            self.dkp_history = DisplayConfig(1, 10, 1, True)
+            self.loot_history = DisplayConfig(1, 10, 1, True)
+            self.latest_loot = DisplayConfig(6, 5, 1, False)
+            self.item_search = DisplayConfig(6, 5, 3, False)
+
 
     # Load from config to dictionary
     def __load(self):
