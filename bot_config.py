@@ -116,6 +116,7 @@ class DisplayConfig(object):
 
     def __str__(self):
         string = ""
+        
         attributes = public_to_dict(self)
         for attr in attributes:
             # Config name
@@ -125,7 +126,7 @@ class DisplayConfig(object):
             # Current value
             string += "\ncurrent: `{0}`".format(attributes[attr])
             # Supported values - if we have
-            supported_values = getattr(self, "__supported_" + attr, None)
+            supported_values = getattr(self, self.__class__.__name__ + "__supported_" + attr, None)
             print(supported_values)
             if supported_values is None or not callable(supported_values):
                 string += "\n"
