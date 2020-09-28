@@ -411,17 +411,17 @@ class DKPBot:
         print("set config {0} {1} {2}".format(group, config, value))
         internal_group = getattr(self.__config, group, None)
         if internal_group:
-            print("internal_group")
             if hasattr(internal_group, config):
-                print("has config")
                 setattr(internal_group, config, value)
-                print("set config value")
                 new_value = getattr(internal_group, config)
                 if isinstance(new_value, bool):
                     return (new_value and value == 'true') or (not new_value and value == 'false')
+                elif isinstance(new_value, int):
+                    try:
+                        return new_value == int(value)
+                    except ValueError:
+                        return False
                 else:
-                    print(new_value)
-                    print(value)
                     return new_value == value
         return False
 
@@ -437,20 +437,15 @@ class DKPBot:
         if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)
         param = self._parse_param(param, False)
-        print(param)
         params = list(map(lambda p: p.lower().replace("-", "_"), param))
         num_params = len(params)
-        print(num_params)
-        print(params)
         if num_params == 0:
             return Response(ResponseStatus.IGNORE)
 
         command = params[0]
-        print(command)
         if command == 'list': # list current config
             return self.__list_configs()
         elif command == 'set': # set config
-            print(num_params)
             if num_params == 1:
                 return Response(ResponseStatus.IGNORE)
 
@@ -464,8 +459,6 @@ class DKPBot:
                 group = params[1]
                 config = params[2]
                 value = params[3]
-                print(group)
-                print(self.__config.get_directly_accessible_configs())
                 if group in self.__config.get_directly_accessible_configs():
                     if self.__set_config(group, config, value):
                         self.__config.store()

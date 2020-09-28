@@ -171,25 +171,28 @@ async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Messag
 
 
 async def spawn_bot(guild):
-    config_filename = "{0}/{1}.ini".format(script_control.config_dir, guild.id)
-    bot = bot_factory.new(guild.id, BotConfig(config_filename))
-    if bot:
-        if guild.id in bots.keys():
-            del bots[guild.id]
-        bots[guild.id] = bot
-        for channel in guild.text_channels:
-            try:  # in case we dont have access we still want to check other channels not die here
-                if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
-                    async for message in channel.history(limit=50):
-                        status = await discord_attachment_parse(bot, message, normalize_author(message.author))
-                        if status == dkp_bot.ResponseStatus.SUCCESS:
-                            break
-            except discord.Forbidden:
-                continue
-        # We call it here so we will have it tracked from beginning
-        bot_memory_manager.Manager().Handle(guild.id, True)
-        print("Bot for server {0} total footprint: {1} B".format(
-                    guild.name, footprint.total_size(bot)))
+    try:
+        config_filename = "{0}/{1}.ini".format(script_control.config_dir, guild.id)
+        bot = bot_factory.new(guild.id, BotConfig(config_filename))
+        if bot:
+            if guild.id in bots.keys():
+                del bots[guild.id]
+            bots[guild.id] = bot
+            for channel in guild.text_channels:
+                try:  # in case we dont have access we still want to check other channels not die here
+                    if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
+                        async for message in channel.history(limit=50):
+                            status = await discord_attachment_parse(bot, message, normalize_author(message.author))
+                            if status == dkp_bot.ResponseStatus.SUCCESS:
+                                break
+                except discord.Forbidden:
+                    continue
+            # We call it here so we will have it tracked from beginning
+            bot_memory_manager.Manager().Handle(guild.id, True)
+            print("Bot for server {0} total footprint: {1} B".format(
+                        guild.name, footprint.total_size(bot)))
+    except (SystemExit, Exception):
+        handle_exception("spawn_bot()")
 
 # Discord API
 
