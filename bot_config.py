@@ -5,7 +5,7 @@ from enum import Enum
 
 from bot_utility import public_to_dict
 
-DEFAULT_CONFIG = "default.ini"
+DEFAULT_CONFIG = "/var/wowdkpbot-runner/default.ini"
 
 class BotConfigType(Enum):
     SPECIFIC = 0  # Server specific ini
