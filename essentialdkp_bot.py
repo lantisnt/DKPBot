@@ -4,6 +4,7 @@ from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from display_templates import SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
 
+
 class EssentialDKPBot(DKPBot):
 
     __DKP_SV = "MonDKP_DKPTable"
@@ -22,15 +23,29 @@ class EssentialDKPBot(DKPBot):
     def __init__(self, guild_id, config):
         super().__init__(guild_id, config)
         # Matches either a,b,c,d or A / B or A \ B
-        self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)") # pylint: disable=anomalous-backslash-in-string
-        # Data outputs
-        self.__single_player_profile_builder       = SinglePlayerProfile("Essential DKP Profile")
-        self.__multiple_dkp_output_builder         = DKPMultipleResponse("DKP values",                  6,  16, 5, True)
-        self.__multiple_history_output_builder     = HistoryMultipleResponse("Latest DKP history",      1,  10, 1, True)
-        self.__multiple_player_loot_output_builder  = PlayerLootMultipleResponse("Latest loot history", 1,  10, 1, True)
-        self.__multiple_loot_output_builder        = LootMultipleResponse("Latest 30 items awarded",    6,  5,  1, False)
-        self.__multiple_item_search_output_builder  = LootMultipleResponse("Search results",            6,  5,  3, False)
+        self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)")  # pylint: disable=anomalous-backslash-in-string
+        self._configure()
     ###
+
+    def _configure(self):
+        super()._configure()
+        # Data outputs
+        self.__single_player_profile_builder = SinglePlayerProfile("Essential DKP Profile")
+
+        self.__multiple_dkp_output_builder = DKPMultipleResponse("DKP values", self._get_config().dkp.max_fields, self._get_config(
+        ).dkp.max_entries_per_field, self._get_config().dkp.max_separate_messages, self._get_config().dkp.use_multiple_columns)
+
+        self.__multiple_history_output_builder = HistoryMultipleResponse("Latest DKP history", self._get_config().dkp_history.max_fields, self._get_config(
+        ).dkp_history.max_entries_per_field, self._get_config().dkp_history.max_separate_messages, self._get_config().dkp_history.use_multiple_columns)
+
+        self.__multiple_player_loot_output_builder = PlayerLootMultipleResponse("Latest loot history", self._get_config().loot_history.max_fields, self._get_config(
+        ).loot_history.max_entries_per_field, self._get_config().loot_history.max_separate_messages, self._get_config().loot_history.use_multiple_columns)
+
+        self.__multiple_loot_output_builder = LootMultipleResponse("Latest 30 items awarded", self._get_config().latest_loot.max_fields, self._get_config(
+        ).latest_loot.max_entries_per_field, self._get_config().latest_loot.max_separate_messages, self._get_config().latest_loot.use_multiple_columns)
+
+        self.__multiple_item_search_output_builder = LootMultipleResponse("Search results", self._get_config().item_search.max_fields, self._get_config(
+        ).item_search.max_entries_per_field, self._get_config().item_search.max_separate_messages, self._get_config().item_search.use_multiple_columns)
 
     def __build_dkp_output_single(self, info):
         if not info or not isinstance(info, PlayerInfo):
@@ -197,7 +212,7 @@ class EssentialDKPBot(DKPBot):
             if not isinstance(loot, str):
                 continue
 
-            item_info = list(filter(None, self.__item_id_name_find.findall(loot))) #[0] -> id [1] -> name
+            item_info = list(filter(None, self.__item_id_name_find.findall(loot)))  # [0] -> id [1] -> name
 
             if not item_info or not isinstance(item_info, list) or len(item_info) != 1:
                 print("ERROR in entry: " + str(player.player()) + " " + str(date) + " " + str(cost) + " " + str(loot))
@@ -207,7 +222,7 @@ class EssentialDKPBot(DKPBot):
                 print("ERROR in item_info[0] " + str(item_info[0]))
                 continue
 
-            player_loot =  PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date)
+            player_loot = PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date)
             self._add_loot(player_loot)
             self._add_player_loot(player.name(), player_loot)
 
@@ -270,7 +285,7 @@ class EssentialDKPBot(DKPBot):
             if isinstance(dkp, str):
                 # multiple entries
                 dkp = list(map(lambda d: d, dkp.split(",")))
-                if len(dkp) == 1: # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
+                if len(dkp) == 1:  # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
                     continue
             elif not isinstance(dkp, (int, float)):
                 continue
@@ -280,8 +295,8 @@ class EssentialDKPBot(DKPBot):
         self._sort_history()
         self._set_player_latest_positive_history_and_activity(self.__45_DAYS_SECONDS)
 
-
     # Called after whole database is built
+
     def _finalize_database(self):
         self.__single_player_profile_builder.set_database_info(
             self._db_get_info())
@@ -298,7 +313,7 @@ class EssentialDKPBot(DKPBot):
 
     ### Commands ###
 
-    def call_dkphelp(self, param, request_info): # pylint: disable=unused-argument
+    def call_dkphelp(self, param, request_info):  # pylint: disable=unused-argument
         help_string = 'EssentialDKP Bot allows access to dkp information.\n'
         help_string += 'Currently supported commands:\n'
         help_string += '**{0}**\n Display this help. You can also get it by @mentioning the bot.\n'.format("!dkphelp")
@@ -313,15 +328,15 @@ class EssentialDKPBot(DKPBot):
         help_string += '**{0}**\n Display DKP history of [player].\n'.format(
             self.get_prefix() + "dkphistory player")
         help_string += '**{0}**\n Display latest loot of the requester.\n'.format(
-            self.get_prefix() + "loot" )
+            self.get_prefix() + "loot")
         help_string += '**{0}**\n Display latest loot of [player].\n'.format(
             self.get_prefix() + "loot player")
         help_string += '\n\n'
         help_string += 'Supporter only options:\n'
         help_string += '**{0}**\n Display current DKP for player, class or alias mixed together.'.format(
             self.get_prefix() + "dkp class alias player")
-        help_string +='Supported aliases: all, tanks, healers, dps, casters, physical, ranged, melee.'
-        help_string +='Example: !dkp shadowlifes healers mage\n'
+        help_string += 'Supported aliases: all, tanks, healers, dps, casters, physical, ranged, melee.'
+        help_string += 'Example: !dkp shadowlifes healers mage\n'
         help_string += '**{0}**\n Display latest 30 loot entries from raids.\n'.format(
             self.get_prefix() + "raidloot")
         help_string += '**{0}**\n Find loot entries matching __name__.\n'.format(
@@ -370,7 +385,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_dkphistory(self, param, request_info): # pylint: disable=unused-argument
+    def call_dkphistory(self, param, request_info):  # pylint: disable=unused-argument
         targets = self._parse_param(param)
         output_result_list = []
 
@@ -392,7 +407,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_loot(self, param, request_info): # pylint: disable=unused-argument
+    def call_loot(self, param, request_info):  # pylint: disable=unused-argument
         targets = self._parse_param(param)
         output_result_list = []
 
@@ -414,7 +429,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_raidloot(self, param, request_info): # pylint: disable=unused-argument
+    def call_raidloot(self, param, request_info):  # pylint: disable=unused-argument
         output_result_list = self._get_loot()
 
         if len(output_result_list) > 0:
@@ -424,7 +439,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_item(self, param, request_info): # pylint: disable=unused-argument
+    def call_item(self, param, request_info):  # pylint: disable=unused-argument
 
         if len(param) < 3:
             return Response(ResponseStatus.SUCCESS, "Query to short. Please specify at least 3 letters.")

@@ -51,9 +51,6 @@ class DKPBot:
     def __init__(self, guild_id: int, config: BotConfig):
         self.__config = config
         self.__guild_id = int(guild_id)
-        self.__input_file_name = config.guild_info.filename
-        self.__channel = int(config.guild_info.file_upload_channel)
-        self.__prefix = str(config.guild_info.prefix)
         self.__param_parser = re.compile("\s*([\d\w-]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
@@ -62,6 +59,11 @@ class DKPBot:
             'time': 0,
             'info': {}
         }
+
+    def _configure(self):
+        self.__input_file_name = self.__config.guild_info.filename
+        self.__channel = int(self.__config.guild_info.file_upload_channel)
+        self.__prefix = str(self.__config.guild_info.prefix)
 
     def enable(self):
         self.__enabled = True
@@ -462,6 +464,7 @@ class DKPBot:
                 if group in self.__config.get_directly_accessible_configs():
                     if self.__set_config(group, config, value):
                         self.__config.store()
+                        self._configure()
                         return Response(ResponseStatus.SUCCESS, "Successfuly set **{0} {1}** to **{2}**".format(param[1], param[2], param[3]))
                     else:
                         return Response(ResponseStatus.SUCCESS, "Invalid setting **{0}** or unsupported value **{1}**".format(param[1], param[2]))
