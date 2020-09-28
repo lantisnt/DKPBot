@@ -419,7 +419,7 @@ class DKPBot:
 
     ### Setting Handlers
     def __list_configs(self):
-        return Response(ResponseStatus.IGNORE, str(self.__config))
+        return Response(ResponseStatus.SUCCESS, str(self.__config))
 
     def __set_config(self, group, config, value):
         print("set config {0} {1} {2}".format(group, config, value))
@@ -447,7 +447,7 @@ class DKPBot:
     def call_dkphelp(self, param, request_info): # pylint: disable:unused-argument
         pass
 
-    def call_dkpbotconfig(self, param, request_info):
+    def call_dkpconfig(self, param, request_info):
         if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)
         param = self._parse_param(param, False)
@@ -482,11 +482,14 @@ class DKPBot:
                         return Response(ResponseStatus.SUCCESS, "Successfuly set **{0} {1}** to **{2}**".format(param[1], param[2], param[3]))
 
                 return Response(ResponseStatus.SUCCESS, "Invalid category **{0}** or unsupported value {2} provided for **{1}**".format(param[1], param[2], param[3]))
+        elif command == 'default':
+            self.__config.default()
 
         elif command == 'register':
             if request_info['channel'] > 0:
                 self.__register_file_upload_channel(request_info['channel']['id'])
                 return Response(ResponseStatus.SUCCESS,
                     'Registered to expect Saved Variable lua file on channel {0}'.format(request_info['channel']['name']))
+
 
         return Response(ResponseStatus.IGNORE)

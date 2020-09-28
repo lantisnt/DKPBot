@@ -175,7 +175,6 @@ class BotConfig():
 
     # Store from config to dictionary
     def __store(self):
-
         section_variable_mapping = {
             'Guild Info': self.guild_info,
             'DKP Display': self.dkp,
@@ -195,6 +194,15 @@ class BotConfig():
         with open(self.__filepath, "w") as file:
             self.__store()
             self.__config.write(file, space_around_delimiters=False)
+
+    def default(self):
+        result = self.__config.read(DEFAULT_CONFIG)
+        if DEFAULT_CONFIG in result:
+            self.__load()
+            self.__type = BotConfigType.DEFAULT
+
+        self.store()
+
 
     @staticmethod
     def get_directly_accessible_configs():
