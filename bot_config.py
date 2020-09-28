@@ -121,26 +121,29 @@ class DisplayConfig(object):
             # Config name
             string += "**{0}**".format(attr.capitalize().replace("_", " "))
             # Config value
-            string += "\nconfig: `{0}`".format(attr.replace("_", "-"))
+            string += "\n`{0}`".format(attr.replace("_", "-"))
             # Current value
-            string += "\ncurrent value: `{0}`".format(attributes[attr])
-            if hasattr(self, "__supported_" + attr):
-                supported_values = getattr(self, "__supported_" + attr, None)()
-                if supported_values is None:
-                    continue
-                string += "\nsupported values:"
-                if isinstance(supported_values, tuple):
-                    # Tuple = from [0] to [1]
-                    string += " `from {0} to {1}`".format(supported_values[0], supported_values[1])
-                elif isinstance(supported_values, list):
-                    string += ' `'
-                    for element in supported_values:
-                        string += "{0} ".format(element)
-                    string = string.rstrip()
-                    string += '`'
-                elif isinstance(supported_values, (str, int, float)):
-                    string += " `{0}`".format(supported_values)
-
+            string += "\ncurrent: `{0}`".format(attributes[attr])
+            # Supported values
+            supported_values = getattr(self, "__supported_" + attr, None)
+            if supported_values is None or not callable(supported_values):
+              continue
+            supported_values = supported_values()
+            if supported_values is None:
+                continue
+            string += "\nsupported values:"
+            if isinstance(supported_values, tuple):
+                # Tuple = from [0] to [1]
+                string += " `from {0} to {1}`".format(supported_values[0], supported_values[1])
+            elif isinstance(supported_values, list):
+                string += ' `'
+                for element in supported_values:
+                    string += "{0} ".format(element)
+                string = string.rstrip()
+                string += '`'
+            elif isinstance(supported_values, (str, int, float)):
+                string += " `{0}`".format(supported_values)
+            string += "\n"
         return string
 
 class BotConfig():
