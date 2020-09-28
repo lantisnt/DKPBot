@@ -115,38 +115,32 @@ class DisplayConfig(object):
     use_multiple_columns = property(__get_use_multiple_columns, __set_use_multiple_columns)
 
     def __str__(self):
-        string = ""
-        
+        string = "```"
+        row_format = "{0:21} | {1:5} | {2:17}"
+        separator = 21*"-" + " + " + 5*"-" + " + " + 17*"-"
         attributes = public_to_dict(self)
+        string += row_format.format("config", "value", "supported values")
+        string += separator
         for attr in attributes:
-            # Config name
-            string += "**{0}**".format(attr.capitalize().replace("_", " "))
-            # Config value
-            string += "\n`{0}`".format(attr.replace("_", "-"))
-            # Current value
-            string += "\ncurrent: `{0}`".format(attributes[attr])
-            # Supported values - if we have
             supported_values = getattr(self, "_" + self.__class__.__name__ + "__supported_" + attr, None)
-            if supported_values is None or not callable(supported_values):
-                string += "\n"
-                continue
-            # Supported values
-            supported_values = supported_values()
-            if supported_values is not None:
-                string += "\nsupported values:"
+            if supported_values is not None and callable(supported_values):
+                supported_values = supported_values()
+
             if isinstance(supported_values, tuple):
-                # Tuple = from [0] to [1]
-                string += " `from {0} to {1}`".format(supported_values[0], supported_values[1])
+                supported_values_string = " `from {0} to {1}`".format(supported_values[0], supported_values[1])
             elif isinstance(supported_values, list):
-                string += ' `'
+                supported_values_string = ""
                 for element in supported_values:
-                    string += "{0} ".format(element)
-                string = string.rstrip()
-                string += '`'
-            #elif isinstance(supported_values, (str, int, float)):
+                    supported_values_string += "{0} ".format(element)
+                supported_values_string = string.rstrip()
             else:
-                string += " `{0}`".format(supported_values)
-            string += "\n"
+                supported_values_string = " {0}".format(supported_values)
+            
+            string += row_format.format(
+                attr.replace("_", "-"),
+                attributes[attr],
+                supported_values_string
+            ) + "\n"
         return string
 
 class BotConfig():
@@ -244,6 +238,7 @@ class BotConfig():
 
     def __str__(self):
         string = ""
+        string += "**Guild Info**"
         string += str((self.guild_info)) + "\n"
         string += str((self.dkp)) + "\n"
         string += str((self.dkp_history)) + "\n"
