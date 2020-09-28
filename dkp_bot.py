@@ -420,6 +420,8 @@ class DKPBot:
                 if isinstance(new_value, bool):
                     return (new_value and value == 'true') or (not new_value and value == 'false')
                 else:
+                    print(new_value)
+                    print(value)
                     return new_value == value
         return False
 
