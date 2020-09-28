@@ -207,9 +207,7 @@ class DKPBot:
                     if not request_info or not request_info.get('name'):
                         return Response(ResponseStatus.ERROR, "No param and no author. How?")
                     args.param = [request_info.get('name')]
-                print(args.param)
                 args.param = " ".join(args.param)
-                print(args.param)
                 return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
             else:
                 # Empty message, attachement only probably
@@ -412,12 +410,10 @@ class DKPBot:
     def __set_config(self, group, config, value):
         print("set config {0} {1} {2}".format(group, config, value))
         internal_group = getattr(self.__config, group, None)
-        print(internal_group)
         if internal_group:
             if hasattr(internal_group, config):
                 setattr(internal_group, config, value)
                 new_value = getattr(internal_group, config)
-                print("value: {0} new value {1}".format(value, new_value))
                 if isinstance(new_value, bool):
                     return (new_value and value == 'true') or (not new_value and value == 'false')
                 elif isinstance(new_value, int):
@@ -449,6 +445,7 @@ class DKPBot:
         command = params[0]
         if command == 'list': # list current config
             return self.__list_configs()
+
         elif command == 'set': # set config
             if num_params == 1:
                 return Response(ResponseStatus.IGNORE)
@@ -460,22 +457,22 @@ class DKPBot:
                 return Response(ResponseStatus.SUCCESS, self.__set_config_specific(config, value))
 
             print(params)
-            if num_params == 4:
-                group = params[1]
+            if num_params >= 4:
+                category = params[1]
                 config = params[2]
                 value = params[3]
-                if group in self.__config.get_directly_accessible_configs():
-                    if self.__set_config(group, config, value):
+                if category in self.__config.get_directly_accessible_configs():
+                    if self.__set_config(category, config, value):
                         self.__config.store()
                         self._configure()
                         return Response(ResponseStatus.SUCCESS, "Successfuly set **{0} {1}** to **{2}**".format(param[1], param[2], param[3]))
-                    else:
-                        return Response(ResponseStatus.SUCCESS, "Invalid setting **{0}** or unsupported value **{1}**".format(param[1], param[2]))
+
+                return Response(ResponseStatus.SUCCESS, "Invalid category **{0}** or unsupported value {2} provided for **{1}**".format(param[1], param[2], param[3]))
 
         elif command == 'register':
             if request_info['channel'] > 0:
                 self.__register_file_upload_channel(request_info['channel']['id'])
                 return Response(ResponseStatus.SUCCESS,
-                    'Registered to expect Saved Variable lua file on channel {0.name}'.format(request_info['channel']['name']))
+                    'Registered to expect Saved Variable lua file on channel {0}'.format(request_info['channel']['name']))
 
         return Response(ResponseStatus.IGNORE)

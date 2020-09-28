@@ -51,7 +51,7 @@ class DisplayConfig(object):
             except AttributeError:
                 return super(DisplayConfig,self).__setattr__(name, value)
         except ValueError:
-            print("ValueError")
+            pass
 
     @staticmethod
     def __supported_max_fields():
@@ -61,10 +61,10 @@ class DisplayConfig(object):
         return self.__max_fields
 
     def __set_max_fields(self, max_fields):
-        if isinstance(max_fields, int):
-            val = self.__supported_max_fields()
-            if val[0] <= max_fields <= val[1]:
-                self.__max_fields = max_fields
+        max_fields = int(max_fields)
+        val = self.__supported_max_fields()
+        if val[0] <= max_fields <= val[1]:
+            self.__max_fields = max_fields
 
     max_fields = property(__get_max_fields, __set_max_fields)
 
