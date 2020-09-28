@@ -418,12 +418,10 @@ class DKPBot:
                 print("set config value")
                 new_value = getattr(internal_group, config)
                 if isinstance(new_value, bool):
-                        if (new_value and value == 'true') or (not new_value and value == 'false'):
-                            return "New value set"
+                        return (new_value and value == 'true') or (not new_value and value == 'false')
                 else:
-                    if new_value == value:
-                        return "New value set"
-        return "Invalid value"
+                    return new_value == value
+        return False
 
     def __set_config_specific(self, config, value):
         return "Invalid value"
@@ -467,7 +465,11 @@ class DKPBot:
                 print(group)
                 print(self.__config.get_directly_accessible_configs())
                 if group in self.__config.get_directly_accessible_configs():
-                    return Response(ResponseStatus.SUCCESS, self.__set_config(group, config, value))
+                    if self.__set_config(group, config, value):
+                        self.__config.store()
+                        return Response(ResponseStatus.SUCCESS, "{group} {config} set to {value}".format(param[1], param[2], param[3]))
+                    else:
+                        return Response(ResponseStatus.SUCCESS, "{group} {config} received invalid value and was not set".format(param[1], param[2], param[3]))
 
         elif command == 'register':
             if request_info['channel'] > 0:
