@@ -3,17 +3,9 @@ from configparser import ConfigParser
 
 from enum import Enum
 
+from bot_utility import public_to_dict
+
 DEFAULT_CONFIG = "default.ini"
-
-
-def public_to_dict(obj):
-    dictionary = {}
-    public = filter(lambda x: not str(x).startswith("_"), dir(obj))
-    for attr in public:
-        dictionary[attr] = getattr(obj, attr)
-    return dictionary
-
-
 
 class BotConfigType(Enum):
     SPECIFIC = 0  # Server specific ini
@@ -173,8 +165,8 @@ class BotConfig():
 
         }
 
-        for group, obj in display_configs.items():
-            obj = DisplayConfig(
+        for group in display_configs:
+            display_configs[group] = DisplayConfig(
                 self.__config.getint(group, 'max_fields', fallback=1),
                 self.__config.getint(group, 'max_entries_per_field', fallback=1),
                 self.__config.getint(group, 'max_separate_messages', fallback=1),
@@ -210,13 +202,11 @@ class BotConfig():
 
     def __str__(self):
         string = ""
-        string += str(self.__type) + "\n"
-        string += str(self.__filepath) + "\n"
-
         string += str(public_to_dict(self.guild_info)) + "\n"
         string += str(public_to_dict(self.dkp)) + "\n"
         string += str(public_to_dict(self.dkp_history)) + "\n"
         string += str(public_to_dict(self.loot_history)) + "\n"
         string += str(public_to_dict(self.latest_loot)) + "\n"
         string += str(public_to_dict(self.item_search)) + "\n"
+
         return string

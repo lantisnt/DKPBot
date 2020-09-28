@@ -6,7 +6,7 @@ from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
-
+from bot_utility import public_to_dict
 import bot_memory_manager
 
 
@@ -405,7 +405,7 @@ class DKPBot:
 
     ### Setting Handlers
     def __list_configs(self):
-        return Response(ResponseStatus.IGNORE)
+        return Response(ResponseStatus.IGNORE, str(self.__config))
 
     def __set_config(self, group, config, value):
         print("set config {0} {1} {2}".format(group, config, value))
