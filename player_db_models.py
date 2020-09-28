@@ -139,6 +139,7 @@ class PlayerDKPHistory:
     def __init__(self, player, dkp, timestamp, reason, index):
         if not isinstance(player, PlayerInfo): #Workaround as we expect player to be connected to the Player DKP
             player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN")
+        self.__player = player
         self.__dkp = float(dkp)
         self.__timestamp = int(timestamp)
         self.__reason = str(reason)
