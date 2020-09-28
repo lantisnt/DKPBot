@@ -46,12 +46,14 @@ class DKPBot:
     __enabled = False
     __parser = None
     __param_parser = None
+    _all_groups = []
     __db = {}
 
     def __init__(self, guild_id: int, config: BotConfig):
         self.__config = config
         self.__guild_id = int(guild_id)
         self.__param_parser = re.compile("\s*([\d\w-]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
+        self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
             'global': {},
@@ -112,13 +114,25 @@ class DKPBot:
 
     ## Class related
     def __decode_aliases(self, groups):
+        # Always allow querying all
+        if 'all' in groups:
+            return self._all_groups
+
+        # If not premium we don't allow doing any group mixin calls
         if not self._get_config().guild_info.premium:
+            # Remove groups
+            new_groups = [x for x in groups if x not in self._all_groups]
+            # Remove mixins
+            if len(new_groups) > 1:
+                groups = [groups[0]]
+
             return groups
 
+        # Else we consider everything for premium users
         new_groups = groups.copy()
         for group in groups:
             if group == 'all':
-                return ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
+                return self.all_groups
 
             if group == 'tank' or group == 'tanks':
                 new_groups.extend(['warrior', 'druid'])
