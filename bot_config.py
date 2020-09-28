@@ -55,7 +55,7 @@ class DisplayConfig(object):
 
     @staticmethod
     def __supported_max_fields():
-        return (0, 6)
+        return (1, 9)
 
     def __get_max_fields(self):
         return self.__max_fields
@@ -85,7 +85,7 @@ class DisplayConfig(object):
 
     @staticmethod
     def __supported_max_separate_messages():
-        return (1, 16)
+        return (0, 16)
 
     def __get_max_separate_messages(self):
         return self.__max_separate_messages
@@ -117,7 +117,7 @@ class DisplayConfig(object):
     def __str__(self):
         string = "```"
         row_format = "{0:21} | {1:5} | {2:17}"
-        separator = 21*"-" + " + " + 5*"-" + " + " + 17*"-"
+        separator = "----------------------+-------+------------------"
         string += row_format.format("config", "value", "supported values")
         string += separator
 
@@ -128,13 +128,14 @@ class DisplayConfig(object):
                 supported_values = supported_values()
             else:
                 supported_values_string = ""
+
             if isinstance(supported_values, tuple):
                 supported_values_string = " `from {0} to {1}`".format(supported_values[0], supported_values[1])
             elif isinstance(supported_values, list):
                 supported_values_string = ""
                 for element in supported_values:
                     supported_values_string += "{0} ".format(element)
-                supported_values_string = string.rstrip()
+                supported_values_string = supported_values_string.rstrip()
             else:
                 supported_values_string = " {0}".format(supported_values)
             
@@ -241,12 +242,17 @@ class BotConfig():
 
     def __str__(self):
         string = ""
-        string += "**Guild Info**"
-        string += str((self.guild_info)) + "\n"
-        string += str((self.dkp)) + "\n"
-        string += str((self.dkp_history)) + "\n"
-        string += str((self.loot_history)) + "\n"
-        string += str((self.latest_loot)) + "\n"
-        string += str((self.item_search)) + "\n"
+        string += "**General**" + "\n"
+        string += str((self.guild_info))
+        string += "**DKP Display**" + "\n"
+        string += str((self.dkp))
+        string += "**DKP History Display**" + "\n"
+        string += str((self.dkp_history))
+        string += "**Loot History Display**" + "\n"
+        string += str((self.loot_history))
+        string += "**Latest Loot Display**" + "\n"
+        string += str((self.latest_loot))
+        string += "**Item Search Display**" + "\n"
+        string += str((self.item_search)) 
 
         return string
