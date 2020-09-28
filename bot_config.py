@@ -118,8 +118,8 @@ class DisplayConfig(object):
         string = "```"
         row_format = "{0:21} | {1:5} | {2:17}"
         separator = "----------------------+-------+------------------"
-        string += row_format.format("config", "value", "supported values")
-        string += separator
+        string += row_format.format("config", "value", "supported values") + "\n"
+        string += separator + "\n"
 
         attributes = public_to_dict(self)
         for attr in attributes:
