@@ -129,6 +129,7 @@ class BotConfig():
     __filepath = ""
     __config = None
 
+    guild_info = GuildInfo('essential', 0, 'EssentialDKP.lua', '!', False)
     dkp = DisplayConfig(6, 16, 5, True)
     dkp_history = DisplayConfig(1, 10, 1, True)
     loot_history = DisplayConfig(1, 10, 1, True)
