@@ -132,7 +132,7 @@ class DKPBot:
         new_groups = groups.copy()
         for group in groups:
             if group == 'all':
-                return self.all_groups
+                return self._all_groups
 
             if group == 'tank' or group == 'tanks':
                 new_groups.extend(['warrior', 'druid'])
