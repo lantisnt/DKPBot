@@ -467,9 +467,9 @@ class DKPBot:
                 if group in self.__config.get_directly_accessible_configs():
                     if self.__set_config(group, config, value):
                         self.__config.store()
-                        return Response(ResponseStatus.SUCCESS, "{group} {config} set to {value}".format(param[1], param[2], param[3]))
+                        return Response(ResponseStatus.SUCCESS, "{0} {1} set to {va2lue}".format(param[1], param[2], param[3]))
                     else:
-                        return Response(ResponseStatus.SUCCESS, "{group} {config} received invalid value and was not set".format(param[1], param[2], param[3]))
+                        return Response(ResponseStatus.SUCCESS, "{0} {1} received invalid value and was not set".format(param[1], param[2]))
 
         elif command == 'register':
             if request_info['channel'] > 0:
