@@ -11,7 +11,6 @@ class EssentialDKPBot(DKPBot):
     __HISTORY_SV = "MonDKP_DKPHistory"
     __45_DAYS_SECONDS = 3888000
 
-    __group_player_find = None
     __item_id_name_find = None
 
     __singleDkpOutputBuilder = None
@@ -23,26 +22,15 @@ class EssentialDKPBot(DKPBot):
     def __init__(self, guild_id, config):
         super().__init__(guild_id, config)
         # Matches either a,b,c,d or A / B or A \ B
-        self.__group_player_find = re.compile("\s*([\d\w]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
         self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)") # pylint: disable=anomalous-backslash-in-string
         # Data outputs
         self.__single_player_profile_builder       = SinglePlayerProfile("Essential DKP Profile")
-        self.__multiple_dkp_output_builder         = DKPMultipleResponse("DKP values",                 6,  16, 5, True)
-        self.__multiple_history_output_builder     = HistoryMultipleResponse("Latest DKP history",     1,  10, 1, True)
+        self.__multiple_dkp_output_builder         = DKPMultipleResponse("DKP values",                  6,  16, 5, True)
+        self.__multiple_history_output_builder     = HistoryMultipleResponse("Latest DKP history",      1,  10, 1, True)
         self.__multiple_player_loot_output_builder  = PlayerLootMultipleResponse("Latest loot history", 1,  10, 1, True)
-        self.__multiple_loot_output_builder        = LootMultipleResponse("Latest 30 items awarded",   6,  5,  1, False)
+        self.__multiple_loot_output_builder        = LootMultipleResponse("Latest 30 items awarded",    6,  5,  1, False)
         self.__multiple_item_search_output_builder  = LootMultipleResponse("Search results",            6,  5,  3, False)
     ###
-
-    def __get_names_from_param(self, param):
-        # Remove empty strings
-        targets = list(filter(None, self.__group_player_find.findall(param)))
-        # Decode aliases
-        targets = self.__decode_aliases(targets)
-        # Remove duplicates either from input or introduced by aliases
-        targets = list(dict.fromkeys(targets))
-        # Lowercase all
-        return list(map(lambda x: x.strip().lower(), targets))
 
     def __build_dkp_output_single(self, info):
         if not info or not isinstance(info, PlayerInfo):
@@ -307,37 +295,6 @@ class EssentialDKPBot(DKPBot):
             self._db_get_info())
         self.__multiple_item_search_output_builder.set_database_info(
             self._db_get_info())
-    ### Essential related ###
-
-    def __decode_aliases(self, groups):
-        new_groups = groups.copy()
-        for group in groups:
-            if group == 'all':
-                return ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
-
-            if group == 'tank' or group == 'tanks':
-                new_groups.extend(['warrior', 'druid'])
-
-            elif group == 'healer' or group == 'healers':
-                new_groups.extend(['priest', 'paladin', 'druid', 'shaman'])
-
-            elif group == 'dps':
-                new_groups.extend(
-                    ['warrior', 'rogue', 'hunter', 'mage', 'warlock', 'shaman'])
-
-            elif group == 'caster' or group == 'casters':
-                new_groups.extend(['mage', 'warlock'])
-
-            elif group == 'physical':
-                new_groups.extend(['warrior', 'rogue', 'hunter', 'shaman'])
-
-            elif group == 'range' or group == 'ranged':
-                new_groups.extend(['mage', 'warlock'])
-
-            elif group == 'melee':
-                new_groups.extend(['warrior', 'rogue', 'shaman'])
-
-        return new_groups
 
     ### Commands ###
 
@@ -384,7 +341,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return
 
-        targets = self.__get_names_from_param(param)
+        targets = self._parse_param(param)
         output_result_list = []
         if len(targets) > 0:
             for target in targets:
@@ -414,7 +371,7 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_dkphistory(self, param, request_info): # pylint: disable=unused-argument
-        targets = self.__get_names_from_param(param)
+        targets = self._parse_param(param)
         output_result_list = []
 
         if len(targets) > 0:
@@ -436,7 +393,7 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_loot(self, param, request_info): # pylint: disable=unused-argument
-        targets = self.__get_names_from_param(param)
+        targets = self._parse_param(param)
         output_result_list = []
 
         if len(targets) > 0:

@@ -45,6 +45,7 @@ class DKPBot:
     __prefix = '!'
     __enabled = False
     __parser = None
+    __group_player_find = None
     __db = {}
 
     def __init__(self, guild_id: int, config: BotConfig):
@@ -53,6 +54,7 @@ class DKPBot:
         self.__input_file_name = config.guild_info.filename
         self.__channel = int(config.guild_info.file_upload_channel)
         self.__prefix = str(config.guild_info.prefix)
+        self.__group_player_find = re.compile("\s*([\d\w]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
             'global': {},
@@ -86,6 +88,9 @@ class DKPBot:
         return self.__prefix
 
     # Config
+    def _get_config(self):
+        return self.__config
+
     def __register_file_upload_channel(self, channel):
         self.__channel = channel
         self.__config.guild_info.file_upload_channel = channel
@@ -103,7 +108,52 @@ class DKPBot:
         del self.__db
         self.__db = {}
 
+    ## Class related
+    def __decode_aliases(self, groups):
+        if not self._get_config().guild_info.premium:
+            return groups
+
+        new_groups = groups.copy()
+        for group in groups:
+            if group == 'all':
+                return ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
+
+            if group == 'tank' or group == 'tanks':
+                new_groups.extend(['warrior', 'druid'])
+
+            elif group == 'healer' or group == 'healers':
+                new_groups.extend(['priest', 'paladin', 'druid', 'shaman'])
+
+            elif group == 'dps':
+                new_groups.extend(
+                    ['warrior', 'rogue', 'hunter', 'mage', 'warlock', 'shaman'])
+
+            elif group == 'caster' or group == 'casters':
+                new_groups.extend(['mage', 'warlock'])
+
+            elif group == 'physical':
+                new_groups.extend(['warrior', 'rogue', 'hunter', 'shaman'])
+
+            elif group == 'range' or group == 'ranged':
+                new_groups.extend(['mage', 'warlock'])
+
+            elif group == 'melee':
+                new_groups.extend(['warrior', 'rogue', 'shaman'])
+
+        return new_groups
+
     ### Command handling and parsing ###
+
+    def _parse_param(self, param, decode_aliases=True):
+        # Remove empty strings
+        targets = list(filter(None, self.__group_player_find.findall(param)))
+        # Decode aliases
+        if decode_aliases:
+            targets = self.__decode_aliases(targets)
+        # Remove duplicates either from input or introduced by aliases
+        targets = list(dict.fromkeys(targets))
+        # Lowercase all
+        return list(map(lambda x: x.strip().lower(), targets))
 
     def __get_command_parser(self):
         if not(self.__parser and isinstance(self.__parser, argparse.ArgumentParser)):
@@ -378,6 +428,7 @@ class DKPBot:
     def call_dkpbotconfig(self, param, request_info):
         if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)
+        param = self._parse_param(param, False)
         print(param)
         params = list(map(lambda p: p.lower().replace("-", "_"), param))
         num_params = len(params)
