@@ -156,7 +156,7 @@ class BotConfig():
             self.__config.get('Guild Info', 'bot_type', fallback='essential'),
             self.__config.getint('Guild Info', 'file_upload_channel', fallback=0),
             self.__config.get('Guild Info', 'filename', fallback='EssentialDKP.lua'),
-            self.__config.getint('Guild Info', 'prefix', fallback='!'),
+            self.__config.get('Guild Info', 'prefix', fallback='!'),
             self.__config.getint('Guild Info', 'premium', fallback=False),
         )
 
