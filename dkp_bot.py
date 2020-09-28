@@ -392,7 +392,7 @@ class DKPBot:
         self._finalize_database()
 
         print('Building complete in {:04.2f} seconds'.format(
-            datetime.now(tz=timezone.utc).timestamp()) - start)
+            datetime.now(tz=timezone.utc).timestamp() - start))
 
         for table in self.__db['global']:
             if len(table) <= 0:
