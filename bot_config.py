@@ -129,12 +129,11 @@ class BotConfig():
     __filepath = ""
     __config = None
 
-    guild_info = None
-    dkp = None
-    dkp_history = None
-    loot_history = None
-    latest_loot = None
-    item_search = None
+    dkp = DisplayConfig(6, 16, 5, True)
+    dkp_history = DisplayConfig(1, 10, 1, True)
+    loot_history = DisplayConfig(1, 10, 1, True)
+    latest_loot = DisplayConfig(6, 5, 1, False)
+    item_search = DisplayConfig(6, 5, 3, False)
 
     def __init__(self, filepath):
         self.__filepath = filepath
@@ -154,12 +153,6 @@ class BotConfig():
             return
         else:
             print("Error loading DEFAULT_CONFIG file. Falling back to hardcoded settings.")
-            self.guild_info = GuildInfo('essential', 0, 'EssentialDKP.lua', '!', False)
-            self.dkp = DisplayConfig(6, 16, 5, True)
-            self.dkp_history = DisplayConfig(1, 10, 1, True)
-            self.loot_history = DisplayConfig(1, 10, 1, True)
-            self.latest_loot = DisplayConfig(6, 5, 1, False)
-            self.item_search = DisplayConfig(6, 5, 3, False)
 
 
     # Load from config to dictionary
