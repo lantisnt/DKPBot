@@ -54,9 +54,10 @@ class DisplayConfig(object):
 
     def __setattr__(self, name, value):
         try:
-            return getattr(self,'__set_' + name)(value)
-        except AttributeError:
-            return super(DisplayConfig,self).__setattr__(name, value)
+            try:
+                return getattr(self,'__set_' + name)(value)
+            except AttributeError:
+                return super(DisplayConfig,self).__setattr__(name, value)
         except ValueError:
             pass
 
@@ -85,9 +86,6 @@ class DisplayConfig(object):
     def __set_max_entries_per_field(self, max_entries_per_field):
         max_entries_per_field = int(max_entries_per_field)
         val = self.__supported_max_entries_per_field()
-        print(val[0])
-        print(val[1])
-        print(max_entries_per_field)
         if val[0] <= max_entries_per_field <= val[1]:
             self.__max_entries_per_field = max_entries_per_field
 
