@@ -114,6 +114,34 @@ class DisplayConfig(object):
 
     use_multiple_columns = property(__get_use_multiple_columns, __set_use_multiple_columns)
 
+    def __str__(self):
+        string = ""
+        string += "```"
+        attributes = public_to_dict(self)
+        for attr in attributes:
+            # Config name
+            string += "{0}".format(attr.capitalize().replace("_", " "))
+            # Config value
+            string += " config: **{0}**".format(attr)
+            # Current value
+            string += " current value: {0}".format(attributes[attr])
+            if hasattr(self, "__supported_" + attr):
+                supported_values = getattr(self, "__supported" + attr, None)()
+                if supported_values is None:
+                    continue
+                string += " supported values:"
+                if isinstance(supported_values, tuple):
+                    # Tuple = from [0] to [1]
+                    string += " from {0} to {1}".format(supported_values[0], supported_values[1])
+                elif isinstance(supported_values, list):
+                    for element in supported_values:
+                        string += " {0}".format(element)
+                elif isinstance(supported_values, (str, int, float)):
+                    string += " {0}".format(supported_values)
+
+        string += "```"
+        return string
+
 class BotConfig():
     __type = BotConfigType.HARDCODED
     __filepath = ""
@@ -162,7 +190,6 @@ class BotConfig():
             'Loot History Display': self.loot_history,
             'Latest Loot Display': self.latest_loot,
             'Item Search Display': self.item_search
-
         }
 
         for group in display_configs:
@@ -210,11 +237,11 @@ class BotConfig():
 
     def __str__(self):
         string = ""
-        string += str(public_to_dict(self.guild_info)) + "\n"
-        string += str(public_to_dict(self.dkp)) + "\n"
-        string += str(public_to_dict(self.dkp_history)) + "\n"
-        string += str(public_to_dict(self.loot_history)) + "\n"
-        string += str(public_to_dict(self.latest_loot)) + "\n"
-        string += str(public_to_dict(self.item_search)) + "\n"
+        string += str((self.guild_info)) + "\n"
+        string += str((self.dkp)) + "\n"
+        string += str((self.dkp_history)) + "\n"
+        string += str((self.loot_history)) + "\n"
+        string += str((self.latest_loot)) + "\n"
+        string += str((self.item_search)) + "\n"
 
         return string
