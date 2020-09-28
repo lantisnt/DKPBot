@@ -116,30 +116,31 @@ class DisplayConfig(object):
 
     def __str__(self):
         string = ""
-        string += "```"
         attributes = public_to_dict(self)
         for attr in attributes:
             # Config name
-            string += "{0}".format(attr.capitalize().replace("_", " "))
+            string += "**{0}**".format(attr.capitalize().replace("_", " "))
             # Config value
-            string += " config: **{0}**".format(attr)
+            string += "\nconfig: `{0}`".format(attr.replace("_", "-"))
             # Current value
-            string += " current value: {0}".format(attributes[attr])
+            string += "\ncurrent value: `{0}`".format(attributes[attr])
             if hasattr(self, "__supported_" + attr):
-                supported_values = getattr(self, "__supported" + attr, None)()
+                supported_values = getattr(self, "__supported_" + attr, None)()
                 if supported_values is None:
                     continue
-                string += " supported values:"
+                string += "\nsupported values:"
                 if isinstance(supported_values, tuple):
                     # Tuple = from [0] to [1]
-                    string += " from {0} to {1}".format(supported_values[0], supported_values[1])
+                    string += " `from {0} to {1}`".format(supported_values[0], supported_values[1])
                 elif isinstance(supported_values, list):
+                    string += ' `'
                     for element in supported_values:
-                        string += " {0}".format(element)
+                        string += "{0} ".format(element)
+                    string = string.rstrip()
+                    string += '`'
                 elif isinstance(supported_values, (str, int, float)):
-                    string += " {0}".format(supported_values)
+                    string += " `{0}`".format(supported_values)
 
-        string += "```"
         return string
 
 class BotConfig():

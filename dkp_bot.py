@@ -470,7 +470,6 @@ class DKPBot:
 
                 return Response(ResponseStatus.SUCCESS, self.__set_config_specific(config, value))
 
-            print(params)
             if num_params >= 4:
                 category = params[1]
                 config = params[2]
