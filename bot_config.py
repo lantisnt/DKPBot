@@ -57,6 +57,8 @@ class DisplayConfig(object):
             return getattr(self,'__set_' + name)(value)
         except AttributeError:
             return super(DisplayConfig,self).__setattr__(name, value)
+        except ValueError:
+            pass
 
     @staticmethod
     def __supported_max_fields():
@@ -81,10 +83,10 @@ class DisplayConfig(object):
         return self.__max_entries_per_field
 
     def __set_max_entries_per_field(self, max_entries_per_field):
-        if isinstance(max_entries_per_field, int):
-            val = self.__supported_max_entries_per_field()
-            if val[0] <= max_entries_per_field <= val[1]:
-                self.__max_entries_per_field = max_entries_per_field
+        max_entries_per_field = int(max_entries_per_field)
+        val = self.__supported_max_entries_per_field()
+        if val[0] <= max_entries_per_field <= val[1]:
+            self.__max_entries_per_field = max_entries_per_field
 
     max_entries_per_field = property(__get_max_entries_per_field, __set_max_entries_per_field)
 
@@ -96,10 +98,10 @@ class DisplayConfig(object):
         return self.__max_separate_messages
 
     def __set_max_separate_messages(self, max_separate_messages):
-        if isinstance(max_separate_messages, int):
-            val = self.__supported_max_separate_messages()
-            if val[0] <= max_separate_messages <= val[1]:
-                self.__max_separate_messages = max_separate_messages
+        max_separate_messages = int(max_separate_messages)
+        val = self.__supported_max_separate_messages()
+        if val[0] <= max_separate_messages <= val[1]:
+            self.__max_separate_messages = max_separate_messages
 
     max_separate_messages = property(__get_max_separate_messages, __set_max_separate_messages)
 
@@ -111,11 +113,11 @@ class DisplayConfig(object):
         return self.__use_multiple_columns
 
     def __set_use_multiple_columns(self, use_multiple_columns):
-        if isinstance(use_multiple_columns, str):
-            if use_multiple_columns.lower() == 'true':
-                self.__use_multiple_columns = True
-            elif use_multiple_columns.lower() == 'false':
-                self.__use_multiple_columns = False
+        use_multiple_columns = str(use_multiple_columns)
+        if use_multiple_columns.lower() == 'true':
+            self.__use_multiple_columns = True
+        elif use_multiple_columns.lower() == 'false':
+            self.__use_multiple_columns = False
 
     use_multiple_columns = property(__get_use_multiple_columns, __set_use_multiple_columns)
 
