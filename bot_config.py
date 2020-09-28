@@ -3,7 +3,7 @@ from configparser import ConfigParser
 
 from enum import Enum
 
-from bot_utility import public_to_dict, to_dict
+from bot_utility import public_to_dict
 
 DEFAULT_CONFIG = "/var/wowdkpbot-runner/default.ini"
 
@@ -117,7 +117,6 @@ class DisplayConfig(object):
     def __str__(self):
         string = ""
         
-        print(to_dict(self))
         attributes = public_to_dict(self)
         for attr in attributes:
             # Config name
@@ -127,14 +126,12 @@ class DisplayConfig(object):
             # Current value
             string += "\ncurrent: `{0}`".format(attributes[attr])
             # Supported values - if we have
-            supported_values = getattr(self, self.__class__.__name__ + "__supported_" + attr, None)
-            print(supported_values)
+            supported_values = getattr(self, "_" + self.__class__.__name__ + "__supported_" + attr, None)
             if supported_values is None or not callable(supported_values):
                 string += "\n"
                 continue
             # Supported values
             supported_values = supported_values()
-            print(supported_values)
             if supported_values is not None:
                 string += "\nsupported values:"
             if isinstance(supported_values, tuple):
