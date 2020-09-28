@@ -412,10 +412,12 @@ class DKPBot:
     def __set_config(self, group, config, value):
         print("set config {0} {1} {2}".format(group, config, value))
         internal_group = getattr(self.__config, group, None)
+        print(internal_group)
         if internal_group:
             if hasattr(internal_group, config):
                 setattr(internal_group, config, value)
                 new_value = getattr(internal_group, config)
+                print("value: {0} new value {1}".format(value, new_value))
                 if isinstance(new_value, bool):
                     return (new_value and value == 'true') or (not new_value and value == 'false')
                 elif isinstance(new_value, int):
