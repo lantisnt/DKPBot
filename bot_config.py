@@ -124,14 +124,17 @@ class DisplayConfig(object):
             string += "\n`{0}`".format(attr.replace("_", "-"))
             # Current value
             string += "\ncurrent: `{0}`".format(attributes[attr])
-            # Supported values
+            # Supported values - if we have
             supported_values = getattr(self, "__supported_" + attr, None)
+            print(supported_values)
             if supported_values is None or not callable(supported_values):
-              continue
-            supported_values = supported_values()
-            if supported_values is None:
+                string += "\n"
                 continue
-            string += "\nsupported values:"
+            # Supported values
+            supported_values = supported_values()
+            print(supported_values)
+            if supported_values is not None:
+                string += "\nsupported values:"
             if isinstance(supported_values, tuple):
                 # Tuple = from [0] to [1]
                 string += " `from {0} to {1}`".format(supported_values[0], supported_values[1])
@@ -141,7 +144,8 @@ class DisplayConfig(object):
                     string += "{0} ".format(element)
                 string = string.rstrip()
                 string += '`'
-            elif isinstance(supported_values, (str, int, float)):
+            #elif isinstance(supported_values, (str, int, float)):
+            else:
                 string += " `{0}`".format(supported_values)
             string += "\n"
         return string
