@@ -405,7 +405,7 @@ class DKPBot:
 
     ### Setting Handlers
     def __list_configs(self):
-        pass
+        return Response(ResponseStatus.IGNORE)
 
     def __set_config(self, group, config, value):
         print("set config {0} {1} {2}".format(group, config, value))
