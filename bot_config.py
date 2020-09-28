@@ -118,14 +118,16 @@ class DisplayConfig(object):
         string = "```"
         row_format = "{0:21} | {1:5} | {2:17}"
         separator = 21*"-" + " + " + 5*"-" + " + " + 17*"-"
-        attributes = public_to_dict(self)
         string += row_format.format("config", "value", "supported values")
         string += separator
+
+        attributes = public_to_dict(self)
         for attr in attributes:
             supported_values = getattr(self, "_" + self.__class__.__name__ + "__supported_" + attr, None)
             if supported_values is not None and callable(supported_values):
                 supported_values = supported_values()
-
+            else:
+                supported_values_string = ""
             if isinstance(supported_values, tuple):
                 supported_values_string = " `from {0} to {1}`".format(supported_values[0], supported_values[1])
             elif isinstance(supported_values, list):
@@ -141,6 +143,7 @@ class DisplayConfig(object):
                 attributes[attr],
                 supported_values_string
             ) + "\n"
+        string += "```"
         return string
 
 class BotConfig():
