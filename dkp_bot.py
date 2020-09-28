@@ -45,7 +45,7 @@ class DKPBot:
     __prefix = '!'
     __enabled = False
     __parser = None
-    __group_player_find = None
+    __param_parser = None
     __db = {}
 
     def __init__(self, guild_id: int, config: BotConfig):
@@ -54,7 +54,7 @@ class DKPBot:
         self.__input_file_name = config.guild_info.filename
         self.__channel = int(config.guild_info.file_upload_channel)
         self.__prefix = str(config.guild_info.prefix)
-        self.__group_player_find = re.compile("\s*([\d\w]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
+        self.__param_parser = re.compile("\s*([\d\w-]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
             'global': {},
@@ -146,7 +146,7 @@ class DKPBot:
 
     def _parse_param(self, param, decode_aliases=True):
         # Remove empty strings
-        targets = list(filter(None, self.__group_player_find.findall(param)))
+        targets = list(filter(None, self.__param_parser.findall(param)))
         # Decode aliases
         if decode_aliases:
             targets = self.__decode_aliases(targets)
@@ -464,7 +464,7 @@ class DKPBot:
         elif command == 'register':
             if request_info['channel'] > 0:
                 self.__register_file_upload_channel(request_info['channel']['id'])
-                return Response(ResponseStatus.SUCCESS, 
+                return Response(ResponseStatus.SUCCESS,
                     'Registered to expect Saved Variable lua file on channel {0.name}'.format(request_info['channel']['name']))
 
         return Response(ResponseStatus.IGNORE)
