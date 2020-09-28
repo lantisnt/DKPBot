@@ -161,8 +161,6 @@ async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Messag
 #                PERFORMANCE_TEST_INJECTION(message.guild.id, str(attachment_bytes, 'utf-8'))
                 response = bot.build_database(
                     str(attachment_bytes, 'utf-8'), info)
-                print("Bot for server {0} total footprint: {1} B".format(
-                    message.guild.name, footprint.total_size(bot)))
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
@@ -190,6 +188,8 @@ async def spawn_bot(guild):
                 continue
         # We call it here so we will have it tracked from beginning
         bot_memory_manager.Manager().Handle(guild.id, True)
+        print("Bot for server {0} total footprint: {1} B".format(
+                    mesge.guild.name, footprint.total_size(bot)))
 
 # Discord API
 
