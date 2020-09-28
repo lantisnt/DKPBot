@@ -372,7 +372,7 @@ class DKPBot:
     def build_database(self, input_string, info):
         print('Building database')
 
-        start = int(datetime.now(tz=timezone.utc).timestamp())
+        start = datetime.now(tz=timezone.utc).timestamp()
 
         saved_variable = self.__get_saved_variables(input_string)
         if saved_variable is None:
@@ -391,8 +391,8 @@ class DKPBot:
 
         self._finalize_database()
 
-        print('Building complete in {0} seconds'.format(
-            int(datetime.now(tz=timezone.utc).timestamp()) - start))
+        print('Building complete in {:04.2f} seconds'.format(
+            datetime.now(tz=timezone.utc).timestamp()) - start)
 
         for table in self.__db['global']:
             if len(table) <= 0:

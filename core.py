@@ -189,7 +189,7 @@ async def spawn_bot(guild):
         # We call it here so we will have it tracked from beginning
         bot_memory_manager.Manager().Handle(guild.id, True)
         print("Bot for server {0} total footprint: {1} B".format(
-                    mesge.guild.name, footprint.total_size(bot)))
+                    guild.name, footprint.total_size(bot)))
 
 # Discord API
 
