@@ -418,7 +418,7 @@ class DKPBot:
                 print("set config value")
                 new_value = getattr(internal_group, config)
                 if isinstance(new_value, bool):
-                        return (new_value and value == 'true') or (not new_value and value == 'false')
+                    return (new_value and value == 'true') or (not new_value and value == 'false')
                 else:
                     return new_value == value
         return False
@@ -467,7 +467,7 @@ class DKPBot:
                 if group in self.__config.get_directly_accessible_configs():
                     if self.__set_config(group, config, value):
                         self.__config.store()
-                        return Response(ResponseStatus.SUCCESS, "{0} {1} set to {va2lue}".format(param[1], param[2], param[3]))
+                        return Response(ResponseStatus.SUCCESS, "{0} {1} set to {2}".format(param[1], param[2], param[3]))
                     else:
                         return Response(ResponseStatus.SUCCESS, "{0} {1} received invalid value and was not set".format(param[1], param[2]))
 
