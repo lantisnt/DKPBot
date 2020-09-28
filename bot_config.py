@@ -3,7 +3,7 @@ from configparser import ConfigParser
 
 from enum import Enum
 
-from bot_utility import public_to_dict
+from bot_utility import public_to_dict, to_dict
 
 DEFAULT_CONFIG = "/var/wowdkpbot-runner/default.ini"
 
@@ -117,6 +117,7 @@ class DisplayConfig(object):
     def __str__(self):
         string = ""
         
+        print(to_dict(self))
         attributes = public_to_dict(self)
         for attr in attributes:
             # Config name
