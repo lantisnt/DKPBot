@@ -169,6 +169,8 @@ class BotConfig():
                 self.__load()
                 self.__type = BotConfigType.SPECIFIC
                 return
+            else:
+                print("Server specific config {0} not loaded.".format(filepath))
 
         result = self.__config.read(DEFAULT_CONFIG)
         if DEFAULT_CONFIG in result:
@@ -176,11 +178,11 @@ class BotConfig():
             self.__type = BotConfigType.DEFAULT
             return
         else:
-            print("Error loading DEFAULT_CONFIG file. Falling back to hardcoded settings.")
+            print("Error loading DEFAULT_CONFIG file.")
 
 
     # Load from config to dictionary
-    def __load(self):
+    def __load(self): ##TODO somehow the config is not loaded
         self.guild_info = GuildInfo(
             self.__config.get('Guild Info', 'bot_type', fallback='essential'),
             self.__config.getint('Guild Info', 'file_upload_channel', fallback=0),
@@ -234,7 +236,6 @@ class BotConfig():
             self.__type = BotConfigType.DEFAULT
 
         self.store()
-
 
     @staticmethod
     def get_directly_accessible_configs():
