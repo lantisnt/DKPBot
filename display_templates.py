@@ -296,7 +296,7 @@ class MultipleResponse(BaseResponse):
                 self.__response_limit = response_limit
 
         self.__multiple_columns = bool(multiple_columns)
-        print("MR: {0.__field_limit} | {0.__entry_limit} | {0.__response_limit} | {0.__multiple_columns}".format(self))
+        print("MR: {0} | {1} | {2} | {3}".format(self.__field_limit, self.__entry_limit, self.__response_limit, self.__multiple_columns))
     def _prepare(self, data_list): # pylint: disable=unused-argument
         pass
 
