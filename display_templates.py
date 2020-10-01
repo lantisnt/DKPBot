@@ -274,8 +274,8 @@ class MultipleResponse(BaseResponse):
         super().__init__(title)
 
         if field_limit and isinstance(field_limit, int):
-            if field_limit > 6:
-                self.__field_limit = 6
+            if field_limit > 9:
+                self.__field_limit = 9
             elif field_limit < 1:
                 self.__field_limit = 1
             else:
@@ -389,6 +389,14 @@ class MultipleResponse(BaseResponse):
     def get(self):
         return self.__response_list
 
+    def __str__(self):
+        string = ""
+        string += str(self.__response_list) + " | "
+        string += str(self.__field_limit) + " | "
+        string += str(self.__entry_limit) + " | "
+        string += str(self.__response_limit) + " | "
+        string += str(self.__multiple_columns)
+        return string
 
 class DKPMultipleResponse(MultipleResponse):
 

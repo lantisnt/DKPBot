@@ -48,6 +48,12 @@ class EssentialDKPBot(DKPBot):
         self.__multiple_item_search_output_builder = LootMultipleResponse("Search results", self._get_config().item_search.max_fields, self._get_config(
         ).item_search.max_entries_per_field, self._get_config().item_search.max_separate_messages, self._get_config().item_search.use_multiple_columns)
 
+        print("dkp:      {0}".format(self.__multiple_dkp_output_builder))
+        print("history:  {0}".format(self.__multiple_history_output_builder))
+        print("loot:     {0}".format(self.__multiple_player_loot_output_builder))
+        print("raidloot: {0}".format(self.__multiple_loot_output_builder))
+        print("search:   {0}".format(self.__multiple_item_search_output_builder))
+
     def __build_dkp_output_single(self, info):
         if not info or not isinstance(info, PlayerInfo):
             return None
