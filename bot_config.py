@@ -190,7 +190,7 @@ class BotConfig():
             self.__config.get('Guild Info', 'prefix', fallback='!'),
             self.__config.getboolean('Guild Info', 'premium', fallback=False),
         )
-
+        print(self.guild_info)
         display_configs = {
             'DKP Display': self.dkp,
             'DKP History Display': self.dkp_history,
@@ -206,6 +206,7 @@ class BotConfig():
                 self.__config.getint(group, 'max_separate_messages', fallback=1),
                 self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
             )
+            print(display_configs[group])
 
     # Store from config to dictionary
     def __store(self):
