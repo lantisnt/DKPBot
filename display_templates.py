@@ -51,7 +51,7 @@ def get_icon_string(class_name=None):
         return "<:hunter:760863674196951060>"
 
     if class_name == 'druid':
-        return "<:druid:760863673458622488>
+        return "<:druid:760863673458622488>"
 
     if class_name == 'priest':
         return "<:priest:760863673974784071>"
