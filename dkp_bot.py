@@ -275,7 +275,7 @@ class DKPBot:
         self.__db['global']['loot'].sort(
             key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _find_oot(self, keyword):
+    def _find_loot(self, keyword):
         if not keyword or not isinstance(keyword, str) or len(keyword) == 0:
             return list()
 

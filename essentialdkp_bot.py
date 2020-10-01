@@ -451,7 +451,7 @@ class EssentialDKPBot(DKPBot):
         if len(param) < 3:
             return Response(ResponseStatus.SUCCESS, "Query to short. Please specify at least 3 letters.")
 
-        output_result_list = self._find_oot(param)
+        output_result_list = self._find_loot(param)
 
         if len(output_result_list) > 0:
             data = self.__build_item_search_output_multiple(output_result_list)

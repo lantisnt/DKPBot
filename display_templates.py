@@ -391,7 +391,6 @@ class MultipleResponse(BaseResponse):
 
     def __str__(self):
         string = ""
-        string += str(self.__response_list) + " | "
         string += str(self.__field_limit) + " | "
         string += str(self.__entry_limit) + " | "
         string += str(self.__response_limit) + " | "

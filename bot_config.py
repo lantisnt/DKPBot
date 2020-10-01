@@ -136,22 +136,20 @@ class DisplayConfig(object):
 
         attributes = public_to_dict(self)
         for attr in attributes:
+            supported_values_string = ""
             supported_values = getattr(self, "_" + self.__class__.__name__ + "__supported_" + attr, None)
             if supported_values is not None and callable(supported_values):
                 supported_values = supported_values()
-            else:
-                supported_values_string = ""
 
             if isinstance(supported_values, tuple):
                 supported_values_string = " `from {0} to {1}`".format(supported_values[0], supported_values[1])
             elif isinstance(supported_values, list):
-                supported_values_string = ""
                 for element in supported_values:
                     supported_values_string += "{0} ".format(element)
                 supported_values_string = supported_values_string.rstrip()
             else:
                 supported_values_string = " {0}".format(supported_values)
-            
+
             string += row_format.format(
                 attr.replace("_", "-"),
                 attributes[attr],
@@ -261,16 +259,16 @@ class BotConfig():
     def __str__(self):
         string = ""
         string += "**General**" + "\n"
-        string += str((self.guild_info))
+        string += str(self.guild_info)
         string += "**DKP Display (`dkp`)**" + "\n"
-        string += str((self.dkp))
+        string += str(self.dkp)
         string += "**DKP History Display (`dkp-history`)**" + "\n"
-        string += str((self.dkp_history))
+        string += str(self.dkp_history)
         string += "**Loot History Display** (`loot-history`)" + "\n"
-        string += str((self.loot_history))
+        string += str(self.loot_history)
         string += "**Latest Loot Display** (`latest-loot`)" + "\n"
-        string += str((self.latest_loot))
+        string += str(self.latest_loot)
         string += "**Item Search Display** (`item-search`)" + "\n"
-        string += str((self.item_search)) 
+        string += str(self.item_search)
 
         return string
