@@ -267,7 +267,7 @@ async def on_message(message):
                 if response.data == dkp_bot.Request.RESPAWN:
                     response_channel = await discord_get_response_channel(message, response.direct_message)
                     await discord_respond(response_channel, "Creating new bot")
-                    await spawn_bot(message.guild.id) # Respawn bot
+                    await spawn_bot(message.guild) # Respawn bot
                     await discord_respond(response_channel, "Complete")
                 else:
                     print("Requested but not respawn. This should not happen atm")
