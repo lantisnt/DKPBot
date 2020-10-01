@@ -19,17 +19,20 @@ class GuildInfo():
     prefix = "!"
     premium = False
 
+    def dump_self(self):
+        print('bot_type {0.bot_type}\n'.format(self))
+        print('file_upload_channel {0.file_upload_channel}\n'.format(self))
+        print('filename {0.filename}\n'.format(self))
+        print('prefix {0.prefix}\n'.format(self))
+        print('premium {0.premium}\n'.format(self))
+
     def __init__(self, bot_type, file_upload_channel, filename, prefix, premium):
         self.bot_type = bot_type
         self.file_upload_channel = file_upload_channel
         self.filename = filename
         self.prefix = prefix
         self.premium = bool(premium)
-        print('bot_type {0.bot_type}\n'.format(self))
-        print('file_upload_channel {0.file_upload_channel}\n'.format(self))
-        print('filename {0.filename}\n'.format(self))
-        print('prefix {0.prefix}\n'.format(self))
-        print('premium {0.premium}\n'.format(self))
+        self.dump_self()
 
 class DisplayConfig(object):
     __max_fields = 0
@@ -37,15 +40,19 @@ class DisplayConfig(object):
     __max_separate_messages = 0
     __use_multiple_columns = False
 
+    def dump_self(self):
+        print('max_fields {0.__max_fields}\n'.format(self))
+        print('max_entries_per_field {0.__max_entries_per_field}\n'.format(self))
+        print('max_separate_messages {0.__max_separate_messages}\n'.format(self))
+        print('use_multiple_columns {0.__use_multiple_columns}\n'.format(self))
+
     def __init__(self, max_fields, max_entries_per_field, max_separate_messages, use_multiple_columns):
         self.__max_fields = max_fields
         self.__max_entries_per_field = max_entries_per_field
         self.__max_separate_messages = max_separate_messages
         self.__use_multiple_columns = use_multiple_columns
-        print('max_fields {0.__max_fields}\n'.format(self))
-        print('max_entries_per_field {0.__max_entries_per_field}\n'.format(self))
-        print('max_separate_messages {0.__max_separate_messages}\n'.format(self))
-        print('use_multiple_columns {0.__use_multiple_columns}\n'.format(self))
+        self.dump_self()
+
     def __getattr__(self, name):
         if not name.startswith('__get_') and hasattr(self,'__get_' + name):
             return getattr(self,'__get_' + name)()
@@ -199,6 +206,8 @@ class BotConfig():
             self.__config.getboolean('Guild Info', 'premium', fallback=False),
         )
 
+        self.guild_info.dump_self()
+
         display_configs = {
             'DKP Display': self.dkp,
             'DKP History Display': self.dkp_history,
@@ -214,6 +223,7 @@ class BotConfig():
                 self.__config.getint(group, 'max_separate_messages', fallback=1),
                 self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
             )
+            display_configs[group].dump_self()
 
     # Store from config to dictionary
     def __store(self):
@@ -228,6 +238,7 @@ class BotConfig():
 
         for section, variable in section_variable_mapping.items():
             for option, value in public_to_dict(variable).items():
+                variable.dump_self()
                 if not self.__config.has_section(section):
                     self.__config.add_section(section)
                 self.__config.set(section, str(option), str(value))
