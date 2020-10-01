@@ -485,9 +485,9 @@ class DKPBot:
 
         elif command == 'register':
             if request_info['channel'] > 0:
-                self.__register_file_upload_channel(request_info['channel']['id'])
+                self.__register_file_upload_channel(request_info['channel'])
                 return Response(ResponseStatus.SUCCESS,
-                    'Registered to expect Saved Variable lua file on channel {0}'.format(request_info['channel']['name']))
+                    'Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel']))
         else:
             string = "Supported commands:\n"
 
@@ -526,10 +526,10 @@ class DKPBot:
                 if self.__set_config(category, config, value):
                     self.__config.store()
                     self._configure()
-                    return Response(ResponseStatus.SUCCESS, "Successfuly set **{0} {1}** to **{2}**".format(category, config, value))
+                    return Response(ResponseStatus.SUCCESS, "Successfuly set **{0} {1}** to **{2}**".format(param[0], param[1], param[2]))
                 else:
-                    return Response(ResponseStatus.SUCCESS, "Unsupported value **{2}** provided for **{0} {1}**".format(category, config, value))
+                    return Response(ResponseStatus.SUCCESS, "Unsupported value **{2}** provided for **{0} {1}**".format(param[0], param[1], param[2]))
             else:
-                return Response(ResponseStatus.SUCCESS, "Invalid category **{0}**".format(category))
+                return Response(ResponseStatus.SUCCESS, "Invalid category **{0}**".format(param[0]))
 
         return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
