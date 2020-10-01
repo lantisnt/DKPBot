@@ -32,7 +32,6 @@ class GuildInfo():
         self.filename = filename
         self.prefix = prefix
         self.premium = bool(premium)
-        self.dump_self()
 
 class DisplayConfig(object):
     __max_fields = 0
@@ -51,7 +50,6 @@ class DisplayConfig(object):
         self.__max_entries_per_field = max_entries_per_field
         self.__max_separate_messages = max_separate_messages
         self.__use_multiple_columns = use_multiple_columns
-        self.dump_self()
 
     def __getattr__(self, name):
         if not name.startswith('__get_') and hasattr(self,'__get_' + name):

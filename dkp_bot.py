@@ -63,6 +63,7 @@ class DKPBot:
         }
 
     def _configure(self):
+        print("dkp_bot configure")
         self.__input_file_name = self.__config.guild_info.filename
         self.__channel = int(self.__config.guild_info.file_upload_channel)
         self.__prefix = str(self.__config.guild_info.prefix)
@@ -437,6 +438,7 @@ class DKPBot:
                         return False
                 else:
                     return new_value == value
+
         return False
 
     def __set_config_specific(self, config, value):
@@ -450,6 +452,7 @@ class DKPBot:
     def call_dkpconfig(self, param, request_info):
         if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)
+
         param = self._parse_param(param, False)
         params = list(map(lambda p: p.lower().replace("-", "_"), param))
         num_params = len(params)

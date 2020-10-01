@@ -29,6 +29,7 @@ class EssentialDKPBot(DKPBot):
 
     def _configure(self):
         super()._configure()
+        print("EssentialDKP configure")
         # Data outputs
         self.__single_player_profile_builder = SinglePlayerProfile("Essential DKP Profile")
 
