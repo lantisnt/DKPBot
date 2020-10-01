@@ -54,6 +54,7 @@ class DKPBot:
         self.__guild_id = int(guild_id)
         self.__param_parser = re.compile("\s*([\d\w-]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
+        self.__db_loaded = False
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
             'global': {},
@@ -63,7 +64,6 @@ class DKPBot:
         }
 
     def _configure(self):
-        print("dkp_bot configure")
         self.__input_file_name = self.__config.guild_info.filename
         self.__channel = int(self.__config.guild_info.file_upload_channel)
         self.__prefix = str(self.__config.guild_info.prefix)
@@ -87,7 +87,7 @@ class DKPBot:
         return self.__input_file_name == filename
 
     def is_database_loaded(self):
-        return len(self.__db) > 0
+        return self.__db_loaded
 
     def get_prefix(self):
         return self.__prefix
@@ -107,11 +107,13 @@ class DKPBot:
 
     def database_set(self, database):
         self.__db = database
+        self.__db_loaded = True
 
     # Try requesting garbage collecting
     def database_free(self):
         del self.__db
         self.__db = {}
+        self.__db_loaded = False
 
     ## Class related
     def __decode_aliases(self, groups):
@@ -390,6 +392,7 @@ class DKPBot:
         start = datetime.now(tz=timezone.utc).timestamp()
 
         saved_variable = self.__get_saved_variables(input_string)
+        print(saved_variable.keys)
         if saved_variable is None:
             return Response(ResponseStatus.ERROR, "Error Parsing .lua file.")
 
@@ -411,10 +414,12 @@ class DKPBot:
 
         for table in self.__db['global']:
             if len(table) <= 0:
-                return Response(ResponseStatus.SUCCESS, "(DKP) Database building failed.")
+                return Response(ResponseStatus.SUCCESS, "Database building failed.")
 
-        if len(self.__db['global']['history']) <= 0:
-            return Response(ResponseStatus.SUCCESS, "(DKP History) Database building failed.")
+        if len(self.__db['group']) <= 0:
+            return Response(ResponseStatus.SUCCESS, "Database building failed.")
+        
+        self.__db_loaded = True
 
         return Response(ResponseStatus.SUCCESS, "Database building complete.")
 

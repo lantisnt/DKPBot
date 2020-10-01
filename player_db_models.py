@@ -59,7 +59,10 @@ class PlayerInfo:
         return self.__latest_history_entry
 
     def __str__(self):
-        return "{0} ({1}) {2} ({3}/{4}) DKP".format(self.player(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent())
+        return "{0} ({1}) {2} ({3}/{4}) DKP".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent())
+
+    def __repr__(self):
+        return self.__str__()
 
     ### Overriding comparison to use DKP ###
 
@@ -126,8 +129,10 @@ class PlayerLoot:
         return self.__timestamp
 
     def __str__(self):
-        return "{0}: {1} {2}({3}) for {4} DKP".format(self.timestamp(), self.player(), self.item_name(), self.item_id(), self.dkp())
+        return "{0}: {1} {2}({3}) for {4} DKP".format(self.timestamp(), self.player().name(), self.item_name(), self.item_id(), self.dkp())
 
+    def __repr__(self):
+        return self.__str__()
 
 class PlayerDKPHistory:
     __player = ""
@@ -162,7 +167,10 @@ class PlayerDKPHistory:
         return self.__officer
 
     def __str__(self):
-        return "{0}: {1} {2} DKP ({3}) by {4}".format(self.timestamp(), self.player(), self.dkp(), self.reason(), self.officer())
+        return "{0}: {1} {2} DKP ({3}) by {4}".format(self.timestamp(), self.player().name(), self.dkp(), self.reason(), self.officer())
+
+    def __repr__(self):
+        return self.__str__()
 
     ### Overriding comparison to use dkp ###
 

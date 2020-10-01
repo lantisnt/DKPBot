@@ -19,9 +19,6 @@ class GuildInfo():
     prefix = "!"
     premium = False
 
-    def dump_self(self):
-        print('ds: {0.bot_type} | {0.file_upload_channel} | {0.filename} | {0.prefix} | {0.premium}'.format(self))
-
     def __init__(self, bot_type, file_upload_channel, filename, prefix, premium):
         self.bot_type = bot_type
         self.file_upload_channel = file_upload_channel
@@ -34,9 +31,6 @@ class DisplayConfig(object):
     __max_entries_per_field = 0
     __max_separate_messages = 0
     __use_multiple_columns = False
-
-    def dump_self(self):
-        print('ds: {0.max_fields} | {0.max_entries_per_field} | {0.max_separate_messages} | {0.use_multiple_columns}'.format(self))
 
     def __init__(self, max_fields, max_entries_per_field, max_separate_messages, use_multiple_columns):
         self.__max_fields = max_fields
@@ -253,7 +247,6 @@ class BotConfig():
 
         for section, variable in section_variable_mapping.items():
             for option, value in public_to_dict(variable).items():
-                variable.dump_self()
                 if not self.__config.has_section(section):
                     self.__config.add_section(section)
                 self.__config.set(section, str(option), str(value))

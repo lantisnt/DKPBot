@@ -29,7 +29,6 @@ class EssentialDKPBot(DKPBot):
 
     def _configure(self):
         super()._configure()
-        print("EssentialDKP configure")
         # Data outputs
         self.__single_player_profile_builder = SinglePlayerProfile("Essential DKP Profile")
 
@@ -47,12 +46,6 @@ class EssentialDKPBot(DKPBot):
 
         self.__multiple_item_search_output_builder = LootMultipleResponse("Search results", self._get_config().item_search.max_fields, self._get_config(
         ).item_search.max_entries_per_field, self._get_config().item_search.max_separate_messages, self._get_config().item_search.use_multiple_columns)
-
-        print("dkp:      {0}".format(self.__multiple_dkp_output_builder))
-        print("history:  {0}".format(self.__multiple_history_output_builder))
-        print("loot:     {0}".format(self.__multiple_player_loot_output_builder))
-        print("raidloot: {0}".format(self.__multiple_loot_output_builder))
-        print("search:   {0}".format(self.__multiple_item_search_output_builder))
 
     def __build_dkp_output_single(self, info):
         if not info or not isinstance(info, PlayerInfo):
@@ -361,7 +354,7 @@ class EssentialDKPBot(DKPBot):
 
     def call_dkp(self, param, request_info):
         if not self.is_database_loaded():
-            return
+            return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
 
         targets = self._parse_param(param)
         output_result_list = []
@@ -393,6 +386,9 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_dkphistory(self, param, request_info):  # pylint: disable=unused-argument
+        if not self.is_database_loaded():
+            return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
+
         targets = self._parse_param(param)
         output_result_list = []
 
@@ -415,6 +411,9 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_loot(self, param, request_info):  # pylint: disable=unused-argument
+        if not self.is_database_loaded():
+            return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
+
         targets = self._parse_param(param)
         output_result_list = []
 
@@ -437,6 +436,9 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_raidloot(self, param, request_info):  # pylint: disable=unused-argument
+        if not self.is_database_loaded():
+            return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
+
         output_result_list = self._get_loot()
 
         if len(output_result_list) > 0:
@@ -447,6 +449,8 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_item(self, param, request_info):  # pylint: disable=unused-argument
+        if not self.is_database_loaded():
+            return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
 
         if len(param) < 3:
             return Response(ResponseStatus.SUCCESS, "Query to short. Please specify at least 3 letters.")

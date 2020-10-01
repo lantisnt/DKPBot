@@ -1,7 +1,7 @@
 from datetime import datetime
 import pytz
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
-
+from bot_utility import get_date_from_timestamp
 
 def get_class_color(class_name=None):
     if not class_name:
@@ -42,30 +42,33 @@ def get_icon_string(class_name=None):
     class_name = class_name.lower()
 
     if class_name == 'rogue':
-        return "<:rogue:641645675045453824>"
+        return "<:rogue:760863674071777280>"
 
     if class_name == 'warrior':
-        return "<:warrior:641604892364111872>"
+        return "<:warrior:760863673978978314>"
 
     if class_name == 'hunter':
-        return "<:hunter:641604891969716225>"
+        return "<:hunter:760863674196951060>"
 
     if class_name == 'druid':
-        return "<:druid:641604891671920642>"
+        return "<:druid:760863673458622488>
 
     if class_name == 'priest':
-        return "<:priest:641604894154948638>"
+        return "<:priest:760863673974784071>"
 
     if class_name == 'paladin':
-        return "<:paladin:641645675112693799>"
+        return "<:paladin:760863674306527243>"
 
     if class_name == 'warlock':
-        return "<:warlock:641604892171173928>"
+        return "<:warlock:760863673982910484>"
 
     if class_name == 'mage':
-        return "<:mage:641604891877310486>"
+        return "<:mage:760863673719455835>"
 
-    return "<:essential:743883972206919790>"
+    if class_name == 'shaman':
+        return "<:shaman:760863673887227955>"
+
+    return ""
 
 def get_thumbnail(class_name):
     if not class_name or not isinstance(class_name, str):
@@ -105,8 +108,7 @@ def generate_dkp_history_entry(history_entry, format_string=None):
             format_string = "`{{0:{0}.1f}} DKP`".format(
                 len(str(int(history_entry.dkp()))))
         row = ""
-        row += "`{0:16}` - ".format(datetime.fromtimestamp(history_entry.timestamp(
-        ), tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"))
+        row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp()))
         row += format_string.format(history_entry.dkp())
         row += " - {0} _by {1}_".format(history_entry.reason(),
                                       history_entry.officer())
@@ -120,8 +122,7 @@ def generate_loot_entry(loot_entry, format_string=None, player=False):
             format_string = "`{{0:{0}.1f}} DKP`".format(
                 len(str(int(loot_entry.dkp()))))
         row = ""
-        row += "`{0:16}` - ".format(datetime.fromtimestamp(loot_entry.timestamp(
-        ), tz=pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"))
+        row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
         row += format_string.format(loot_entry.dkp())
         row += " - [{0}](https://classic.wowhead.com/item={1})".format(loot_entry.item_name(),
                                       loot_entry.item_id())
