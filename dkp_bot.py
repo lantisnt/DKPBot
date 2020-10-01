@@ -493,5 +493,4 @@ class DKPBot:
                 return Response(ResponseStatus.SUCCESS,
                     'Registered to expect Saved Variable lua file on channel {0}'.format(request_info['channel']['name']))
 
-
         return Response(ResponseStatus.IGNORE)

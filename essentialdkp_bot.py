@@ -459,6 +459,3 @@ class EssentialDKPBot(DKPBot):
             data = "No loot matching `{0}` found.".format(param)
 
         return Response(ResponseStatus.SUCCESS, data)
-
-    def call_dkpconfig(self, param, request_info):
-        return super().call_dkpconfig(param, request_info)
