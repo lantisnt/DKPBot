@@ -13,18 +13,14 @@ class BotConfigType(Enum):
     HARDCODED = 2  # Hardcoded
 
 class GuildInfo():
-    __bot_type = ''
+    bot_type = ''
     file_upload_channel = 0
     filename = ''
     prefix = "!"
     premium = False
 
     def dump_self(self):
-        print('bot_type {0.bot_type}\n'.format(self))
-        print('file_upload_channel {0.file_upload_channel}\n'.format(self))
-        print('filename {0.filename}\n'.format(self))
-        print('prefix {0.prefix}\n'.format(self))
-        print('premium {0.premium}\n'.format(self))
+        print('ds: {0.bot_type} | {0.file_upload_channel} | {0.filename} | {0.prefix} | {0.premium}'.format(self))
 
     def __init__(self, bot_type, file_upload_channel, filename, prefix, premium):
         self.bot_type = bot_type
@@ -40,10 +36,7 @@ class DisplayConfig(object):
     __use_multiple_columns = False
 
     def dump_self(self):
-        print('max_fields {0.max_fields}\n'.format(self))
-        print('max_entries_per_field {0.max_entries_per_field}\n'.format(self))
-        print('max_separate_messages {0.max_separate_messages}\n'.format(self))
-        print('use_multiple_columns {0.use_multiple_columns}\n'.format(self))
+        print('ds: {0.max_fields} | {0.max_entries_per_field} | {0.max_separate_messages} | {0.use_multiple_columns}'.format(self))
 
     def __init__(self, max_fields, max_entries_per_field, max_separate_messages, use_multiple_columns):
         self.__max_fields = max_fields
