@@ -191,32 +191,54 @@ class BotConfig():
 
     # Load from config to dictionary
     def __load(self):
+        group = 'Guild Info'
         self.guild_info = GuildInfo(
-            self.__config.get('Guild Info', 'bot_type', fallback='essential'),
-            self.__config.getint('Guild Info', 'file_upload_channel', fallback=0),
-            self.__config.get('Guild Info', 'filename', fallback='EssentialDKP.lua'),
-            self.__config.get('Guild Info', 'prefix', fallback='!'),
-            self.__config.getboolean('Guild Info', 'premium', fallback=False),
+            self.__config.get(group, 'bot_type', fallback='essential'),
+            self.__config.getint(group, 'file_upload_channel', fallback=0),
+            self.__config.get(group, 'filename', fallback='EssentialDKP.lua'),
+            self.__config.get(group, 'prefix', fallback='!'),
+            self.__config.getboolean(group, 'premium', fallback=False),
         )
 
-        self.guild_info.dump_self()
+        group = 'DKP Display'
+        self.dkp = DisplayConfig(
+            self.__config.getint(group, 'max_fields', fallback=1),
+            self.__config.getint(group, 'max_entries_per_field', fallback=1),
+            self.__config.getint(group, 'max_separate_messages', fallback=1),
+            self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
+        )
 
-        display_configs = {
-            'DKP Display': self.dkp,
-            'DKP History Display': self.dkp_history,
-            'Loot History Display': self.loot_history,
-            'Latest Loot Display': self.latest_loot,
-            'Item Search Display': self.item_search
-        }
+        group = 'DKP History Display'
+        self.dkp_history = DisplayConfig(
+            self.__config.getint(group, 'max_fields', fallback=1),
+            self.__config.getint(group, 'max_entries_per_field', fallback=1),
+            self.__config.getint(group, 'max_separate_messages', fallback=1),
+            self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
+        )
 
-        for group in display_configs:
-            display_configs[group] = DisplayConfig(
-                self.__config.getint(group, 'max_fields', fallback=1),
-                self.__config.getint(group, 'max_entries_per_field', fallback=1),
-                self.__config.getint(group, 'max_separate_messages', fallback=1),
-                self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
-            )
-            display_configs[group].dump_self()
+        group = 'Loot History Display'
+        self.loot_history = DisplayConfig(
+            self.__config.getint(group, 'max_fields', fallback=1),
+            self.__config.getint(group, 'max_entries_per_field', fallback=1),
+            self.__config.getint(group, 'max_separate_messages', fallback=1),
+            self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
+        )
+
+        group = 'Latest Loot Display'
+        self.latest_loot = DisplayConfig(
+            self.__config.getint(group, 'max_fields', fallback=1),
+            self.__config.getint(group, 'max_entries_per_field', fallback=1),
+            self.__config.getint(group, 'max_separate_messages', fallback=1),
+            self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
+        )
+
+        group = 'Item Search Display'
+        self.item_search = DisplayConfig(
+            self.__config.getint(group, 'max_fields', fallback=1),
+            self.__config.getint(group, 'max_entries_per_field', fallback=1),
+            self.__config.getint(group, 'max_separate_messages', fallback=1),
+            self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
+        )
 
     # Store from config to dictionary
     def __store(self):
