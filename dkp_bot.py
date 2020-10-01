@@ -475,15 +475,9 @@ class DKPBot:
         params = self._parse_param(param, False)
         num_params = len(params)
         if num_params == 0:
-            string = "Supported commands:\n"
-            string += "`bot-type` = change bot type - currently supported: `essential`, `monolith`, `community`\n"
-            string += "`filename` = change filename of lua file expected by bot including the .lua extension - **case sensitive**\n"
-            string += "`register` - register current channel as the lua upload one\n"
-            string += "`prefix  ` - change prefix - currently supported: {0}\n".format(self.get_supported_prefixes_string(self.get_supported_prefixes())) 
-            string += "`default ` - instantly reset bot configuration to default - this also resets **prefix** and **bot type**\n"
-            return Response(ResponseStatus.SUCCESS, string)
-
+            return Response(ResponseStatus.IGNORE)
         command = params[0]
+
         if command == 'default':
             self.__config.default()
 
@@ -492,7 +486,14 @@ class DKPBot:
                 self.__register_file_upload_channel(request_info['channel']['id'])
                 return Response(ResponseStatus.SUCCESS,
                     'Registered to expect Saved Variable lua file on channel {0}'.format(request_info['channel']['name']))
-
+        else:
+            string = "Supported commands:\n"
+            string += "`bot-type` = change bot type - currently supported: `essential`, `monolith`, `community`\n"
+            string += "`filename` = change filename of lua file expected by bot including the .lua extension - **case sensitive**\n"
+            string += "`register` - register current channel as the lua upload one\n"
+            string += "`prefix  ` - change prefix - currently supported: {0}\n".format(self.get_supported_prefixes_string(self.get_supported_prefixes())) 
+            string += "`default ` - instantly reset bot configuration to default - this also resets **prefix** and **bot type**\n"
+            return Response(ResponseStatus.SUCCESS, string)
         return Response(ResponseStatus.IGNORE)
 
     def call_display(self, param, request_info):
@@ -503,7 +504,7 @@ class DKPBot:
         params = list(map(lambda p: p.lower().replace("-", "_"), param))
         
         num_params = len(params)
-        if num_params == 0:
+        if num_params<= 1:
             return self.__list_configs() # list current config
 
         if num_params >= 3:
