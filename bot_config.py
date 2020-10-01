@@ -25,6 +25,11 @@ class GuildInfo():
         self.filename = filename
         self.prefix = prefix
         self.premium = bool(premium)
+        print('bot_type {0.bot_type}\n'.format(self))
+        print('file_upload_channel {0.file_upload_channel}\n'.format(self))
+        print('filename {0.filename}\n'.format(self))
+        print('prefix {0.prefix}\n'.format(self))
+        print('premium {0.premium}\n'.format(self))
 
 class DisplayConfig(object):
     __max_fields = 0
@@ -37,7 +42,10 @@ class DisplayConfig(object):
         self.__max_entries_per_field = max_entries_per_field
         self.__max_separate_messages = max_separate_messages
         self.__use_multiple_columns = use_multiple_columns
-
+        print('max_fields {0.__max_fields}\n'.format(self))
+        print('max_entries_per_field {0.__max_entries_per_field}\n'.format(self))
+        print('max_separate_messages {0.__max_separate_messages}\n'.format(self))
+        print('use_multiple_columns {0.__use_multiple_columns}\n'.format(self))
     def __getattr__(self, name):
         if not name.startswith('__get_') and hasattr(self,'__get_' + name):
             return getattr(self,'__get_' + name)()
@@ -190,7 +198,7 @@ class BotConfig():
             self.__config.get('Guild Info', 'prefix', fallback='!'),
             self.__config.getboolean('Guild Info', 'premium', fallback=False),
         )
-        print(self.guild_info)
+
         display_configs = {
             'DKP Display': self.dkp,
             'DKP History Display': self.dkp_history,
@@ -206,7 +214,6 @@ class BotConfig():
                 self.__config.getint(group, 'max_separate_messages', fallback=1),
                 self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
             )
-            print(display_configs[group])
 
     # Store from config to dictionary
     def __store(self):
@@ -246,15 +253,15 @@ class BotConfig():
         string = ""
         string += "**General**" + "\n"
         string += str((self.guild_info))
-        string += "**DKP Display**" + "\n"
+        string += "**DKP Display (`dkp`)**" + "\n"
         string += str((self.dkp))
-        string += "**DKP History Display**" + "\n"
+        string += "**DKP History Display (`dkp-history`)**" + "\n"
         string += str((self.dkp_history))
-        string += "**Loot History Display**" + "\n"
+        string += "**Loot History Display** (`loot-history`)" + "\n"
         string += str((self.loot_history))
-        string += "**Latest Loot Display**" + "\n"
+        string += "**Latest Loot Display** (`latest-loot`)" + "\n"
         string += str((self.latest_loot))
-        string += "**Item Search Display**" + "\n"
+        string += "**Item Search Display** (`item-search`)" + "\n"
         string += str((self.item_search)) 
 
         return string
