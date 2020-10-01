@@ -260,7 +260,7 @@ async def on_message(message):
                 print('ERROR: {0}'.format(response.data))
                 return
             elif response.status == dkp_bot.ResponseStatus.REQUEST:
-                if response.message == dkp_bot.Request.RESPAWN:
+                if response.data == dkp_bot.Request.RESPAWN:
                     discord_respond(response_channel, "Creating new bot")
                     await spawn_bot(message.guild.id) # Respawn bot
                     discord_respond(response_channel, "Complete")

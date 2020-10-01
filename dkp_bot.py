@@ -29,7 +29,7 @@ class Response:
     # Error information on ERROR
     # Request type on REQUEST
     # None on IGNORE
-    message = None
+    data = None
     direct_message = False
 
     def __init__(self, status=ResponseStatus.IGNORE, data=None, direct_message=False):
@@ -493,6 +493,7 @@ class DKPBot:
                     new = self.__config.guild_info.bot_type
 
                     if new == value:
+                        self.__config.store()
                         return Response(ResponseStatus.REQUEST, Request.RESPAWN)
                     else:
                         return Response(ResponseStatus.ERROR, 'Unexpected error during bot type setup')
@@ -509,6 +510,7 @@ class DKPBot:
                     self.__config.guild_info.filename = sanitized_value
                     new = self.__config.guild_info.filename
                     if new == value:
+                        self.__config.store()
                         return Response(ResponseStatus.SUCCESS, 'Set expected filename to `{0}`'.format(sanitized_value))
                     else:
                         return Response(ResponseStatus.ERROR, 'Unexpected error during filename change')
@@ -524,6 +526,7 @@ class DKPBot:
                     self.__config.guild_info.prefix = value
                     new = self.__config.guild_info.prefix
                     if new == value:
+                        self.__config.store()
                         return Response(ResponseStatus.SUCCESS, 'Set prefix to `{0}`'.format(value))
                     else:
                         return Response(ResponseStatus.ERROR, 'Unexpected error during prefix change')
