@@ -149,7 +149,9 @@ class DisplayConfig(object):
                 supported_values_string = supported_values_string.rstrip()
             else:
                 supported_values_string = " {0}".format(supported_values)
-
+            print(attr.replace("_", "-"))
+            print(attributes[attr],)
+            print(supported_values_string)
             string += row_format.format(
                 attr.replace("_", "-"),
                 attributes[attr],
@@ -193,7 +195,7 @@ class BotConfig():
 
 
     # Load from config to dictionary
-    def __load(self): ##TODO somehow the config is not loaded
+    def __load(self):
         self.guild_info = GuildInfo(
             self.__config.get('Guild Info', 'bot_type', fallback='essential'),
             self.__config.getint('Guild Info', 'file_upload_channel', fallback=0),
