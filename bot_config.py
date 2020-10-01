@@ -177,6 +177,8 @@ class BotConfig():
                 return
             else:
                 print("Server specific config {0} not loaded.".format(filepath))
+        else:
+            print("Server specific config {0} not found.".format(filepath))
 
         result = self.__config.read(DEFAULT_CONFIG)
         if DEFAULT_CONFIG in result:
