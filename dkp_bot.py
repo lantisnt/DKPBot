@@ -515,6 +515,7 @@ class DKPBot:
                     else:
                         return Response(ResponseStatus.ERROR, 'Unexpected error during filename change')
                 else:
+                    print(params)
                     return Response(ResponseStatus.SUCCESS, 'Filename too long')
             else:
                 return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
@@ -533,6 +534,7 @@ class DKPBot:
                 else:
                     return Response(ResponseStatus.SUCCESS, 'Unsupported prefix')
             else:
+                print(params)
                 return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
 
         elif command == 'default':

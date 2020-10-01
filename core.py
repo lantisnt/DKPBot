@@ -101,6 +101,20 @@ def normalize_author(author):
 
     return normalized
 
+async def discord_get_response_channel(message, direct_message: bool):
+    response_channel = message.channel
+    if direct_message:
+        dm_channel = message.author.dm_channel
+        if dm_channel is None:
+            await message.author.create_dm()
+            dm_channel = message.author.dm_channel
+            if dm_channel is None:
+                print('ERROR: Unable to create DM channel with {0}'.format(
+                    message.author))
+            else:
+                response_channel = dm_channel
+
+    return response_channel
 
 async def discord_build_embed(data):
     return discord.Embed().from_dict(data)
@@ -242,17 +256,7 @@ async def on_message(message):
 
         if response and isinstance(response, dkp_bot.Response):
             if response.status == dkp_bot.ResponseStatus.SUCCESS:
-                response_channel = message.channel
-                if response.direct_message:
-                    dm_channel = message.author.dm_channel
-                    if dm_channel is None:
-                        await message.author.create_dm()
-                        dm_channel = message.author.dm_channel
-                        if dm_channel is None:
-                            print('ERROR: Unable to create DM channel with {0}'.format(
-                                message.author))
-                            return
-                    response_channel = dm_channel
+                response_channel = await discord_get_response_channel(message, response.direct_message)
                 await discord_respond(response_channel, response.data)
                 if response.direct_message:
                     await message.delete()
@@ -261,6 +265,7 @@ async def on_message(message):
                 return
             elif response.status == dkp_bot.ResponseStatus.REQUEST:
                 if response.data == dkp_bot.Request.RESPAWN:
+                    response_channel = await discord_get_response_channel(message, response.direct_message)
                     discord_respond(response_channel, "Creating new bot")
                     await spawn_bot(message.guild.id) # Respawn bot
                     discord_respond(response_channel, "Complete")
