@@ -53,7 +53,7 @@ class DKPBot:
     def __init__(self, guild_id: int, config: BotConfig):
         self.__config = config
         self.__guild_id = int(guild_id)
-        self.__param_parser = re.compile("\s*([\d\w-]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
+        self.__param_parser = re.compile("\s*([\d\w-!?+.:<>|*^]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
         self.__db_loaded = False
         self.__db = {
@@ -455,7 +455,7 @@ class DKPBot:
     ### Command related ###
     @staticmethod
     def get_supported_prefixes():
-        return ['!', '?', '+', '.', ',', ';', ':', '|', '*', '^']
+        return ['!', '?', '+', '.', ':', '<', '>', '|', '*', '^']
 
     @staticmethod
     def get_supported_prefixes_string(prefix_list):
