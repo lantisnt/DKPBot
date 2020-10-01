@@ -41,10 +41,10 @@ class DisplayConfig(object):
     __use_multiple_columns = False
 
     def dump_self(self):
-        print('max_fields {0.__max_fields}\n'.format(self))
-        print('max_entries_per_field {0.__max_entries_per_field}\n'.format(self))
-        print('max_separate_messages {0.__max_separate_messages}\n'.format(self))
-        print('use_multiple_columns {0.__use_multiple_columns}\n'.format(self))
+        print('max_fields {0.max_fields}\n'.format(self))
+        print('max_entries_per_field {0.max_entries_per_field}\n'.format(self))
+        print('max_separate_messages {0.max_separate_messages}\n'.format(self))
+        print('use_multiple_columns {0.use_multiple_columns}\n'.format(self))
 
     def __init__(self, max_fields, max_entries_per_field, max_separate_messages, use_multiple_columns):
         self.__max_fields = max_fields
