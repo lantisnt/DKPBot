@@ -20,6 +20,7 @@ class ResponseStatus(Enum):
 class Request(Enum):
     NONE = 0
     RELOAD = 1
+    RESPAWN = 2
 
 
 class Response:
@@ -478,10 +479,60 @@ class DKPBot:
         num_params = len(params)
         if num_params == 0:
             return Response(ResponseStatus.IGNORE)
+        
         command = params[0]
+        if command == 'bot-type':
+            if num_params == 2:
+                value = params[1]
+                if value in ['community', 'monolith', 'essential']:
+                    current = self.__config.guild_info.bot_type
+                    if value == current:
+                        return Response(ResponseStatus.SUCCESS, 'Retaining current bot type')
+                    self.__config.guild_info.bot_type = value
+                    new = self.__config.guild_info.bot_type
+                    if new == value:
+                        return Response(ResponseStatus.REQUEST, Request.RESPAWN)
+                    else:
+                        return Response(ResponseStatus.ERROR, 'Unexpected error during bot type setup')
+                else:
+                    return Response(ResponseStatus.SUCCESS, 'Unsupported bot type')
+            else:
+                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
 
-        if command == 'default':
+        elif command == 'filename':
+            if num_params == 2:
+                value = params[1]
+                if len(value) <= 20:
+                    sanitized_value = re.sub('[^a-zA-Z0-9-.]', '', value)
+                    self.__config.guild_info.filename = sanitized_value
+                    new = self.__config.guild_info.filename
+                    if new == value:
+                        return Response(ResponseStatus.SUCCESS, 'Set expected filename to `{0}`'.format(sanitized_value))
+                    else:
+                        return Response(ResponseStatus.ERROR, 'Unexpected error during filename change')
+                else:
+                    return Response(ResponseStatus.SUCCESS, 'Filename too long')
+            else:
+                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
+        elif command == 'prefix':
+            if num_params == 2:
+                value = params[1]
+                if value in self.get_supported_prefixes():
+                    self.__config.guild_info.prefix = value
+                    new = self.__config.guild_info.prefix
+                    if new == value:
+                        return Response(ResponseStatus.SUCCESS, 'Set prefix to `{0}`'.format(value))
+                    else:
+                        return Response(ResponseStatus.ERROR, 'Unexpected error during prefix change')
+                else:
+                    return Response(ResponseStatus.SUCCESS, 'Unsupported prefix')
+            else:
+                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
+        elif command == 'default':
             self.__config.default()
+            return Response(ResponseStatus.SUCCESS, 'Bot configuration has been reset to default')
 
         elif command == 'register':
             if request_info['channel'] > 0:
@@ -489,21 +540,23 @@ class DKPBot:
                 return Response(ResponseStatus.SUCCESS,
                     'Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel']))
         else:
-            string = "Supported commands:\n"
+            string = "Supported commands:\n\n"
 
             string += "`bot-type` - change bot type\n"
             string += "current: `{0}`\n".format(self.__config.guild_info.bot_type)
-            string += "supported: `essential`, `monolith`, `community`\n"
+            string += "supported: `essential`, `monolith`, `community`\n\n"
 
-            string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 50 characters\n"
-            string += "current: `{0}`\n".format(self.__config.guild_info.filename)
+            string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
+            string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
 
             string += "`register` - register current channel as the lua upload one\n"
-            string += "current: <#{0}>\n".format(self.__config.guild_info.file_upload_channel)
+            string += "current: <#{0}>\n\n".format(self.__config.guild_info.file_upload_channel)
 
-            string += "`prefix  ` - change prefix - currently supported: {0}\n".format(self.get_supported_prefixes_string(self.get_supported_prefixes()))
+            string += "`prefix` - change prefix\n"
             string += "current: `{0}`\n".format(self.__prefix)
-            string += "`default ` - instantly reset bot configuration to default - this also resets **prefix** and **bot type**\n"
+            string += "supported: {0}\n\n".format(self.get_supported_prefixes_string(self.get_supported_prefixes()))
+
+            string += "`default` - instantly reset bot configuration to default - this also resets **prefix** and **bot type**\n"
             return Response(ResponseStatus.SUCCESS, string)
         return Response(ResponseStatus.IGNORE)
 

@@ -83,26 +83,7 @@ def unpickle_data(uid):
         data = pickle.load(file_pointer)
     return data
 
-# Performance analysis
-
-
-# def PERFORMANCE_TEST_INJECTION(gid, attachment):
-
-#     if not PERFORMANCE_TEST_ENABLED:
-#         return
-
-#     if PERFORMANCE_TEST_DONE:
-#         return
-
-#     if gid == 746131486234640444:
-#         for i in range(1, PERFORMANCE_TEST_BOTS + 1):
-#             bots[i] = bot_factory.New(i, BotConfig('1.ini'))
-#             bots[i].build_database(attachment, {})
-#             bot_memory_manager.Manager().Handle(i, True)
-#         PERFORMANCE_TEST_DONE = True
-
 # Discord related
-
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
@@ -156,9 +137,8 @@ async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Messag
                 info = {
                     'comment': message.content[:50],
                     'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
-                    'author': normalized_author,
+                    'author': normalized_author
                 }
-#                PERFORMANCE_TEST_INJECTION(message.guild.id, str(attachment_bytes, 'utf-8'))
                 response = bot.build_database(
                     str(attachment_bytes, 'utf-8'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
@@ -181,7 +161,7 @@ async def spawn_bot(guild):
             for channel in guild.text_channels:
                 try:  # in case we dont have access we still want to check other channels not die here
                     if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
-                        async for message in channel.history(limit=15):
+                        async for message in channel.history(limit=50):
                             status = await discord_attachment_parse(bot, message, normalize_author(message.author))
                             if status == dkp_bot.ResponseStatus.SUCCESS:
                                 break
@@ -280,8 +260,10 @@ async def on_message(message):
                 print('ERROR: {0}'.format(response.data))
                 return
             elif response.status == dkp_bot.ResponseStatus.REQUEST:
-                if response.message == dkp_bot.Request.RELOAD:
+                if response.message == dkp_bot.Request.RESPAWN:
+                    discord_respond(response_channel, "Creating new bot")
                     await spawn_bot(message.guild.id) # Respawn bot
+                    discord_respond(response_channel, "Complete")
 
         # No command response
         # Check if we have attachment on registered channel
