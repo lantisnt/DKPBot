@@ -136,7 +136,7 @@ class DisplayConfig(object):
                 supported_values = supported_values()
 
             if isinstance(supported_values, tuple):
-                supported_values_string = " from {0} to {1}".format(supported_values[0], supported_values[1])
+                supported_values_string = "from {0} to {1}".format(supported_values[0], supported_values[1])
             elif isinstance(supported_values, list):
                 for element in supported_values:
                     supported_values_string += "{0} ".format(element)
@@ -275,8 +275,6 @@ class BotConfig():
 
     def __str__(self):
         string = ""
-        string += "**General**" + "\n"
-        string += str(self.guild_info)
         string += "**DKP Display (`dkp`)**" + "\n"
         string += str(self.dkp)
         string += "**DKP History Display (`dkp-history`)**" + "\n"

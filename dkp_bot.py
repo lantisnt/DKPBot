@@ -392,7 +392,6 @@ class DKPBot:
         start = datetime.now(tz=timezone.utc).timestamp()
 
         saved_variable = self.__get_saved_variables(input_string)
-        print(saved_variable.keys)
         if saved_variable is None:
             return Response(ResponseStatus.ERROR, "Error Parsing .lua file.")
 
@@ -425,10 +424,13 @@ class DKPBot:
 
     ### Setting Handlers
     def __list_configs(self):
-        return Response(ResponseStatus.SUCCESS, str(self.__config))
+        string = str(self.__config)
+        string += "\n"
+        string += "To set new value type:\n"
+        string += "{0}config `category` `config` `value` e.g. `{0}config dkp max-fields 6`".format(self.__prefix)
+        return Response(ResponseStatus.SUCCESS, string)
 
     def __set_config(self, group, config, value):
-        print("set config {0} {1} {2}".format(group, config, value))
         internal_group = getattr(self.__config, group, None)
         if internal_group:
             if hasattr(internal_group, config):
@@ -488,10 +490,19 @@ class DKPBot:
                     'Registered to expect Saved Variable lua file on channel {0}'.format(request_info['channel']['name']))
         else:
             string = "Supported commands:\n"
-            string += "`bot-type` = change bot type - currently supported: `essential`, `monolith`, `community`\n"
-            string += "`filename` = change filename of lua file expected by bot including the .lua extension - **case sensitive**\n"
+
+            string += "`bot-type` - change bot type\n"
+            string += "current: `{0}`\n".format(self.__config.guild_info.bot_type)
+            string += "supported: `essential`, `monolith`, `community`\n"
+
+            string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 50 characters\n"
+            string += "current: `{0}`\n".format(self.__config.guild_info.filename)
+
             string += "`register` - register current channel as the lua upload one\n"
-            string += "`prefix  ` - change prefix - currently supported: {0}\n".format(self.get_supported_prefixes_string(self.get_supported_prefixes())) 
+            string += "current: <#{0}>\n".format(self.__config.guild_info.file_upload_channel)
+
+            string += "`prefix  ` - change prefix - currently supported: {0}\n".format(self.get_supported_prefixes_string(self.get_supported_prefixes()))
+            string += "current: `{0}`\n".format(self.__prefix)
             string += "`default ` - instantly reset bot configuration to default - this also resets **prefix** and **bot type**\n"
             return Response(ResponseStatus.SUCCESS, string)
         return Response(ResponseStatus.IGNORE)
@@ -515,7 +526,10 @@ class DKPBot:
                 if self.__set_config(category, config, value):
                     self.__config.store()
                     self._configure()
-                    return Response(ResponseStatus.SUCCESS, "Successfuly set **{0} {1}** to **{2}**".format(param[1], param[2], param[3]))
-            return Response(ResponseStatus.SUCCESS, "Invalid category **{0}** or unsupported value {2} provided for **{1}**".format(param[1], param[2], param[3]))
+                    return Response(ResponseStatus.SUCCESS, "Successfuly set **{0} {1}** to **{2}**".format(category, config, value))
+                else:
+                    return Response(ResponseStatus.SUCCESS, "Unsupported value **{2}** provided for **{0} {1}**".format(category, config, value))
+            else:
+                return Response(ResponseStatus.SUCCESS, "Invalid category **{0}**".format(category))
 
         return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
