@@ -264,6 +264,8 @@ async def on_message(message):
                     discord_respond(response_channel, "Creating new bot")
                     await spawn_bot(message.guild.id) # Respawn bot
                     discord_respond(response_channel, "Complete")
+                else:
+                    print("Requested but not respawn. This should not happen atm")
 
         # No command response
         # Check if we have attachment on registered channel

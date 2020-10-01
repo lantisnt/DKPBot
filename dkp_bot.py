@@ -418,7 +418,7 @@ class DKPBot:
 
         if len(self.__db['group']) <= 0:
             return Response(ResponseStatus.SUCCESS, "Database building failed.")
-        
+
         self.__db_loaded = True
 
         return Response(ResponseStatus.SUCCESS, "Database building complete.")
@@ -474,12 +474,12 @@ class DKPBot:
     def call_config(self, param, request_info):
         if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)
-        
+
         params = self._parse_param(param, False)
         num_params = len(params)
         if num_params == 0:
             return Response(ResponseStatus.IGNORE)
-        
+
         command = params[0]
         if command == 'bot-type':
             if num_params == 2:
@@ -488,8 +488,10 @@ class DKPBot:
                     current = self.__config.guild_info.bot_type
                     if value == current:
                         return Response(ResponseStatus.SUCCESS, 'Retaining current bot type')
+
                     self.__config.guild_info.bot_type = value
                     new = self.__config.guild_info.bot_type
+
                     if new == value:
                         return Response(ResponseStatus.REQUEST, Request.RESPAWN)
                     else:

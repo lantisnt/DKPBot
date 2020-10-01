@@ -57,7 +57,7 @@ class DisplayConfig(object):
             except AttributeError:
                 return super(DisplayConfig,self).__setattr__(name, value)
         except ValueError:
-            pass
+            print("ValueError in bot_config")
 
     @staticmethod
     def __supported_max_fields():
