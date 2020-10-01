@@ -313,10 +313,10 @@ class EssentialDKPBot(DKPBot):
 
     ### Commands ###
 
-    def call_dkphelp(self, param, request_info):  # pylint: disable=unused-argument
+    def call_help(self, param, request_info):  # pylint: disable=unused-argument
         help_string = 'EssentialDKP Bot allows access to dkp information.\n'
         help_string += 'Currently supported commands:\n'
-        help_string += '**{0}**\n Display this help. You can also get it by @mentioning the bot.\n'.format("!dkphelp")
+        help_string += '**{0}**\n Display this help. You can also get it by @mentioning the bot.\n'.format("!help")
         help_string += '**{0}**\n Display summary information of the requester.\n'.format(
             self.get_prefix() + "dkp")
 
@@ -346,10 +346,10 @@ class EssentialDKPBot(DKPBot):
         if request_info['is_privileged']:
             help_string += '\n\n'
             help_string += 'Administrator only options:\n'
-            help_string += '**{0}**\n Register current channel as EssentialDKP.lua file source.\n'.format(
-                self.get_prefix() + "dkpbotconfig register")
-            help_string += '**{0}**\n Force reload data from newest EssentialDKP.lua file found in registered channel.'.format(
-                self.get_prefix() + "dkpbotconfig reload")
+            help_string += '**{0}**\n Generic bot config.\n'.format(
+                self.get_prefix() + "config")
+            help_string += '**{0}**\n Display related config.'.format(
+                self.get_prefix() + "display")
         return Response(ResponseStatus.SUCCESS, help_string)
 
     def call_dkp(self, param, request_info):

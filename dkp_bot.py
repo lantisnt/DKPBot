@@ -449,47 +449,42 @@ class DKPBot:
     def __set_config_specific(self, config, value):
         return "Invalid value"
 
+    ### Command related ###
+    @staticmethod
+    def get_supported_prefixes():
+        return ['!', '?', '+', '.', ',', ';', ':', '|', '*', '^']
+
+    @staticmethod
+    def get_supported_prefixes_string(prefix_list):
+        string = ""
+        for prefix in prefix_list:
+            string += "`{0}`, ".format(prefix)
+
+        return string.rstrip(", ")
+
+
     ### Command callbacks ###
 
-    def call_dkphelp(self, param, request_info): # pylint: disable:unused-argument
-        pass
+    def call_help(self, param, request_info): # pylint: disable:unused-argument
+        return Response(ResponseStatus.IGNORE)
 
-    def call_dkpconfig(self, param, request_info):
+    def call_config(self, param, request_info):
         if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)
-
-        param = self._parse_param(param, False)
-        params = list(map(lambda p: p.lower().replace("-", "_"), param))
+        
+        params = self._parse_param(param, False)
         num_params = len(params)
         if num_params == 0:
-            return Response(ResponseStatus.IGNORE)
+            string = "Supported commands:\n"
+            string += "`bot-type` = change bot type - currently supported: `essential`, `monolith`, `community`\n"
+            string += "`filename` = change filename of lua file expected by bot including the .lua extension - **case sensitive**\n"
+            string += "`register` - register current channel as the lua upload one\n"
+            string += "`prefix  ` - change prefix - currently supported: {0}\n".format(self.get_supported_prefixes_string(self.get_supported_prefixes())) 
+            string += "`default ` - instantly reset bot configuration to default - this also resets **prefix** and **bot type**\n"
+            return Response(ResponseStatus.SUCCESS, string)
 
         command = params[0]
-        if command == 'list': # list current config
-            return self.__list_configs()
-
-        elif command == 'set': # set config
-            if num_params == 1:
-                return Response(ResponseStatus.IGNORE)
-
-            if num_params == 3:
-                config = params[1]
-                value = params[2]
-
-                return Response(ResponseStatus.SUCCESS, self.__set_config_specific(config, value))
-
-            if num_params >= 4:
-                category = params[1]
-                config = params[2]
-                value = params[3]
-                if category in self.__config.get_directly_accessible_configs():
-                    if self.__set_config(category, config, value):
-                        self.__config.store()
-                        self._configure()
-                        return Response(ResponseStatus.SUCCESS, "Successfuly set **{0} {1}** to **{2}**".format(param[1], param[2], param[3]))
-
-                return Response(ResponseStatus.SUCCESS, "Invalid category **{0}** or unsupported value {2} provided for **{1}**".format(param[1], param[2], param[3]))
-        elif command == 'default':
+        if command == 'default':
             self.__config.default()
 
         elif command == 'register':
@@ -499,3 +494,27 @@ class DKPBot:
                     'Registered to expect Saved Variable lua file on channel {0}'.format(request_info['channel']['name']))
 
         return Response(ResponseStatus.IGNORE)
+
+    def call_display(self, param, request_info):
+        if not request_info.get('is_privileged'):
+            return Response(ResponseStatus.IGNORE)
+
+        param = self._parse_param(param, False)
+        params = list(map(lambda p: p.lower().replace("-", "_"), param))
+        
+        num_params = len(params)
+        if num_params == 0:
+            return self.__list_configs() # list current config
+
+        if num_params >= 3:
+            category = params[0]
+            config = params[1]
+            value = params[2]
+            if category in self.__config.get_directly_accessible_configs():
+                if self.__set_config(category, config, value):
+                    self.__config.store()
+                    self._configure()
+                    return Response(ResponseStatus.SUCCESS, "Successfuly set **{0} {1}** to **{2}**".format(param[1], param[2], param[3]))
+            return Response(ResponseStatus.SUCCESS, "Invalid category **{0}** or unsupported value {2} provided for **{1}**".format(param[1], param[2], param[3]))
+
+        return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")

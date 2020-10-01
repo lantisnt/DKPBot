@@ -7,6 +7,12 @@ from bot_utility import public_to_dict
 
 DEFAULT_CONFIG = "/var/wowdkpbot-runner/default.ini"
 
+def get_row_format():
+    return  "{0:21} | {1:5} | {2:17}"
+
+def get_row_separator():
+    return "----------------------+-------+------------------"
+
 class BotConfigType(Enum):
     SPECIFIC = 0  # Server specific ini
     DEFAULT = 1  # Default ini
@@ -116,8 +122,9 @@ class DisplayConfig(object):
 
     def __str__(self):
         string = "```"
-        row_format = "{0:21} | {1:5} | {2:17}"
-        separator = "----------------------+-------+------------------"
+        row_format = get_row_format()
+        separator = get_row_separator()
+
         string += row_format.format("config", "value", "supported values") + "\n"
         string += separator + "\n"
 
@@ -129,16 +136,14 @@ class DisplayConfig(object):
                 supported_values = supported_values()
 
             if isinstance(supported_values, tuple):
-                supported_values_string = " `from {0} to {1}`".format(supported_values[0], supported_values[1])
+                supported_values_string = " from {0} to {1}".format(supported_values[0], supported_values[1])
             elif isinstance(supported_values, list):
                 for element in supported_values:
                     supported_values_string += "{0} ".format(element)
                 supported_values_string = supported_values_string.rstrip()
             else:
                 supported_values_string = " {0}".format(supported_values)
-            print(attr.replace("_", "-"))
-            print(attributes[attr],)
-            print(supported_values_string)
+
             string += row_format.format(
                 attr.replace("_", "-"),
                 attributes[attr],
