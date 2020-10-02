@@ -316,7 +316,7 @@ class EssentialDKPBot(DKPBot):
     def call_help(self, param, request_info):  # pylint: disable=unused-argument
         help_string = 'EssentialDKP Bot allows access to dkp information.\n'
         help_string += 'Currently supported commands:\n'
-        help_string += '**{0}**\n Display this help. You can also get it by @mentioning the bot.\n'.format("!help")
+        help_string += '**{0}**\n Display this help. You can also get it by @mentioning the bot.\n'.format(self.get_prefix() + "help")
         help_string += '**{0}**\n Display summary information of the requester.\n'.format(
             self.get_prefix() + "dkp")
 
