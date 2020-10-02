@@ -184,7 +184,7 @@ async def spawn_bot(guild):
             # We call it here so we will have it tracked from beginning
             bot_memory_manager.Manager().Handle(guild.id, True)
             print("Bot for server {0} total footprint: {1} B".format(
-                        guild.name, footprint.total_size(bot)))
+                        guild.name.encode('ascii', 'ignore'), footprint.total_size(bot)))
     except (SystemExit, Exception):
         handle_exception("spawn_bot()")
 

@@ -436,6 +436,9 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_raidloot(self, param, request_info):  # pylint: disable=unused-argument
+        if not self._get_config().guild_info.premium:
+            return Response(ResponseStatus.IGNORE)
+
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
 
@@ -449,11 +452,14 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_item(self, param, request_info):  # pylint: disable=unused-argument
+        if not self._get_config().guild_info.premium:
+            return Response(ResponseStatus.IGNORE)
+
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
 
         if len(param) < 3:
-            return Response(ResponseStatus.SUCCESS, "Query to short. Please specify at least 3 letters.")
+            return Response(ResponseStatus.SUCCESS, "Query too short. Please specify at least 3 letters.")
 
         output_result_list = self._find_loot(param)
 
