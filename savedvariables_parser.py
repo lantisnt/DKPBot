@@ -1,31 +1,31 @@
-from slpp import slpp as lua
 import re
+from slpp import slpp as lua
 
 
 class SavedVariablesParser:
-    def ParseString(self, string):
-        # todo select valid split option
+    def parse_string(self, input_string):
+        # select valid split option
         #        strings = string.split("}\r\n\r\n") #split variables
         #        print(len(strings))
-        strings = string.split("}\r\n")  # split variables
+        strings = input_string.split("}\r\n")  # split variables
 #        print(len(strings))
 #        strings = string.split("}\n")
 #        print(len(strings))
         if not isinstance(strings, list):
             print("Something not ok with split")
             return None
-        pattern = re.compile("^\s*([a-zA-Z0-9-_]*)\s*=\s*")
-        SavedVariables = {}
-        for s in strings:
-            if(len(s) == 0):
+        pattern = re.compile("^\s*([a-zA-Z0-9-_]*)\s*=\s*") # pylint: disable=anomalous-backslash-in-string
+        saved_variables = {}
+        for string in strings:
+            if len(string) == 0:
                 continue
-            s += "}"
-            out = pattern.match(s)
-            SavedVariables[out.group().replace(" = ", "").strip()
-                           ] = lua.decode(pattern.sub("", s, 1))
-        return SavedVariables
+            string += "}"
+            out = pattern.match(string)
+            saved_variables[out.group().replace(" = ", "").strip()
+                           ] = lua.decode(pattern.sub("", string, 1))
+        return saved_variables
 
-    def ParseFile(self, filepath):
-        with open("filepath") as file:
-            return self.ParseString(file.read())
+    def parse_file(self, filepath):
+        with open(filepath) as file:
+            return self.parse_string(file.read())
         return None

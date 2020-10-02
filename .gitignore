@@ -127,3 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+#
+*.lua
+.pylintrc
+.vscode
+*.cfg
+simple_test.py

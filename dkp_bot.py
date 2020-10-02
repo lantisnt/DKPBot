@@ -1,12 +1,13 @@
 import argparse
-from datetime import datetime, timezone
-import pytz
-
-from enum import Enum
-
 import re
 
+from datetime import datetime, timezone
+from enum import Enum
+
 from savedvariables_parser import SavedVariablesParser
+from bot_config import BotConfig
+from bot_utility import public_to_dict
+import bot_memory_manager
 
 
 class ResponseStatus(Enum):
@@ -18,8 +19,8 @@ class ResponseStatus(Enum):
 
 class Request(Enum):
     NONE = 0
-    CHANNEL_ID = 1
-    ATTACHEMENT = 2
+    RELOAD = 1
+    RESPAWN = 2
 
 
 class Response:
@@ -28,27 +29,33 @@ class Response:
     # Error information on ERROR
     # Request type on REQUEST
     # None on IGNORE
-    message = None
-    dm = False
+    data = None
+    direct_message = False
 
-    def __init__(self, status=ResponseStatus.IGNORE, data=None, dm=False):
+    def __init__(self, status=ResponseStatus.IGNORE, data=None, direct_message=False):
         self.status = status
         self.data = data
-        self.dm = bool(dm)
+        self.direct_message = bool(direct_message)
 
 
 class DKPBot:
-    __inputFileName = ""
+    __config = None
+    __guild_id = 0
+    __input_file_name = ""
     __channel = 0
+    __prefix = '!'
     __enabled = False
     __parser = None
+    __param_parser = None
+    _all_groups = []
     __db = {}
 
-    def __init__(self, inputFileName="SavedVariable.lua", channel=0, enabled=False, parser=None):
-        self.__inputFileName = inputFileName
-        self.__channel = channel
-        self.__enabled = enabled
-        self.__parser = parser
+    def __init__(self, guild_id: int, config: BotConfig):
+        self.__config = config
+        self.__guild_id = int(guild_id)
+        self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
+        self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
+        self.__db_loaded = False
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
             'global': {},
@@ -57,33 +64,122 @@ class DKPBot:
             'info': {}
         }
 
-    def Enable(self):
+    def _configure(self):
+        self.__input_file_name = self.__config.guild_info.filename
+        self.__channel = int(self.__config.guild_info.file_upload_channel)
+        self.__prefix = str(self.__config.guild_info.prefix)
+
+    def _reconfigure(self):
+        self.__config.store()
+        self._configure()
+
+    def enable(self):
         self.__enabled = True
 
-    def Disable(self):
+    def disable(self):
         self.__enabled = False
 
-    def IsEnabled(self):
-        return (self.__enabled == True)
+    def is_enabled(self):
+        return self.__enabled
 
-    def RegisterChannel(self, channel):
+    def is_channel_registered(self):
+        return self.__channel != 0
+
+    def check_channel(self, channel):
+        return self.__channel == channel
+
+    def check_attachment_name(self, filename):
+        return self.__input_file_name == filename
+
+    def is_database_loaded(self):
+        return self.__db_loaded
+
+    def get_prefix(self):
+        return self.__prefix
+
+    # Config
+    def _get_config(self):
+        return self.__config
+
+    def __register_file_upload_channel(self, channel):
         self.__channel = channel
+        self.__config.guild_info.file_upload_channel = channel
+        self._reconfigure()
 
-    def IsChannelRegistered(self):
-        return (self.__channel != 0)
+    # Direct access for pickling
+    def database_get(self):
+        return self.__db
 
-    def CheckChannel(self, channel):
-        return (self.__channel == channel)
+    def database_set(self, database):
+        self.__db = database
+        self.__db_loaded = True
 
-    def CheckAttachmentName(self, filename):
-        return (self.__inputFileName == filename)
+    # Try requesting garbage collecting
+    def database_free(self):
+        del self.__db
+        self.__db = {}
+        self.__db_loaded = False
 
-    def IsDatabaseLoaded(self):
-        return (len(self.__db) > 0)
+    ## Class related
+    def __decode_aliases(self, groups):
+        # Always allow querying all
+        if 'all' in groups:
+            return self._all_groups
+
+        # If not premium we don't allow doing any group mixin calls
+        if not self._get_config().guild_info.premium:
+            # Remove groups
+            new_groups = [x for x in groups if x not in self._all_groups]
+            # Remove mixins
+            if len(new_groups) > 1:
+                groups = [groups[0]]
+
+            return groups
+
+        # Else we consider everything for premium users
+        new_groups = groups.copy()
+        for group in groups:
+            if group == 'all':
+                return self._all_groups
+
+            if group == 'tank' or group == 'tanks':
+                new_groups.extend(['warrior', 'druid'])
+
+            elif group == 'healer' or group == 'healers':
+                new_groups.extend(['priest', 'paladin', 'druid', 'shaman'])
+
+            elif group == 'dps':
+                new_groups.extend(
+                    ['warrior', 'rogue', 'hunter', 'mage', 'warlock', 'shaman'])
+
+            elif group == 'caster' or group == 'casters':
+                new_groups.extend(['mage', 'warlock'])
+
+            elif group == 'physical':
+                new_groups.extend(['warrior', 'rogue', 'hunter', 'shaman'])
+
+            elif group == 'range' or group == 'ranged':
+                new_groups.extend(['mage', 'warlock'])
+
+            elif group == 'melee':
+                new_groups.extend(['warrior', 'rogue', 'shaman'])
+
+        return new_groups
 
     ### Command handling and parsing ###
 
-    def __getCommandParser(self):
+    def _parse_param(self, param, decode_aliases=True):
+        # Remove empty strings
+        targets = list(filter(None, self.__param_parser.findall(param)))
+        # Decode aliases
+        if decode_aliases:
+            targets = self.__decode_aliases(targets)
+        # Remove duplicates either from input or introduced by aliases
+        targets = list(dict.fromkeys(targets))
+        # Lowercase all
+        return list(map(lambda x: x.strip().lower(), targets))
+
+    def __get_command_parser(self):
         if not(self.__parser and isinstance(self.__parser, argparse.ArgumentParser)):
             self.__parser = argparse.ArgumentParser(
                 description='Process commands.')
@@ -95,22 +191,20 @@ class DKPBot:
 #                                       help='All other string values will be put here', nargs='*', default=None)
         return self.__parser
 
-    def __parseCommand(self, string):
+    def __parse_command(self, string):
         if string:
-            return self.__getCommandParser().parse_args(string.split())
+            return self.__get_command_parser().parse_args(string.split())
         else:
             return None
 
-    def __handleCommand(self, command, param, requester_info):
+    def __handle_command(self, command, param, request_info):
         method = ''
-        dm = False
-        if command[0] == '?':
-            method = 'help_'
-        elif command[0] == '!':
+        direct_message = False
+        if command[0] == self.__prefix:
             method = 'call_'
-            if command[1] == '!':
-                dm = True # direct message
-                method += command[2:] #remove second ! also
+            if command[1] == self.__prefix:
+                direct_message = True  # direct message
+                method += command[2:]  # remove second ! also
             else:
                 method += command[1:]
         else:
@@ -118,24 +212,25 @@ class DKPBot:
 
         callback = getattr(self, method, None)
         if callback and callable(callback):
-            response = callback(param, requester_info) # pylint: disable=not-callable
+            bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
+            response = callback(param, request_info)  # pylint: disable=not-callable
 
-            response.dm = dm
+            response.direct_message = direct_message
 
             return response
         else:
             return Response(ResponseStatus.IGNORE)
 
-    def Handle(self, message, requester_info):
-        args = self.__parseCommand(message)
+    def handle(self, message, request_info):
+        args = self.__parse_command(message)
         if args:
             if args.command:
                 if not args.param:
-                    if not requester_info or not requester_info.get('name'):
+                    if not request_info or not request_info.get('name'):
                         return Response(ResponseStatus.ERROR, "No param and no author. How?")
-                    args.param = [requester_info.get('name')]
+                    args.param = [request_info.get('name')]
                 args.param = " ".join(args.param)
-                return self.__handleCommand(args.command.lower(), args.param.lower(), requester_info)
+                return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
             else:
                 # Empty message, attachement only probably
                 return Response(ResponseStatus.IGNORE)
@@ -145,191 +240,361 @@ class DKPBot:
 
     ### File handling and parsing ###
 
-    def __getSavedVariables(self, inputString):
-        return SavedVariablesParser().ParseString(inputString)
+    def __get_saved_variables(self, input_string):
+        return SavedVariablesParser().parse_string(input_string)
 
-    def _dbGetInfo(self):
+    def _db_get_info(self):
         return self.__db['info']
 
-    def _buildDkpDatabase(self, sv):
+    def _build_dkp_database(self, saved_variable):  # pylint: disable=unused-argument
         self.__db['global']['dkp'] = {}
         self.__db['group'] = {}
 
-    def _buildLootDatabase(self, sv):
+    def _build_loot_database(self, saved_variable):  # pylint: disable=unused-argument
         self.__db['global']['loot'] = []
         self.__db['global']['player_loot'] = {}
 
-    def _buildHistoryDatabase(self, sv):
+    def _build_history_database(self, saved_variable):  # pylint: disable=unused-argument
         self.__db['global']['history'] = {}
 
-    def _finalizeDatabase(self):
+    def _finalize_database(self):
         return
 
-    def _getDkp(self, player):
+    def _get_dkp(self, player):
         return self.__db['global']['dkp'].get(player.lower())
 
-    def _getPlayerLoot(self, player):
+    def _get_player_loot(self, player):
         return self.__db['global']['player_loot'].get(player.lower())
 
-    def _getLoot(self,):
+    def _get_loot(self,):
         return self.__db['global']['loot']
 
-    def _getHistory(self, player):
+    def _get_history(self, player):
         return self.__db['global']['history'].get(player.lower())
 
-    def _setDkp(self, player, entry):
+    def _set_dkp(self, player, entry):
         self.__db['global']['dkp'][player.lower()] = entry
 
-    def _addLoot(self, entry):
+    def _add_loot(self, entry):
         self.__db['global']['loot'].append(entry)
 
-    def _sortLoot(self, newest=True):
-            self.__db['global']['loot'].sort(
-                key=lambda info: info.Timestamp(), reverse=bool(newest))
+    def _sort_loot(self, newest=True):
+        self.__db['global']['loot'].sort(
+            key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _findLoot(self, keyword):
+    def _find_loot(self, keyword):
         if not keyword or not isinstance(keyword, str) or len(keyword) == 0:
             return list()
 
         loot_pattern = re.compile(keyword.strip(), flags=re.IGNORECASE)
 
         def get_loot_if_matching(entry):
-            if loot_pattern.search(entry.ItemName()) != None:
+            if loot_pattern.search(entry.item_name()) is not None:
                 return entry
-            
+
             return None
 
-        l = list(map(get_loot_if_matching, self.__db['global']['loot']))
-        return list(filter(None, l))
+        matching_loot = list(map(get_loot_if_matching, self.__db['global']['loot']))
+        return list(filter(None, matching_loot))
 
+    def _validate_player(self, player):
+        if not player:
+            return False
 
-    def _addPlayerLoot(self, player, entry):
-        if player and player != "":
-            player = player.lower()
-            player_loot = self.__db['global']['player_loot'].get(player)
-            if not player_loot:
-                self.__db['global']['player_loot'][player] = []
-            self.__db['global']['player_loot'][player].append(entry)
+        if isinstance(player, str):
+            player = self._get_dkp(player)
+            if not player:
+                return False
 
-    def _sortPlayerLoot(self, newest=True, player=None):
+        return True
+
+    def _add_player_loot(self, player, entry):
+        if not self._validate_player(player):
+            return
+
+        player = player.lower()
+        player_loot = self.__db['global']['player_loot'].get(player)
+        if not player_loot:
+            self.__db['global']['player_loot'][player] = []
+        self.__db['global']['player_loot'][player].append(entry)
+
+    def _sort_player_loot(self, newest=True, player=None):
         if self.__db['global']['player_loot'].get(player):
             self.__db['global']['player_loot'][player].sort(
-                key=lambda info: info.Timestamp(), reverse=bool(newest))
+                key=lambda info: info.timestamp(), reverse=bool(newest))
         else:
-            for p in self.__db['global']['player_loot'].values():
-                p.sort(key=lambda info: info.Timestamp(), reverse=bool(newest))
+            for loot in self.__db['global']['player_loot'].values():
+                loot.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _addHistory(self, player, entry):
-        if player and player != "":
-            player = player.lower()
-            player_history = self.__db['global']['history'].get(player)
-            if not player_history:
-                self.__db['global']['history'][player] = []
-            self.__db['global']['history'][player].append(entry)
+    def _add_history(self, player, entry):
+        if not self._validate_player(player):
+            return
 
-    def _sortHistory(self, newest=True, player=None):
+        player = player.lower()
+        player_history = self.__db['global']['history'].get(player)
+        if not player_history:
+            self.__db['global']['history'][player] = []
+        self.__db['global']['history'][player].append(entry)
+
+    def _sort_history(self, newest=True, player=None):
         if self.__db['global']['history'].get(player):
             self.__db['global']['history'][player].sort(
-                key=lambda info: info.Timestamp(), reverse=bool(newest))
+                key=lambda info: info.timestamp(), reverse=bool(newest))
         else:
-            for p in self.__db['global']['history'].values():
-                p.sort(key=lambda info: info.Timestamp(), reverse=bool(newest))
+            for history in self.__db['global']['history'].values():
+                history.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _sortGroupDkp(self, group=None):
+    def _sort_group_dkp(self, group=None):
         if self.__db['group'].get(group):
             self.__db['group'][group].sort(
-                key=lambda info: info.Dkp(), reverse=True)
+                key=lambda info: info.dkp(), reverse=True)
         else:
-            for g in self.__db['group'].values():
-                g.sort(key=lambda info: info.Dkp(), reverse=True)
+            for values in self.__db['group'].values():
+                values.sort(key=lambda info: info.dkp(), reverse=True)
 
-    def _setGroupDkp(self, group, entry, sort=False):
+    def _set_group_dkp(self, group, entry, sort=False):
         if group:
             group = group.lower()
             if not group in self.__db['group']:
                 self.__db['group'][group] = []
             self.__db['group'][group].append(entry)
-            if sort and sort == True:
-                self._sortGroupDkp(group)
+            if sort:
+                self._sort_group_dkp(group)
 
-    def _getGroupDkp(self, group):
+    def _get_group_dkp(self, group):
         if group:
             return self.__db['group'].get(group.lower())
 
         return None
 
-    def _setPlayerLatestLoot(self):
-        for p in self.__db['global']['dkp'].values():
-            loot = self._getPlayerLoot(p.Player())
+    def _set_player_latest_loot(self):
+        for dkp in self.__db['global']['dkp'].values():
+            loot = self._get_player_loot(dkp.name())
             if loot and isinstance(loot, list):
-                p.SetLatestLootEntry(loot[0])
+                dkp.set_latest_loot_entry(loot[0])
 
-    def _setPlayerLatestHistory(self):
-        for p in self.__db['global']['dkp'].values():
-            history = self._getHistory(p.Player())
+    def _set_player_latest_history(self):
+        for dkp in self.__db['global']['dkp'].values():
+            history = self._get_history(dkp.name())
             if history and isinstance(history, list):
-                p.SetLatestHistoryEntry(history[0])
+                dkp.set_latest_history_entry(history[0])
 
-    def _setPlayerLatestPositiveHistoryAndActivity(self, inactive_time = 200000000000):
+    def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000):
         now = int(datetime.now(tz=timezone.utc).timestamp())
-        for p in self.__db['global']['dkp'].values():
-            history = self._getHistory(p.Player())
+        for dkp in self.__db['global']['dkp'].values():
+            history = self._get_history(dkp.name())
             if history and isinstance(history, list):
                 for history_entry in history:
-                    if history_entry.Dkp() > 0:
-                        p.SetLatestHistoryEntry(history_entry)
-                        if abs(now - history_entry.Timestamp()) > inactive_time:
-                            p.SetInactive()
+                    if history_entry.dkp() > 0:
+                        dkp.set_latest_history_entry(history_entry)
+                        if abs(now - history_entry.timestamp()) > inactive_time:
+                            dkp.set_inactive()
                         break
 
-    def BuildDatabase(self, inputString, info):
+    def build_database(self, input_string, info):
         print('Building database')
 
-        start = int(datetime.now(tz=timezone.utc).timestamp())
+        start = datetime.now(tz=timezone.utc).timestamp()
 
-        sv = self.__getSavedVariables(inputString)
-        if sv == None:
+        saved_variable = self.__get_saved_variables(input_string)
+        if saved_variable is None:
             return Response(ResponseStatus.ERROR, "Error Parsing .lua file.")
 
-        if not isinstance(sv, dict):
+        if not isinstance(saved_variable, dict):
             return Response(ResponseStatus.ERROR, "No SavedVariables found in .lua file.")
 
         self.__db['info']['comment'] = info.get('comment')
         self.__db['info']['date'] = info.get('date')
         self.__db['info']['author'] = info.get('author')
 
-        self._buildDkpDatabase(sv)
-        self._buildLootDatabase(sv)
-        self._buildHistoryDatabase(sv)
+        self._build_dkp_database(saved_variable)
+        self._build_loot_database(saved_variable)
+        self._build_history_database(saved_variable)
 
-        self._finalizeDatabase()
+        self._finalize_database()
 
-        print('Building complete in {0} seconds'.format(
-            int(datetime.now(tz=timezone.utc).timestamp()) - start))
+        print('Building complete in {:04.2f} seconds'.format(
+            datetime.now(tz=timezone.utc).timestamp() - start))
 
-        if len(self.__db['global']['dkp']) <= 0:
-            # for table in self.__db['global']:
-            #    if len(table) <= 0:
-            return Response(ResponseStatus.SUCCESS, "(DKP) Database building failed.")
+        for table in self.__db['global']:
+            if len(table) <= 0:
+                return Response(ResponseStatus.SUCCESS, "Database building failed.")
 
-        if len(self.__db['global']['history']) <= 0:
-            return Response(ResponseStatus.SUCCESS, "(DKP History) Database building failed.")
+        if len(self.__db['group']) <= 0:
+            return Response(ResponseStatus.SUCCESS, "Database building failed.")
+
+        self.__db_loaded = True
 
         return Response(ResponseStatus.SUCCESS, "Database building complete.")
 
-    def ReloadData(self):
-        return Response(ResponseStatus.REQUEST, Request.ATTACHEMENT)
+    ### Setting Handlers
+    def __list_configs(self):
+        string = str(self.__config)
+        string += "\n"
+        string += "To set new value type:\n"
+        string += "{0}config `category` `config` `value` e.g. `{0}config dkp max-fields 6`".format(self.__prefix)
+        return Response(ResponseStatus.SUCCESS, string)
+
+    def __set_config(self, group, config, value):
+        internal_group = getattr(self.__config, group, None)
+        if internal_group:
+            if hasattr(internal_group, config):
+                setattr(internal_group, config, value)
+                new_value = getattr(internal_group, config)
+                if isinstance(new_value, bool):
+                    return (new_value and value == 'true') or (not new_value and value == 'false')
+                elif isinstance(new_value, int):
+                    try:
+                        return new_value == int(value)
+                    except ValueError:
+                        return False
+                else:
+                    return new_value == value
+
+        return False
+
+    def __set_config_specific(self, config, value):
+        return "Invalid value"
+
+    ### Command related ###
+    @staticmethod
+    def get_supported_prefixes():
+        return ['!', '?', '+', '.', ':', '<', '>', '|', '*', '^']
+
+    @staticmethod
+    def get_supported_prefixes_string(prefix_list):
+        string = ""
+        for prefix in prefix_list:
+            string += "`{0}`, ".format(prefix)
+
+        return string.rstrip(", ")
+
 
     ### Command callbacks ###
 
-    def call_dkpmanage(self, param, requester_info):
-        if requester_info.get('is_privileged') != True:
+    def call_help(self, param, request_info): # pylint: disable:unused-argument
+        return Response(ResponseStatus.IGNORE)
+
+    def call_config(self, param, request_info):
+        if not request_info.get('is_privileged'):
             return Response(ResponseStatus.IGNORE)
 
-        if param == 'register':
-            return Response(ResponseStatus.REQUEST, Request.CHANNEL_ID)
+        params = self._parse_param(param, False)
+        num_params = len(params)
+        if num_params == 0:
+            return Response(ResponseStatus.IGNORE)
 
-        if param == 'reload':
-            return self.ReloadData()
+        command = params[0]
+        if command == 'bot-type':
+            if num_params == 2:
+                value = params[1]
+                if value in ['community', 'monolith', 'essential']:
+                    current = self.__config.guild_info.bot_type
+                    if value == current:
+                        return Response(ResponseStatus.SUCCESS, 'Retaining current bot type')
 
-        return Response(ResponseStatus.SUCCESS, "Sorry :frowning: !dkpmanage {0} is not yet implemented.".format(str(requester_info.get('name'))))
+                    self.__config.guild_info.bot_type = value
+                    new = self.__config.guild_info.bot_type
+
+                    if new == value:
+                        self.__config.guild_info.filename = value.capitalize() + 'DKP.lua'
+                        self._reconfigure()
+                        return Response(ResponseStatus.REQUEST, Request.RESPAWN)
+                    else:
+                        return Response(ResponseStatus.ERROR, 'Unexpected error during bot type setup')
+                else:
+                    return Response(ResponseStatus.SUCCESS, 'Unsupported bot type')
+            else:
+                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
+        # elif command == 'filename':
+        #     if num_params == 2:
+        #         value = params[1]
+        #         if len(value) <= 20:
+        #             sanitized_value = re.sub('[^a-zA-Z0-9-.]', '', value)
+        #             self.__config.guild_info.filename = sanitized_value
+        #             new = self.__config.guild_info.filename
+        #             if new == value:
+        #                 self._reconfigure()
+        #                 return Response(ResponseStatus.SUCCESS, 'Set expected filename to `{0}`'.format(sanitized_value))
+        #             else:
+        #                 return Response(ResponseStatus.ERROR, 'Unexpected error during filename change')
+        #         else:
+        #             print(params)
+        #             return Response(ResponseStatus.SUCCESS, 'Filename too long')
+        #     else:
+        #         return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
+        elif command == 'prefix':
+            if num_params == 2:
+                value = params[1]
+                if value in self.get_supported_prefixes():
+                    self.__config.guild_info.prefix = value
+                    new = self.__config.guild_info.prefix
+                    if new == value:
+                        self._reconfigure()
+                        return Response(ResponseStatus.SUCCESS, 'Set prefix to `{0}`'.format(value))
+                    else:
+                        return Response(ResponseStatus.ERROR, 'Unexpected error during prefix change')
+                else:
+                    return Response(ResponseStatus.SUCCESS, 'Unsupported prefix')
+            else:
+                print(params)
+                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
+        elif command == 'default':
+            self.__config.default()
+            return Response(ResponseStatus.REQUEST, Request.RESPAWN)
+
+        elif command == 'register':
+            if request_info['channel'] > 0:
+                self.__register_file_upload_channel(request_info['channel'])
+                return Response(ResponseStatus.SUCCESS,
+                    'Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel']))
+        else:
+            string = "Supported commands:\n\n"
+
+            string += "`bot-type` - change bot type\n"
+            string += "current: `{0}`\n".format(self.__config.guild_info.bot_type)
+            string += "supported: `essential`, `monolith`, `community`\n\n"
+
+            string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
+            string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
+
+            string += "`register` - register current channel as the lua upload one\n"
+            string += "current: <#{0}>\n\n".format(self.__config.guild_info.file_upload_channel)
+
+            string += "`prefix` - change prefix\n"
+            string += "current: `{0}`\n".format(self.__prefix)
+            string += "supported: {0}\n\n".format(self.get_supported_prefixes_string(self.get_supported_prefixes()))
+
+            string += "`default` - instantly reset bot configuration to default - this also resets **prefix** and **bot type**\n"
+            return Response(ResponseStatus.SUCCESS, string)
+        return Response(ResponseStatus.IGNORE)
+
+    def call_display(self, param, request_info):
+        if not request_info.get('is_privileged'):
+            return Response(ResponseStatus.IGNORE)
+
+        param = self._parse_param(param, False)
+        params = list(map(lambda p: p.lower().replace("-", "_"), param))
+        
+        num_params = len(params)
+        if num_params<= 1:
+            return self.__list_configs() # list current config
+
+        if num_params >= 3:
+            category = params[0]
+            config = params[1]
+            value = params[2]
+            if category in self.__config.get_directly_accessible_configs():
+                if self.__set_config(category, config, value):
+                    self.__config.store()
+                    self._configure()
+                    return Response(ResponseStatus.SUCCESS, "Successfuly set **{0} {1}** to **{2}**".format(param[0], param[1], param[2]))
+                else:
+                    return Response(ResponseStatus.SUCCESS, "Unsupported value **{2}** provided for **{0} {1}**".format(param[0], param[1], param[2]))
+            else:
+                return Response(ResponseStatus.SUCCESS, "Invalid category **{0}**".format(param[0]))
+
+        return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
