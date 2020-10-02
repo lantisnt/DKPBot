@@ -174,7 +174,7 @@ async def spawn_bot(guild):
             bots[guild.id] = bot
             for channel in guild.text_channels:
                 try:  # in case we dont have access we still want to check other channels not die here
-                    if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
+                    if (bot.is_channel_registered() and bot.check_channel(channel.id)) or not bot.is_channel_registered():
                         async for message in channel.history(limit=50):
                             status = await discord_attachment_parse(bot, message, normalize_author(message.author))
                             if status == dkp_bot.ResponseStatus.SUCCESS:
