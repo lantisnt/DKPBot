@@ -69,6 +69,10 @@ class DKPBot:
         self.__channel = int(self.__config.guild_info.file_upload_channel)
         self.__prefix = str(self.__config.guild_info.prefix)
 
+    def _reconfigure(self):
+        self.__config.store()
+        self._configure()
+
     def enable(self):
         self.__enabled = True
 
@@ -100,7 +104,7 @@ class DKPBot:
     def __register_file_upload_channel(self, channel):
         self.__channel = channel
         self.__config.guild_info.file_upload_channel = channel
-        self.__config.store()
+        self._reconfigure()
 
     # Direct access for pickling
     def database_get(self):
@@ -493,7 +497,8 @@ class DKPBot:
                     new = self.__config.guild_info.bot_type
 
                     if new == value:
-                        self.__config.store()
+                        self.__config.guild_info.filename = value.captialize() + 'DKP.lua'
+                        self._reconfigure()
                         return Response(ResponseStatus.REQUEST, Request.RESPAWN)
                     else:
                         return Response(ResponseStatus.ERROR, 'Unexpected error during bot type setup')
@@ -510,7 +515,7 @@ class DKPBot:
                     self.__config.guild_info.filename = sanitized_value
                     new = self.__config.guild_info.filename
                     if new == value:
-                        self.__config.store()
+                        self._reconfigure()
                         return Response(ResponseStatus.SUCCESS, 'Set expected filename to `{0}`'.format(sanitized_value))
                     else:
                         return Response(ResponseStatus.ERROR, 'Unexpected error during filename change')
@@ -527,7 +532,7 @@ class DKPBot:
                     self.__config.guild_info.prefix = value
                     new = self.__config.guild_info.prefix
                     if new == value:
-                        self.__config.store()
+                        self._reconfigure()
                         return Response(ResponseStatus.SUCCESS, 'Set prefix to `{0}`'.format(value))
                     else:
                         return Response(ResponseStatus.ERROR, 'Unexpected error during prefix change')
@@ -539,7 +544,7 @@ class DKPBot:
 
         elif command == 'default':
             self.__config.default()
-            return Response(ResponseStatus.SUCCESS, 'Bot configuration has been reset to default')
+            return Response(ResponseStatus.REQUEST, Request.RESPAWN)
 
         elif command == 'register':
             if request_info['channel'] > 0:
