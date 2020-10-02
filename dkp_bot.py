@@ -563,8 +563,8 @@ class DKPBot:
             string += "current: `{0}`\n".format(self.__config.guild_info.bot_type)
             string += "supported: `essential`, `monolith`, `community`\n\n"
 
-            string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
-            string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
+            # string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
+            # string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
 
             string += "`register` - register current channel as the lua upload one\n"
             string += "current: <#{0}>\n\n".format(self.__config.guild_info.file_upload_channel)
