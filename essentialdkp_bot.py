@@ -436,7 +436,7 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_raidloot(self, param, request_info):  # pylint: disable=unused-argument
-        if not self._get_config().guild_info.premium:
+        if not self.is_premium():
             return Response(ResponseStatus.IGNORE)
 
         if not self.is_database_loaded():
@@ -452,7 +452,7 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_item(self, param, request_info):  # pylint: disable=unused-argument
-        if not self._get_config().guild_info.premium:
+        if not self.is_premium():
             return Response(ResponseStatus.IGNORE)
 
         if not self.is_database_loaded():

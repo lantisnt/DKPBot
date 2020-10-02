@@ -44,6 +44,7 @@ class DKPBot:
     __input_file_name = ""
     __channel = 0
     __prefix = '!'
+    __premium = False
     __enabled = False
     __parser = None
     __param_parser = None
@@ -68,6 +69,7 @@ class DKPBot:
         self.__input_file_name = self.__config.guild_info.filename
         self.__channel = int(self.__config.guild_info.file_upload_channel)
         self.__prefix = str(self.__config.guild_info.prefix)
+        self.__premium = bool(self.__config.guild_info.premium)
 
     def _reconfigure(self):
         self.__config.store()
@@ -96,6 +98,9 @@ class DKPBot:
 
     def get_prefix(self):
         return self.__prefix
+
+    def is_premium(self):
+        return self.__premium
 
     # Config
     def _get_config(self):
@@ -127,7 +132,7 @@ class DKPBot:
             return self._all_groups
 
         # If not premium we don't allow doing any group mixin calls
-        if not self._get_config().guild_info.premium:
+        if not self.is_premium():
             # Remove groups
             new_groups = [x for x in groups if x not in self._all_groups]
             # Remove mixins
