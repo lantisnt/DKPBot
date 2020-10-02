@@ -507,23 +507,23 @@ class DKPBot:
             else:
                 return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
 
-        elif command == 'filename':
-            if num_params == 2:
-                value = params[1]
-                if len(value) <= 20:
-                    sanitized_value = re.sub('[^a-zA-Z0-9-.]', '', value)
-                    self.__config.guild_info.filename = sanitized_value
-                    new = self.__config.guild_info.filename
-                    if new == value:
-                        self._reconfigure()
-                        return Response(ResponseStatus.SUCCESS, 'Set expected filename to `{0}`'.format(sanitized_value))
-                    else:
-                        return Response(ResponseStatus.ERROR, 'Unexpected error during filename change')
-                else:
-                    print(params)
-                    return Response(ResponseStatus.SUCCESS, 'Filename too long')
-            else:
-                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+        # elif command == 'filename':
+        #     if num_params == 2:
+        #         value = params[1]
+        #         if len(value) <= 20:
+        #             sanitized_value = re.sub('[^a-zA-Z0-9-.]', '', value)
+        #             self.__config.guild_info.filename = sanitized_value
+        #             new = self.__config.guild_info.filename
+        #             if new == value:
+        #                 self._reconfigure()
+        #                 return Response(ResponseStatus.SUCCESS, 'Set expected filename to `{0}`'.format(sanitized_value))
+        #             else:
+        #                 return Response(ResponseStatus.ERROR, 'Unexpected error during filename change')
+        #         else:
+        #             print(params)
+        #             return Response(ResponseStatus.SUCCESS, 'Filename too long')
+        #     else:
+        #         return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
 
         elif command == 'prefix':
             if num_params == 2:
