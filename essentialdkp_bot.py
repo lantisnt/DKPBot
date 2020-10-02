@@ -15,10 +15,10 @@ class EssentialDKPBot(DKPBot):
     __item_id_name_find = None
 
     __singleDkpOutputBuilder = None
-    __multiple_dkp_output_builder = None
-    __multiple_history_output_builder = None
-    __multiple_player_loot_output_builder = None
-    __multiple_loot_output_builder = None
+    _multiple_dkp_output_builder = None
+    _multiple_history_output_builder = None
+    _multiple_player_loot_output_builder = None
+    _multiple_loot_output_builder = None
 
     def __init__(self, guild_id, config):
         super().__init__(guild_id, config)
@@ -30,28 +30,28 @@ class EssentialDKPBot(DKPBot):
     def _configure(self):
         super()._configure()
         # Data outputs
-        self.__single_player_profile_builder = SinglePlayerProfile("Essential DKP Profile")
+        self._single_player_profile_builder = SinglePlayerProfile("Essential DKP Profile")
 
-        self.__multiple_dkp_output_builder = DKPMultipleResponse("DKP values", self._get_config().dkp.max_fields, self._get_config(
+        self._multiple_dkp_output_builder = DKPMultipleResponse("DKP values", self._get_config().dkp.max_fields, self._get_config(
         ).dkp.max_entries_per_field, self._get_config().dkp.max_separate_messages, self._get_config().dkp.use_multiple_columns)
 
-        self.__multiple_history_output_builder = HistoryMultipleResponse("Latest DKP history", self._get_config().dkp_history.max_fields, self._get_config(
+        self._multiple_history_output_builder = HistoryMultipleResponse("Latest DKP history", self._get_config().dkp_history.max_fields, self._get_config(
         ).dkp_history.max_entries_per_field, self._get_config().dkp_history.max_separate_messages, self._get_config().dkp_history.use_multiple_columns)
 
-        self.__multiple_player_loot_output_builder = PlayerLootMultipleResponse("Latest loot history", self._get_config().loot_history.max_fields, self._get_config(
+        self._multiple_player_loot_output_builder = PlayerLootMultipleResponse("Latest loot history", self._get_config().loot_history.max_fields, self._get_config(
         ).loot_history.max_entries_per_field, self._get_config().loot_history.max_separate_messages, self._get_config().loot_history.use_multiple_columns)
 
-        self.__multiple_loot_output_builder = LootMultipleResponse("Latest 30 items awarded", self._get_config().latest_loot.max_fields, self._get_config(
+        self._multiple_loot_output_builder = LootMultipleResponse("Latest 30 items awarded", self._get_config().latest_loot.max_fields, self._get_config(
         ).latest_loot.max_entries_per_field, self._get_config().latest_loot.max_separate_messages, self._get_config().latest_loot.use_multiple_columns)
 
-        self.__multiple_item_search_output_builder = LootMultipleResponse("Search results", self._get_config().item_search.max_fields, self._get_config(
+        self._multiple_item_search_output_builder = LootMultipleResponse("Search results", self._get_config().item_search.max_fields, self._get_config(
         ).item_search.max_entries_per_field, self._get_config().item_search.max_separate_messages, self._get_config().item_search.use_multiple_columns)
 
     def __build_dkp_output_single(self, info):
         if not info or not isinstance(info, PlayerInfo):
             return None
 
-        return self.__single_player_profile_builder.build(info, info.ingame_class()).get()
+        return self._single_player_profile_builder.build(info, info.ingame_class()).get()
 
     def __build_dkp_output_multiple(self, output_result_list, requester):
         if not output_result_list or not isinstance(output_result_list, list):
@@ -60,31 +60,31 @@ class EssentialDKPBot(DKPBot):
         if not requester:
             requester = ""
 
-        return self.__multiple_dkp_output_builder.build(output_result_list, requester).get()
+        return self._multiple_dkp_output_builder.build(output_result_list, requester).get()
 
     def __build_history_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
-        return self.__multiple_history_output_builder.build(output_result_list).get()
+        return self._multiple_history_output_builder.build(output_result_list).get()
 
     def __build_player_loot_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
-        return self.__multiple_player_loot_output_builder.build(output_result_list).get()
+        return self._multiple_player_loot_output_builder.build(output_result_list).get()
 
     def __build_loot_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
-        return self.__multiple_loot_output_builder.build(output_result_list).get()
+        return self._multiple_loot_output_builder.build(output_result_list).get()
 
     def __build_item_search_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
-        return self.__multiple_item_search_output_builder.build(output_result_list).get()
+        return self._multiple_item_search_output_builder.build(output_result_list).get()
 
     ### Database - Variables parsing ###
 
@@ -298,17 +298,17 @@ class EssentialDKPBot(DKPBot):
     # Called after whole database is built
 
     def _finalize_database(self):
-        self.__single_player_profile_builder.set_database_info(
+        self._single_player_profile_builder.set_database_info(
             self._db_get_info())
-        self.__multiple_dkp_output_builder.set_database_info(
+        self._multiple_dkp_output_builder.set_database_info(
             self._db_get_info())
-        self.__multiple_history_output_builder.set_database_info(
+        self._multiple_history_output_builder.set_database_info(
             self._db_get_info())
-        self.__multiple_player_loot_output_builder.set_database_info(
+        self._multiple_player_loot_output_builder.set_database_info(
             self._db_get_info())
-        self.__multiple_loot_output_builder.set_database_info(
+        self._multiple_loot_output_builder.set_database_info(
             self._db_get_info())
-        self.__multiple_item_search_output_builder.set_database_info(
+        self._multiple_item_search_output_builder.set_database_info(
             self._db_get_info())
 
     ### Commands ###
