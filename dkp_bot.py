@@ -497,7 +497,7 @@ class DKPBot:
                     new = self.__config.guild_info.bot_type
 
                     if new == value:
-                        self.__config.guild_info.filename = value.captialize() + 'DKP.lua'
+                        self.__config.guild_info.filename = value.capuitalize() + 'DKP.lua'
                         self._reconfigure()
                         return Response(ResponseStatus.REQUEST, Request.RESPAWN)
                     else:
