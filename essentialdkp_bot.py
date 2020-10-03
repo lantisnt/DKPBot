@@ -88,7 +88,7 @@ class EssentialDKPBot(DKPBot):
 
     ### Database - Variables parsing ###
 
-    def _fill_history(self, players, dkp, timestamp, reason, index):
+    def _fill_history(self, players, dkp, timestamp, reason, index, team = DKPBot.DEFAULT_TEAM):
         if not players:
             return
 
@@ -96,18 +96,18 @@ class EssentialDKPBot(DKPBot):
             return
 
         if isinstance(players, str) and isinstance(dkp, (int, float)):
-            player_info = self._get_dkp(players)
+            player_info = self._get_dkp(players, team)
             if player_info is None:
                 return
             self._add_history(players, PlayerDKPHistory(
-                player_info, dkp, timestamp, reason, index))
+                player_info, dkp, timestamp, reason, index), team)
         elif isinstance(players, list) and isinstance(dkp, (int, float)):
             for player in players:
                 player_info = self._get_dkp(player)
                 if player_info is None:
                     return
                 self._add_history(player, PlayerDKPHistory(
-                    player_info, dkp, timestamp, reason, index))
+                    player_info, dkp, timestamp, reason, index), team)
         elif isinstance(players, list) and isinstance(dkp, list):
             # Remove the % entry
             del players[-1]
@@ -118,7 +118,7 @@ class EssentialDKPBot(DKPBot):
                 if player_info is None:
                     continue
                 self._add_history(player, PlayerDKPHistory(
-                    player_info, float(dkp.pop(0)), timestamp, reason, index))
+                    player_info, float(dkp.pop(0)), timestamp, reason, index), team)
 
     def _generate_player_info(self, entry):
         if entry is None:
