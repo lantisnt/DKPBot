@@ -120,6 +120,134 @@ class EssentialDKPBot(DKPBot):
                 self._add_history(player, PlayerDKPHistory(
                     player_info, float(dkp.pop(0)), timestamp, reason, index))
 
+    def _generate_player_info(self, entry):
+        if entry is None:
+            return None
+
+        player = entry.get("player")
+        if player is None:
+            return None
+
+        dkp = entry.get("dkp")
+        if dkp is None:
+            return None
+
+        lifetime_gained = entry.get("lifetime_gained")
+        if lifetime_gained is None:
+            return None
+
+        lifetime_spent = entry.get("lifetime_spent")
+        if lifetime_spent is None:
+            return None
+
+        ingame_class = entry.get("class")
+        if ingame_class is None:
+            return None
+
+        role = entry.get("role")
+        if role is None:
+            return None
+
+        return PlayerInfo(player, dkp, lifetime_gained,
+                              lifetime_spent, ingame_class, role)
+
+    def _generate_player_loot(self, entry):
+        if entry is None:
+            return None
+
+        if not isinstance(entry, dict):
+            return None
+
+        player = entry.get("player")
+        if player is None:
+            return None
+
+        player = self._get_dkp(player)
+        if player is None:
+            return None
+
+        cost = entry.get("cost")
+        if cost is None:
+            return None
+
+        loot = entry.get("loot")
+        if loot is None:
+            return None
+
+        date = entry.get("date")
+        if date is None:
+            return None
+
+        ## Skip deletetion and deleted entries ##
+        if entry.get("deletes") or entry.get("deletedby"):
+            return None
+
+        if not isinstance(loot, str):
+            return None
+
+        item_info = list(filter(None, self.__item_id_name_find.findall(loot)))  # [0] -> id [1] -> name
+
+        if not item_info or not isinstance(item_info, list) or len(item_info) != 1:
+            print("ERROR in entry: " + str(player.player()) + " " + str(date) + " " + str(cost) + " " + str(loot))
+            return None
+
+        if not item_info[0] or not isinstance(item_info[0], tuple) or len(item_info[0]) != 2:
+            print("ERROR in item_info[0] " + str(item_info[0]))
+            return None
+
+        return PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date)
+
+    def _generate_player_history(self, entry):
+        if entry is None:
+            return None
+
+        if not isinstance(entry, dict):
+            return None
+
+        players = entry.get("players")
+        if players is None:
+            return None
+
+        dkp = entry.get("dkp")
+        if dkp is None:
+            return None
+
+        date = entry.get("date")
+        if date is None:
+            return None
+
+        reason = entry.get("reason")
+        if reason is None:
+            return None
+
+        index = entry.get("index")
+        if index is None:
+            return None
+
+        ## Skip deletetion and deleted entries ##
+        if entry.get("deletes") or entry.get("deletedby"):
+            return None
+
+        if not isinstance(players, str):
+            return None
+        if not isinstance(date, int):
+            return None
+        if not isinstance(reason, str):
+            return None
+
+        players = list(map(lambda p: p.lower(), players.split(",")))
+        if not isinstance(players, list):
+            return None
+
+        if isinstance(dkp, str):
+            # multiple entries
+            dkp = list(map(lambda d: d, dkp.split(",")))
+            if len(dkp) == 1:  # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
+                return None
+            elif not isinstance(dkp, (int, float)):
+                return None
+
+            self._fill_history(players, dkp, date, reason, index)
     # Called 1st
     def _build_dkp_database(self, saved_variable):
         super()._build_dkp_database(None)
@@ -131,40 +259,12 @@ class EssentialDKPBot(DKPBot):
         if not isinstance(dkp_list, list):
             return
 
-        # Ignore players not getting DKP in last 30 days TODO
-        # if timestamp - updated > self.__30_DAYS_SECONDS: continue
-
         for entry in dkp_list:
-            if entry is None:
+            info = self._generate_player_info(entry)
+            if info is None:
                 continue
 
-            player = entry.get("player")
-            if player is None:
-                continue
-
-            dkp = entry.get("dkp")
-            if dkp is None:
-                continue
-
-            lifetime_gained = entry.get("lifetime_gained")
-            if lifetime_gained is None:
-                continue
-
-            lifetime_spent = entry.get("lifetime_spent")
-            if lifetime_spent is None:
-                continue
-
-            ingame_class = entry.get("class")
-            if ingame_class is None:
-                continue
-
-            role = entry.get("role")
-            if role is None:
-                continue
-
-            info = PlayerInfo(player, dkp, lifetime_gained,
-                              lifetime_spent, ingame_class, role)
-            self._set_dkp(player, info)
+            self._set_dkp(info.name(), info)
             self._set_group_dkp(info.ingame_class(), info)
 
     # Called 2nd
@@ -179,52 +279,12 @@ class EssentialDKPBot(DKPBot):
             return  # dict because there is ["seed"] field...
 
         for entry in loot_list.values():
-            if entry is None:
+            player_loot = self._generate_player_loot(entry)
+            if player_loot is None:
                 continue
 
-            if not isinstance(entry, dict):
-                continue
-
-            player = entry.get("player")
-            if player is None:
-                continue
-
-            player = self._get_dkp(player)
-            if player is None:
-                continue
-
-            cost = entry.get("cost")
-            if cost is None:
-                continue
-
-            loot = entry.get("loot")
-            if loot is None:
-                continue
-
-            date = entry.get("date")
-            if date is None:
-                continue
-
-            ## Skip deletetion and deleted entries ##
-            if entry.get("deletes") or entry.get("deletedby"):
-                continue
-
-            if not isinstance(loot, str):
-                continue
-
-            item_info = list(filter(None, self.__item_id_name_find.findall(loot)))  # [0] -> id [1] -> name
-
-            if not item_info or not isinstance(item_info, list) or len(item_info) != 1:
-                print("ERROR in entry: " + str(player.player()) + " " + str(date) + " " + str(cost) + " " + str(loot))
-                continue
-
-            if not item_info[0] or not isinstance(item_info[0], tuple) or len(item_info[0]) != 2:
-                print("ERROR in item_info[0] " + str(item_info[0]))
-                continue
-
-            player_loot = PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date)
             self._add_loot(player_loot)
-            self._add_player_loot(player.name(), player_loot)
+            self._add_player_loot(player_loot().player().name(), player_loot)
 
         self._sort_loot()
         self._sort_player_loot()
@@ -241,56 +301,7 @@ class EssentialDKPBot(DKPBot):
             return  # dict because there is ["seed"] field...
 
         for entry in history.values():
-            if entry is None:
-                continue
-
-            if not isinstance(entry, dict):
-                continue
-
-            players = entry.get("players")
-            if players is None:
-                continue
-
-            dkp = entry.get("dkp")
-            if dkp is None:
-                continue
-
-            date = entry.get("date")
-            if date is None:
-                continue
-
-            reason = entry.get("reason")
-            if reason is None:
-                continue
-
-            index = entry.get("index")
-            if index is None:
-                continue
-
-            ## Skip deletetion and deleted entries ##
-            if entry.get("deletes") or entry.get("deletedby"):
-                continue
-
-            if not isinstance(players, str):
-                continue
-            if not isinstance(date, int):
-                continue
-            if not isinstance(reason, str):
-                continue
-
-            players = list(map(lambda p: p.lower(), players.split(",")))
-            if not isinstance(players, list):
-                continue
-
-            if isinstance(dkp, str):
-                # multiple entries
-                dkp = list(map(lambda d: d, dkp.split(",")))
-                if len(dkp) == 1:  # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
-                    continue
-            elif not isinstance(dkp, (int, float)):
-                continue
-
-            self._fill_history(players, dkp, date, reason, index)
+            self._generate_player_history(entry)
 
         self._sort_history()
         self._set_player_latest_positive_history_and_activity(self.__45_DAYS_SECONDS)
@@ -314,12 +325,14 @@ class EssentialDKPBot(DKPBot):
     ### Commands ###
 
     def call_help(self, param, request_info):  # pylint: disable=unused-argument
-        help_string = 'EssentialDKP Bot allows access to dkp information.\n'
+        help_string = 'WoW DKP Bot allows access to dkp information.\n'
         help_string += 'Currently supported commands:\n'
         help_string += '**{0}**\n Display this help. You can also get it by @mentioning the bot.\n'.format(self.get_prefix() + "help")
+
+        help_string += '**{0}**\n Display dkp list for all active players.\n'.format(
+            self.get_prefix() + "dkp all")
         help_string += '**{0}**\n Display summary information of the requester.\n'.format(
             self.get_prefix() + "dkp")
-
         help_string += '**{0}**\n Display summary information of [player].\n'.format(
             self.get_prefix() + "dkp player")
 
