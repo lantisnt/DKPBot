@@ -6,7 +6,6 @@ from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
-from bot_utility import public_to_dict
 import bot_memory_manager
 
 
@@ -39,7 +38,7 @@ class Response:
 
 
 class DKPBot:
-    DEFAULT_TEAM = self.DEFAULT_TEAM
+    DEFAULT_TEAM = "0"
 
     __config = None
     __guild_id = 0
@@ -254,42 +253,42 @@ class DKPBot:
         return self.__db['info']
 
     def _build_dkp_database(self, saved_variable):  # pylint: disable=unused-argument
-        self.__db['global'][self.DEFAULT_TEAM]['dkp'] = {}
-        self.__db['group'][self.DEFAULT_TEAM] = {}
+        self.__db['global'][DKPBot.DEFAULT_TEAM]['dkp'] = {}
+        self.__db['group'][DKPBot.DEFAULT_TEAM] = {}
 
     def _build_loot_database(self, saved_variable):  # pylint: disable=unused-argument
-        self.__db['global'][self.DEFAULT_TEAM]['loot'] = []
-        self.__db['global'][self.DEFAULT_TEAM]['player_loot'] = {}
+        self.__db['global'][DKPBot.DEFAULT_TEAM]['loot'] = []
+        self.__db['global'][DKPBot.DEFAULT_TEAM]['player_loot'] = {}
 
     def _build_history_database(self, saved_variable):  # pylint: disable=unused-argument
-        self.__db['global'][self.DEFAULT_TEAM]['history'] = {}
+        self.__db['global'][DKPBot.DEFAULT_TEAM]['history'] = {}
 
     def _finalize_database(self):
         return
 
-    def _get_dkp(self, player, team = self.DEFAULT_TEAM):
+    def _get_dkp(self, player, team = DKPBot.DEFAULT_TEAM):
         return self.__db['global'][team]['dkp'].get(player.lower())
 
-    def _get_player_loot(self, player, team = self.DEFAULT_TEAM):
+    def _get_player_loot(self, player, team = DKPBot.DEFAULT_TEAM):
         return self.__db['global'][team]['player_loot'].get(player.lower())
 
-    def _get_loot(self, team = self.DEFAULT_TEAM):
+    def _get_loot(self, team = DKPBot.DEFAULT_TEAM):
         return self.__db['global'][team]['loot']
 
-    def _get_history(self, player), team = self.DEFAULT_TEAM:
+    def _get_history(self, player, team = DKPBot.DEFAULT_TEAM):
         return self.__db['global'][team]['history'].get(player.lower())
 
-    def _set_dkp(self, player, entry, team = self.DEFAULT_TEAM):
+    def _set_dkp(self, player, entry, team = DKPBot.DEFAULT_TEAM):
         self.__db['global'][team]['dkp'][player.lower()] = entry
 
-    def _add_loot(self, entry, team = self.DEFAULT_TEAM):
+    def _add_loot(self, entry, team = DKPBot.DEFAULT_TEAM):
         self.__db['global'][team]['loot'].append(entry)
 
-    def _sort_loot(self, newest=True, team = self.DEFAULT_TEAM):
+    def _sort_loot(self, newest=True, team = DKPBot.DEFAULT_TEAM):
         self.__db['global'][team]['loot'].sort(
             key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _find_loot(self, keyword, team = self.DEFAULT_TEAM):
+    def _find_loot(self, keyword, team = DKPBot.DEFAULT_TEAM):
         if not keyword or not isinstance(keyword, str) or len(keyword) == 0:
             return list()
 
@@ -304,7 +303,7 @@ class DKPBot:
         matching_loot = list(map(get_loot_if_matching, self.__db['global'][team]['loot']))
         return list(filter(None, matching_loot))
 
-    def _validate_player(self, player, team = self.DEFAULT_TEAM):
+    def _validate_player(self, player, team = DKPBot.DEFAULT_TEAM):
         if not player:
             return False
 
@@ -315,7 +314,7 @@ class DKPBot:
 
         return True
 
-    def _add_player_loot(self, player, entry, team = self.DEFAULT_TEAM):
+    def _add_player_loot(self, player, entry, team = DKPBot.DEFAULT_TEAM):
         if not self._validate_player(player, team):
             return
 
@@ -325,7 +324,7 @@ class DKPBot:
             self.__db['global'][team]['player_loot'][player] = []
         self.__db['global'][team]['player_loot'][player].append(entry)
 
-    def _sort_player_loot(self, newest=True, player=None, team = self.DEFAULT_TEAM):
+    def _sort_player_loot(self, newest=True, player=None, team = DKPBot.DEFAULT_TEAM):
         if self.__db['global'][team]['player_loot'].get(player):
             self.__db['global'][team]['player_loot'][player].sort(
                 key=lambda info: info.timestamp(), reverse=bool(newest))
@@ -333,7 +332,7 @@ class DKPBot:
             for loot in self.__db['global'][team]['player_loot'].values():
                 loot.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _add_history(self, player, entry, team = self.DEFAULT_TEAM):
+    def _add_history(self, player, entry, team = DKPBot.DEFAULT_TEAM):
         if not self._validate_player(player, team):
             return
 
@@ -343,7 +342,7 @@ class DKPBot:
             self.__db['global'][team]['history'][player] = []
         self.__db['global'][team]['history'][player].append(entry)
 
-    def _sort_history(self, newest=True, player=None, team = self.DEFAULT_TEAM):
+    def _sort_history(self, newest=True, player=None, team = DKPBot.DEFAULT_TEAM):
         if self.__db['global'][team]['history'].get(player):
             self.__db['global'][team]['history'][player].sort(
                 key=lambda info: info.timestamp(), reverse=bool(newest))
@@ -351,7 +350,7 @@ class DKPBot:
             for history in self.__db['global'][team]['history'].values():
                 history.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _sort_group_dkp(self, group=None, team = self.DEFAULT_TEAM):
+    def _sort_group_dkp(self, group=None, team = DKPBot.DEFAULT_TEAM):
         if self.__db['group'][team].get(group):
             self.__db['group'][team][group].sort(
                 key=lambda info: info.dkp(), reverse=True)
@@ -359,7 +358,7 @@ class DKPBot:
             for values in self.__db['group'][team].values():
                 values.sort(key=lambda info: info.dkp(), reverse=True)
 
-    def _set_group_dkp(self, group, entry, sort=False, team = self.DEFAULT_TEAM):
+    def _set_group_dkp(self, group, entry, sort=False, team = DKPBot.DEFAULT_TEAM):
         if group:
             group = group.lower()
             if not group in self.__db['group'][team]:
@@ -368,25 +367,25 @@ class DKPBot:
             if sort:
                 self._sort_group_dkp(group)
 
-    def _get_group_dkp(self, group, team = self.DEFAULT_TEAM):
+    def _get_group_dkp(self, group, team = DKPBot.DEFAULT_TEAM):
         if group:
             return self.__db['group'][team].get(group.lower())
 
         return None
 
-    def _set_player_latest_loot(self, team = self.DEFAULT_TEAM):
+    def _set_player_latest_loot(self, team = DKPBot.DEFAULT_TEAM):
         for dkp in self.__db['global'][team]['dkp'].values():
             loot = self._get_player_loot(dkp.name(), team)
             if loot and isinstance(loot, list):
                 dkp.set_latest_loot_entry(loot[0])
 
-    def _set_player_latest_history(self, team = self.DEFAULT_TEAM):
+    def _set_player_latest_history(self, team = DKPBot.DEFAULT_TEAM):
         for dkp in self.__db['global'][team]['dkp'].values():
             history = self._get_history(dkp.name(), team)
             if history and isinstance(history, list):
                 dkp.set_latest_history_entry(history[0])
 
-    def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000, team = self.DEFAULT_TEAM):
+    def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000, team = DKPBot.DEFAULT_TEAM):
         now = int(datetime.now(tz=timezone.utc).timestamp())
         for dkp in self.__db['global'][team]['dkp'].values():
             history = self._get_history(dkp.name(), team)
@@ -460,7 +459,7 @@ class DKPBot:
 
         return False
 
-    def __set_config_specific(self, config, value):
+    def __set_config_specific(self, config, value): # pylint: disable=unused-argument
         return "Invalid value"
 
     ### Command related ###
@@ -479,7 +478,7 @@ class DKPBot:
 
     ### Command callbacks ###
 
-    def call_help(self, param, request_info): # pylint: disable:unused-argument
+    def call_help(self, param, request_info): # pylint: disable=unused-argument
         return Response(ResponseStatus.IGNORE)
 
     def call_config(self, param, request_info):
@@ -585,7 +584,7 @@ class DKPBot:
 
         param = self._parse_param(param, False)
         params = list(map(lambda p: p.lower().replace("-", "_"), param))
-        
+
         num_params = len(params)
         if num_params<= 1:
             return self.__list_configs() # list current config
