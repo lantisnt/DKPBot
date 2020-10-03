@@ -138,9 +138,9 @@ class DKPBot:
             new_groups = [x for x in groups if x not in self._all_groups]
             # Remove mixins
             if len(new_groups) > 1:
-                groups = [groups[0]]
+                new_groups = [new_groups[0]]
 
-            return groups
+            return new_groups
 
         # Else we consider everything for premium users
         new_groups = groups.copy()
