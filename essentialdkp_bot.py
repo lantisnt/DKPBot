@@ -372,14 +372,15 @@ class EssentialDKPBot(DKPBot):
         targets = self._parse_param(param)
         output_result_list = []
         if len(targets) > 0:
+            team = self._get_team_id(request_info['channel'])
             for target in targets:
                 # Single player
-                info = self._get_dkp(target)
+                info = self._get_dkp(target, team)
                 if info and isinstance(info, PlayerInfo):
                     output_result_list.append(info)
                 else:
                     # Group request
-                    group_info = self._get_group_dkp(target)
+                    group_info = self._get_group_dkp(target, team)
                     if group_info and len(group_info) > 0:
                         for info in group_info:
                             if info and isinstance(info, PlayerInfo):
@@ -406,9 +407,10 @@ class EssentialDKPBot(DKPBot):
         output_result_list = []
 
         if len(targets) > 0:
+            team = self._get_team_id(request_info['channel'])
             for target in targets:
                 # Single player
-                info = self._get_history(target)
+                info = self._get_history(target, team)
                 if info and isinstance(info, list):
                     output_result_list = info
                     break  # Yes single only
@@ -431,9 +433,10 @@ class EssentialDKPBot(DKPBot):
         output_result_list = []
 
         if len(targets) > 0:
+            team = self._get_team_id(request_info['channel'])
             for target in targets:
                 # Single player
-                info = self._get_player_loot(target)
+                info = self._get_player_loot(target, team)
                 if info and isinstance(info, list):
                     output_result_list = info
                     break  # Yes single only
@@ -455,7 +458,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
 
-        output_result_list = self._get_loot()
+        output_result_list = self._get_loot(self._get_team_id(request_info['channel']))
 
         if len(output_result_list) > 0:
             data = self.__build_loot_output_multiple(output_result_list)
@@ -474,7 +477,7 @@ class EssentialDKPBot(DKPBot):
         if len(param) < 3:
             return Response(ResponseStatus.SUCCESS, "Query too short. Please specify at least 3 letters.")
 
-        output_result_list = self._find_loot(param)
+        output_result_list = self._find_loot(param, self._get_team_id(request_info['channel']))
 
         if len(output_result_list) > 0:
             data = self.__build_item_search_output_multiple(output_result_list)

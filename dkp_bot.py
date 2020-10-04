@@ -57,6 +57,7 @@ class DKPBot:
         self.__guild_id = int(guild_id)
         self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
+        self.__teams_per_channel = {}
         self.__db_loaded = False
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
@@ -171,6 +172,18 @@ class DKPBot:
                 new_groups.extend(['warrior', 'rogue', 'shaman'])
 
         return new_groups
+
+    ### Team related
+    def _get_team_id(self, key):
+        team = self.__teams_per_channel.get(key)
+        if team is None:
+            return DKPBot.DEFAULT_TEAM
+        
+        return team
+
+    def _set_team_id(self, key, value):
+        # String due to how it is used in some lua files
+        team = self.__teams_per_channel[key] = str(value)
 
     ### Command handling and parsing ###
 
