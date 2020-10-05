@@ -531,12 +531,14 @@ class DKPBot:
         print('Building complete in {:04.2f} seconds'.format(
             datetime.now(tz=timezone.utc).timestamp() - start))
 
-        for table in self.__db['global']:
-            if len(table) <= 0:
-                return Response(ResponseStatus.SUCCESS, "Database building failed.")
+        for team in self.__db['global']:
+            for table in team:
+                if len(table) <= 0:
+                    return Response(ResponseStatus.SUCCESS, "Database building failed.")
 
-        if len(self.__db['group']) <= 0:
-            return Response(ResponseStatus.SUCCESS, "Database building failed.")
+        for team in self.__db['group']:
+            if len(team) <= 0:
+                return Response(ResponseStatus.SUCCESS, "Database building failed.")
 
         self.__db_loaded = True
 

@@ -29,6 +29,7 @@ class CommunityDKPBot(EssentialDKPBot):
 
         server_side_key = None
         for server_side_lua in server_list.keys():
+            print(server_side_lua)
             if server_side_lua.lower() == server_side:
                 server_side_key = server_side_lua
                 break
@@ -43,6 +44,7 @@ class CommunityDKPBot(EssentialDKPBot):
 
         guild_name_key = None
         for guild_name_key in guilds.keys():
+            print(guild_name_key)
             if guild_name_key.lower() == guild_name:
                 guild_name_key = guild_name
                 break
