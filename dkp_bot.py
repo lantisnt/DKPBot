@@ -52,6 +52,9 @@ class DKPBot:
     _all_groups = []
     __db = {}
 
+    __server_side = ''
+    __guild_name = ''
+
     def __init__(self, guild_id: int, config: BotConfig):
         self.__config = config
         self.__guild_id = int(guild_id)
@@ -72,6 +75,8 @@ class DKPBot:
         self.__channel = int(self.__config.guild_info.file_upload_channel)
         self.__prefix = str(self.__config.guild_info.prefix)
         self.__premium = bool(self.__config.guild_info.premium)
+        self.__server_side = self.__config.guild_info.server_side
+        self.__guild_name = self.__config.guild_info.guild_name
 
     def _reconfigure(self):
         self.__config.store()
@@ -100,6 +105,12 @@ class DKPBot:
 
     def get_prefix(self):
         return self.__prefix
+
+    def get_server_side(self):
+        return self.__config.guild_info.server_side
+
+    def get_guild_name(self):
+        return self.__config.guild_info.guild_name
 
     def is_premium(self):
         return self.__premium
@@ -323,7 +334,7 @@ class DKPBot:
             team_data = self.__db['global'].get(team)
             if team_data is not None:
                 team_data['loot'].sort(key=lambda info: info.timestamp(), reverse=bool(newest))
-            
+
     def _find_loot(self, keyword, team):
         if not keyword or not isinstance(keyword, str) or len(keyword) == 0:
             return list()
@@ -381,7 +392,7 @@ class DKPBot:
             team_data = self.__db['global'].get(team)
             if team_data is None:
                 return None
-            
+
             if team_data['player_loot'].get(player):
                 team_data['player_loot'][player].sort(key=lambda info: info.timestamp(), reverse=bool(newest))
             else:
@@ -415,7 +426,7 @@ class DKPBot:
             team_data = self.__db['global'].get(team)
             if team_data is None:
                 return None
-            
+
             if team_data['history'].get(player):
                 team_data['history'][player].sort(key=lambda info: info.timestamp(), reverse=bool(newest))
             else:
@@ -481,7 +492,7 @@ class DKPBot:
                 if history and isinstance(history, list):
                     dkp.set_latest_history_entry(history[0])
 
-    def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000, team = DKPBot.DEFAULT_TEAM):
+    def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000):
         now = int(datetime.now(tz=timezone.utc).timestamp())
         for team, team_data in self.__db['global'].items():
             for dkp in team_data['dkp'].values():
@@ -642,7 +653,6 @@ class DKPBot:
                 else:
                     return Response(ResponseStatus.SUCCESS, 'Unsupported prefix')
             else:
-                print(params)
                 return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
 
         elif command == 'default':
@@ -654,12 +664,56 @@ class DKPBot:
                 self.__register_file_upload_channel(request_info['channel'])
                 return Response(ResponseStatus.SUCCESS,
                     'Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel']))
+
+        elif command == 'server-side':
+            print(params)
+            if num_params == 3:
+                server = params[1]
+                side = params[2]
+                value = "{0}-{1}".format(server, side).lower()
+                if len(value) > 50:
+                    return Response(ResponseStatus.ERROR, 'Data is too long.')
+
+                self.__config.guild_info.server_side = value
+                new = self.__config.guild_info.server_side
+                if new == value:
+                    self._reconfigure()
+                    return Response(ResponseStatus.SUCCESS, 'Serve-side data set to `{0} {1}`'.format(server, side))
+                else:
+                    return Response(ResponseStatus.ERROR, 'Unexpected error during server-side change.')
+            else:
+                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
+        elif command == 'guild-name':
+            print(params)
+            if num_params == 2:
+                value = params[1]
+                if len(value) > 50:
+                    return Response(ResponseStatus.ERROR, 'Data is too long.')
+
+                self.__config.guild_info.guild_name = value
+                new = self.__config.guild_info.guild_name
+                if new == value:
+                    self._reconfigure()
+                    return Response(ResponseStatus.SUCCESS, 'Guild Name set to `{0}`'.format(value))
+                else:
+                    return Response(ResponseStatus.ERROR, 'Unexpected error during guild name change.')
+            else:
+                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
         else:
             string = "Supported commands:\n\n"
 
             string += "`bot-type` - change bot type\n"
             string += "current: `{0}`\n".format(self.__config.guild_info.bot_type)
             string += "supported: `essential`, `monolith`, `community`\n\n"
+
+            string += "`server-side` - set ingame server and side data required by some addons\n"
+            data = self.__config.guild_info.server_side.split("-")
+            if len(data) == 2:
+                string += "current : `{0} {1}`".format(data[0].capitalize(), data[1].capitalize())
+            else:
+                string += "current : `not set`"
 
             # string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
             # string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)

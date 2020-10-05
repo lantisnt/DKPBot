@@ -7,10 +7,10 @@ from display_templates import SinglePlayerProfile, DKPMultipleResponse, HistoryM
 
 class EssentialDKPBot(DKPBot):
 
-    __DKP_SV = "MonDKP_DKPTable"
-    __LOOT_SV = "MonDKP_Loot"
-    __HISTORY_SV = "MonDKP_DKPHistory"
-    __45_DAYS_SECONDS = 3888000
+    _DKP_SV = "MonDKP_DKPTable"
+    _LOOT_SV = "MonDKP_Loot"
+    _HISTORY_SV = "MonDKP_DKPHistory"
+    _45_DAYS_SECONDS = 3888000
 
     __item_id_name_find = None
 
@@ -38,8 +38,9 @@ class EssentialDKPBot(DKPBot):
         self._multiple_history_output_builder = HistoryMultipleResponse("Latest DKP history", self._get_config().dkp_history.max_fields, self._get_config(
         ).dkp_history.max_entries_per_field, self._get_config().dkp_history.max_separate_messages, self._get_config().dkp_history.use_multiple_columns)
 
-        self._multiple_player_loot_output_builder = PlayerLootMultipleResponse("Latest loot history", self._get_config().loot_history.max_fields, self._get_config(
-        ).loot_history.max_entries_per_field, self._get_config().loot_history.max_separate_messages, self._get_config().loot_history.use_multiple_columns)
+        self._multiple_player_loot_output_builder = PlayerLootMultipleResponse("Latest loot history", self._get_config().loot_history.max_fields,
+        self._get_config().loot_history.max_entries_per_field, self._get_config().loot_history.max_separate_messages,
+        self._get_config().loot_history.use_multiple_columns)
 
         self._multiple_loot_output_builder = LootMultipleResponse("Latest 30 items awarded", self._get_config().latest_loot.max_fields, self._get_config(
         ).latest_loot.max_entries_per_field, self._get_config().latest_loot.max_separate_messages, self._get_config().latest_loot.use_multiple_columns)
@@ -88,7 +89,7 @@ class EssentialDKPBot(DKPBot):
 
     ### Database - Variables parsing ###
 
-    def _fill_history(self, players, dkp, timestamp, reason, index, team = DKPBot.DEFAULT_TEAM):
+    def _fill_history(self, players, dkp, timestamp, reason, index, team):
         if not players:
             return
 
@@ -103,7 +104,7 @@ class EssentialDKPBot(DKPBot):
                 player_info, dkp, timestamp, reason, index), team)
         elif isinstance(players, list) and isinstance(dkp, (int, float)):
             for player in players:
-                player_info = self._get_dkp(player)
+                player_info = self._get_dkp(player, team)
                 if player_info is None:
                     return
                 self._add_history(player, PlayerDKPHistory(
@@ -114,7 +115,7 @@ class EssentialDKPBot(DKPBot):
             del dkp[-1]
             # In case of unequal length we only add as many entries as there are players
             for player in players:
-                player_info = self._get_dkp(player)
+                player_info = self._get_dkp(player, team)
                 if player_info is None:
                     continue
                 self._add_history(player, PlayerDKPHistory(
@@ -149,9 +150,9 @@ class EssentialDKPBot(DKPBot):
             return None
 
         return PlayerInfo(player, dkp, lifetime_gained,
-                              lifetime_spent, ingame_class, role)
+                          lifetime_spent, ingame_class, role)
 
-    def _generate_player_loot(self, entry):
+    def _generate_player_loot(self, entry, team):
         if entry is None:
             return None
 
@@ -162,7 +163,7 @@ class EssentialDKPBot(DKPBot):
         if player is None:
             return None
 
-        player = self._get_dkp(player)
+        player = self._get_dkp(player, team)
         if player is None:
             return None
 
@@ -197,7 +198,7 @@ class EssentialDKPBot(DKPBot):
 
         return PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date)
 
-    def _generate_player_history(self, entry):
+    def _generate_player_history(self, entry, team):
         if entry is None:
             return None
 
@@ -247,12 +248,18 @@ class EssentialDKPBot(DKPBot):
             elif not isinstance(dkp, (int, float)):
                 return None
 
-            self._fill_history(players, dkp, date, reason, index)
+            self._fill_history(players, dkp, date, reason, index, team)
+
     # Called 1st
     def _build_dkp_database(self, saved_variable):
         super()._build_dkp_database(None)
 
-        dkp_list = saved_variable.get(self.__DKP_SV)
+        if saved_variable is None:
+            return
+
+        team = DKPBot.DEFAULT_TEAM
+
+        dkp_list = saved_variable.get(self._DKP_SV)
         if not dkp_list:
             return
 
@@ -264,14 +271,19 @@ class EssentialDKPBot(DKPBot):
             if info is None:
                 continue
 
-            self._set_dkp(info.name(), info)
-            self._set_group_dkp(info.ingame_class(), info)
+            self._set_dkp(info.name(), info, team)
+            self._set_group_dkp(info.ingame_class(), info, team)
 
     # Called 2nd
     def _build_loot_database(self, saved_variable):
         super()._build_loot_database(None)
 
-        loot_list = saved_variable.get(self.__LOOT_SV)
+        if saved_variable is None:
+            return
+
+        team = DKPBot.DEFAULT_TEAM
+
+        loot_list = saved_variable.get(self._LOOT_SV)
 
         if not loot_list:
             return
@@ -279,12 +291,12 @@ class EssentialDKPBot(DKPBot):
             return  # dict because there is ["seed"] field...
 
         for entry in loot_list.values():
-            player_loot = self._generate_player_loot(entry)
+            player_loot = self._generate_player_loot(entry, team)
             if player_loot is None:
                 continue
 
-            self._add_loot(player_loot)
-            self._add_player_loot(player_loot().player().name(), player_loot)
+            self._add_loot(player_loot, team)
+            self._add_player_loot(player_loot().player().name(), player_loot, team)
 
         self._sort_loot()
         self._sort_player_loot()
@@ -293,7 +305,13 @@ class EssentialDKPBot(DKPBot):
     # Called 3rd
     def _build_history_database(self, saved_variable):
         super()._build_history_database(None)
-        history = saved_variable.get(self.__HISTORY_SV)
+
+        if saved_variable is None:
+            return
+
+        team = DKPBot.DEFAULT_TEAM
+
+        history = saved_variable.get(self._HISTORY_SV)
 
         if not history:
             return
@@ -301,10 +319,10 @@ class EssentialDKPBot(DKPBot):
             return  # dict because there is ["seed"] field...
 
         for entry in history.values():
-            self._generate_player_history(entry)
+            self._generate_player_history(entry, team)
 
         self._sort_history()
-        self._set_player_latest_positive_history_and_activity(self.__45_DAYS_SECONDS)
+        self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
 
     # Called after whole database is built
 
