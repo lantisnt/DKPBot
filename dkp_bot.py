@@ -178,12 +178,12 @@ class DKPBot:
         team = self.__teams_per_channel.get(key)
         if team is None:
             return DKPBot.DEFAULT_TEAM
-        
+
         return team
 
-    def _set_team_id(self, key, value):
-        # String due to how it is used in some lua files
-        team = self.__teams_per_channel[key] = str(value)
+#    def _set_team_id(self, key, value):
+#        # String due to how it is used in some lua files
+#        team = self.__teams_per_channel[key] = str(value)
 
     ### Command handling and parsing ###
 
@@ -279,30 +279,57 @@ class DKPBot:
     def _finalize_database(self):
         return
 
-    def _get_dkp(self, player, team = DKPBot.DEFAULT_TEAM):
-        return self.__db['global'][team]['dkp'].get(player.lower())
+    def _get_dkp(self, player, team):
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            return None
+        return team_data['dkp'].get(player.lower())
 
-    def _get_player_loot(self, player, team = DKPBot.DEFAULT_TEAM):
-        return self.__db['global'][team]['player_loot'].get(player.lower())
+    def _get_player_loot(self, player, team):
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            return None
+        return team_data['player_loot'].get(player.lower())
 
-    def _get_loot(self, team = DKPBot.DEFAULT_TEAM):
-        return self.__db['global'][team]['loot']
+    def _get_loot(self, team):
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            return None
+        return team_data['loot']
 
-    def _get_history(self, player, team = DKPBot.DEFAULT_TEAM):
-        return self.__db['global'][team]['history'].get(player.lower())
+    def _get_history(self, player, team):
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            return None
+        return team_data['history'].get(player.lower())
 
-    def _set_dkp(self, player, entry, team = DKPBot.DEFAULT_TEAM):
-        self.__db['global'][team]['dkp'][player.lower()] = entry
+    def _set_dkp(self, player, entry, team):
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            return None
+        team_data['dkp'][player.lower()] = entry
 
-    def _add_loot(self, entry, team = DKPBot.DEFAULT_TEAM):
-        self.__db['global'][team]['loot'].append(entry)
+    def _add_loot(self, entry, team):
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            return None
+        team_data['loot'].append(entry)
 
-    def _sort_loot(self, newest=True, team = DKPBot.DEFAULT_TEAM):
-        self.__db['global'][team]['loot'].sort(
-            key=lambda info: info.timestamp(), reverse=bool(newest))
-
-    def _find_loot(self, keyword, team = DKPBot.DEFAULT_TEAM):
+    def _sort_loot(self, newest=True, team=None):
+        if team is None:
+            for team_data in self.__db['global'].values():
+                team_data['loot'].sort(key=lambda info: info.timestamp(), reverse=bool(newest))
+        else:
+            team_data = self.__db['global'].get(team)
+            if team_data is not None:
+                team_data['loot'].sort(key=lambda info: info.timestamp(), reverse=bool(newest))
+            
+    def _find_loot(self, keyword, team):
         if not keyword or not isinstance(keyword, str) or len(keyword) == 0:
+            return list()
+
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
             return list()
 
         loot_pattern = re.compile(keyword.strip(), flags=re.IGNORECASE)
@@ -313,102 +340,159 @@ class DKPBot:
 
             return None
 
-        matching_loot = list(map(get_loot_if_matching, self.__db['global'][team]['loot']))
+        matching_loot = list(map(get_loot_if_matching, team_data['loot']))
         return list(filter(None, matching_loot))
 
-    def _validate_player(self, player, team = DKPBot.DEFAULT_TEAM):
-        if not player:
+    def _validate_player(self, player, team):
+        if player is None:
             return False
 
         if isinstance(player, str):
             player = self._get_dkp(player, team)
-            if not player:
+            if player is None:
                 return False
 
         return True
 
-    def _add_player_loot(self, player, entry, team = DKPBot.DEFAULT_TEAM):
+    def _add_player_loot(self, player, entry, team):
         if not self._validate_player(player, team):
             return
 
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            return None
+
         player = player.lower()
-        player_loot = self.__db['global'][team]['player_loot'].get(player)
+        player_loot = team_data['player_loot'].get(player)
         if not player_loot:
-            self.__db['global'][team]['player_loot'][player] = []
-        self.__db['global'][team]['player_loot'][player].append(entry)
+            team_data['player_loot'][player] = []
+        team_data['player_loot'][player].append(entry)
 
-    def _sort_player_loot(self, newest=True, player=None, team = DKPBot.DEFAULT_TEAM):
-        if self.__db['global'][team]['player_loot'].get(player):
-            self.__db['global'][team]['player_loot'][player].sort(
-                key=lambda info: info.timestamp(), reverse=bool(newest))
+    def _sort_player_loot(self, newest=True, player=None, team=None):
+        if team is None:
+            for team_data in self.__db['global'].values():
+                if team_data['player_loot'].get(player):
+                    team_data['player_loot'][player].sort(
+                        key=lambda info: info.timestamp(), reverse=bool(newest))
+                else:
+                    for loot in team_data['player_loot'].values():
+                        loot.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
         else:
-            for loot in self.__db['global'][team]['player_loot'].values():
-                loot.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
+            team_data = self.__db['global'].get(team)
+            if team_data is None:
+                return None
+            
+            if team_data['player_loot'].get(player):
+                team_data['player_loot'][player].sort(key=lambda info: info.timestamp(), reverse=bool(newest))
+            else:
+                for loot in team_data['player_loot'].values():
+                    loot.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _add_history(self, player, entry, team = DKPBot.DEFAULT_TEAM):
+    def _add_history(self, player, entry, team):
         if not self._validate_player(player, team):
             return
 
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            return None
+
         player = player.lower()
-        player_history = self.__db['global'][team]['history'].get(player)
+        player_history = team_data['history'].get(player)
         if not player_history:
-            self.__db['global'][team]['history'][player] = []
-        self.__db['global'][team]['history'][player].append(entry)
+            team_data['history'][player] = []
+        team_data['history'][player].append(entry)
 
-    def _sort_history(self, newest=True, player=None, team = DKPBot.DEFAULT_TEAM):
-        if self.__db['global'][team]['history'].get(player):
-            self.__db['global'][team]['history'][player].sort(
-                key=lambda info: info.timestamp(), reverse=bool(newest))
+    def _sort_history(self, newest=True, player=None, team=None):
+        if team is None:
+            for team_data in self.__db['global'].values():
+                if team_data['history'].get(player):
+                    team_data['history'][player].sort(
+                        key=lambda info: info.timestamp(), reverse=bool(newest))
+                else:
+                    for loot in team_data['history'].values():
+                        loot.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
         else:
-            for history in self.__db['global'][team]['history'].values():
-                history.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
+            team_data = self.__db['global'].get(team)
+            if team_data is None:
+                return None
+            
+            if team_data['history'].get(player):
+                team_data['history'][player].sort(key=lambda info: info.timestamp(), reverse=bool(newest))
+            else:
+                for loot in team_data['history'].values():
+                    loot.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
 
-    def _sort_group_dkp(self, group=None, team = DKPBot.DEFAULT_TEAM):
-        if self.__db['group'][team].get(group):
-            self.__db['group'][team][group].sort(
-                key=lambda info: info.dkp(), reverse=True)
+    def _sort_group_dkp(self, group=None, team=None):
+        if team is None:
+            for team_data in self.__db['group'].values():
+                if team_data.get(group):
+                    team_data[group].sort(
+                        key=lambda info: info.dkp(), reverse=True)
+                else:
+                    for values in team_data.values():
+                        values.sort(key=lambda info: info.dkp(), reverse=True)
         else:
-            for values in self.__db['group'][team].values():
-                values.sort(key=lambda info: info.dkp(), reverse=True)
+            team_data = self.__db['group'].get(team)
+            if team_data is None:
+                return None
 
-    def _set_group_dkp(self, group, entry, sort=False, team = DKPBot.DEFAULT_TEAM):
+            if team_data.get(group):
+                team_data[group].sort(
+                    key=lambda info: info.dkp(), reverse=True)
+            else:
+                for values in team_data.values():
+                    values.sort(key=lambda info: info.dkp(), reverse=True)
+
+    def _set_group_dkp(self, group, entry, team, sort=False):
         if group:
             group = group.lower()
-            if not group in self.__db['group'][team]:
-                self.__db['group'][team][group] = []
-            self.__db['group'][team][group].append(entry)
+
+            team_data = self.__db['group'].get(team)
+            if team_data is None:
+                return None
+
+            if not group in team_data:
+                team_data[group] = []
+            team_data[group].append(entry)
             if sort:
                 self._sort_group_dkp(group)
 
-    def _get_group_dkp(self, group, team = DKPBot.DEFAULT_TEAM):
+    def _get_group_dkp(self, group, team):
+        team_data = self.__db['group'].get(team)
+        if team_data is None:
+            return None
+
         if group:
-            return self.__db['group'][team].get(group.lower())
+            return team_data.get(group.lower())
 
         return None
 
-    def _set_player_latest_loot(self, team = DKPBot.DEFAULT_TEAM):
-        for dkp in self.__db['global'][team]['dkp'].values():
-            loot = self._get_player_loot(dkp.name(), team)
-            if loot and isinstance(loot, list):
-                dkp.set_latest_loot_entry(loot[0])
+    def _set_player_latest_loot(self):
+        for team, team_data in self.__db['global'].items():
+            for dkp in team_data['dkp'].values():
+                loot = self._get_player_loot(dkp.name(), team)
+                if loot and isinstance(loot, list):
+                    dkp.set_latest_loot_entry(loot[0])
 
-    def _set_player_latest_history(self, team = DKPBot.DEFAULT_TEAM):
-        for dkp in self.__db['global'][team]['dkp'].values():
-            history = self._get_history(dkp.name(), team)
-            if history and isinstance(history, list):
-                dkp.set_latest_history_entry(history[0])
+    def _set_player_latest_history(self):
+        for team, team_data in self.__db['global'].items():
+            for dkp in team_data['dkp'].values():
+                history = self._get_history(dkp.name(), team)
+                if history and isinstance(history, list):
+                    dkp.set_latest_history_entry(history[0])
 
     def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000, team = DKPBot.DEFAULT_TEAM):
         now = int(datetime.now(tz=timezone.utc).timestamp())
-        for dkp in self.__db['global'][team]['dkp'].values():
-            history = self._get_history(dkp.name(), team)
-            if history and isinstance(history, list):
-                for history_entry in history:
-                    if history_entry.dkp() > 0:
-                        dkp.set_latest_history_entry(history_entry)
-                        if abs(now - history_entry.timestamp()) > inactive_time:
-                            dkp.set_inactive()
-                        break
+        for team, team_data in self.__db['global'].items():
+            for dkp in team_data['dkp'].values():
+                history = self._get_history(dkp.name(), team)
+                if history and isinstance(history, list):
+                    for history_entry in history:
+                        if history_entry.dkp() > 0:
+                            dkp.set_latest_history_entry(history_entry)
+                            if abs(now - history_entry.timestamp()) > inactive_time:
+                                dkp.set_inactive()
+                            break
 
     def build_database(self, input_string, info):
         print('Building database')
