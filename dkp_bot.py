@@ -277,8 +277,9 @@ class DKPBot:
         return self.__db['info']
 
     def _build_dkp_database(self, saved_variable):  # pylint: disable=unused-argument
-        self.__db['global'][DKPBot.DEFAULT_TEAM]['dkp'] = {}
+        self.__db['global'][DKPBot.DEFAULT_TEAM] = {}
         self.__db['group'][DKPBot.DEFAULT_TEAM] = {}
+        self.__db['global'][DKPBot.DEFAULT_TEAM]['dkp'] = {}
 
     def _build_loot_database(self, saved_variable):  # pylint: disable=unused-argument
         self.__db['global'][DKPBot.DEFAULT_TEAM]['loot'] = []
@@ -686,8 +687,8 @@ class DKPBot:
 
         elif command == 'guild-name':
             print(params)
-            if num_params == 2:
-                value = params[1]
+            if num_params >= 2:
+                value = ' '.join(params[1:])
                 if len(value) > 50:
                     return Response(ResponseStatus.ERROR, 'Data is too long.')
 
