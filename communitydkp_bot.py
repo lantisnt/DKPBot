@@ -19,11 +19,11 @@ class CommunityDKPBot(EssentialDKPBot):
         print("server_side: {0} | guild_name: {1}".format(server_side, guild_name))
         if not (server_side and guild_name):
             return None
-
+        print("server_list len: {0}".format(len(server_list)))
         # Decode server-side first
         if not server_list:
             return None
-
+        print("server_list type: {0}".format(type(server_list)))
         if not isinstance(server_list, dict):
             return None
 
