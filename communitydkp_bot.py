@@ -19,11 +19,11 @@ class CommunityDKPBot(EssentialDKPBot):
         print("server_side: {0} | guild_name: {1}".format(server_side, guild_name))
         if not (server_side and guild_name):
             return None
-        print("server_list len: {0}".format(len(server_list)))
+
         # Decode server-side first
         if not server_list:
             return None
-        print("server_list type: {0}".format(type(server_list)))
+        print("server_list len: {0} type: {1}".format(len(server_list), type(server_list)))
         if not isinstance(server_list, dict):
             return None
 
@@ -62,7 +62,8 @@ class CommunityDKPBot(EssentialDKPBot):
     # Called 1st
     def _build_dkp_database(self, saved_variable):
         super()._build_dkp_database(None)
-
+        print("{0}".format(self._DKP_SV))
+        print(saved_variable.keys())
         teams = self.__get_configured_teams(saved_variable.get(self._DKP_SV))
         if teams is None:
             return
@@ -80,7 +81,8 @@ class CommunityDKPBot(EssentialDKPBot):
     # Called 2nd
     def _build_loot_database(self, saved_variable):
         super()._build_loot_database(None)
-
+        print("{0}".format(self._LOOT_SV))
+        print(saved_variable.keys())
         teams = self.__get_configured_teams(saved_variable.get(self._LOOT_SV))
         if teams is None:
             return
@@ -102,7 +104,8 @@ class CommunityDKPBot(EssentialDKPBot):
     # Called 3rd
     def _build_history_database(self, saved_variable):
         super()._build_history_database(None)
-
+        print("{0}".format(self._HISTORY_SV))
+        print(saved_variable.keys())
         teams = self.__get_configured_teams(saved_variable.get(self._HISTORY_SV))
         if teams is None:
             return
