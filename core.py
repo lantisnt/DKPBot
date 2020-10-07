@@ -17,14 +17,14 @@ import footprint
 # PERFORMANCE_TEST_BOTS = 45
 # PERFORMANCE_TEST_DONE = False
 
-MAX_ATTACHMENT_BYTES = 2097152 # 2MB
+MAX_ATTACHMENT_BYTES = 3145728 # 3MB
 
 class ScriptControl():
     __initialized = False
     token = 0
     config_dir = "/tmp"
     storage_dir = "/tmp"
-    in_memory_objects_limit = 2
+    in_memory_objects_limit = 50
 
     def initialize(self, token, config_dir="/tmp", storage_dir="/tmp", in_memory_objects_limit=2):
         self.token = token
@@ -113,6 +113,8 @@ async def discord_get_response_channel(message, direct_message: bool):
                     message.author))
             else:
                 response_channel = dm_channel
+        else:
+            response_channel = dm_channel
 
     return response_channel
 
@@ -154,7 +156,7 @@ async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Messag
                     'author': normalized_author
                 }
                 response = bot.build_database(
-                    str(attachment_bytes, 'utf-8'), info)
+                    attachment_bytes.decode('utf-8', 'ignore'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
@@ -184,7 +186,7 @@ async def spawn_bot(guild):
             # We call it here so we will have it tracked from beginning
             bot_memory_manager.Manager().Handle(guild.id, True)
             print("Bot for server {0} total footprint: {1} B".format(
-                        guild.name.encode('ascii', 'ignore'), footprint.total_size(bot)))
+                        guild.name.encode('ascii', 'ignore').decode(), footprint.total_size(bot)))
     except (SystemExit, Exception):
         handle_exception("spawn_bot()")
 
@@ -258,7 +260,7 @@ async def on_message(message):
             if response.status == dkp_bot.ResponseStatus.SUCCESS:
                 response_channel = await discord_get_response_channel(message, response.direct_message)
                 await discord_respond(response_channel, response.data)
-                if response.direct_message:
+                if isinstance(response_channel, discord.DMChannel):
                     await message.delete()
             elif response.status == dkp_bot.ResponseStatus.ERROR:
                 print('ERROR: {0}'.format(response.data))
