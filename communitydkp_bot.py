@@ -16,7 +16,7 @@ class CommunityDKPBot(EssentialDKPBot):
     def __get_configured_teams(self, server_list):
         server_side = self._get_config().guild_info.server_side
         guild_name = self._get_config().guild_info.guild_name
-
+        print("server_side: {0} | guild_name: {1}".format(server_side, guild_name))
         if not (server_side and guild_name):
             return None
 
@@ -29,9 +29,10 @@ class CommunityDKPBot(EssentialDKPBot):
 
         server_side_key = None
         for server_side_lua in server_list.keys():
-            print(server_side_lua)
+            print("keys server_side: {0}".format(server_side_lua.lower()))
             if server_side_lua.lower() == server_side:
                 server_side_key = server_side_lua
+
                 break
 
         if server_side_key is None:
@@ -44,7 +45,7 @@ class CommunityDKPBot(EssentialDKPBot):
 
         guild_name_key = None
         for guild_name_key in guilds.keys():
-            print(guild_name_key)
+            print("keys guild_name: {0}".format(guild_name_key.lower()))
             if guild_name_key.lower() == guild_name:
                 guild_name_key = guild_name
                 break
@@ -67,6 +68,7 @@ class CommunityDKPBot(EssentialDKPBot):
             return
 
         for team, dkp_list in teams.items():
+            print("{0} : len() {1}".format(team, len(dkp_list)))
             for entry in dkp_list:
                 info = self._generate_player_info(entry)
                 if info is None:
@@ -84,6 +86,7 @@ class CommunityDKPBot(EssentialDKPBot):
             return
 
         for team, loot_list in teams.items():
+            print("{0} : len() {1}".format(team, len(loot_list)))
             for entry in loot_list.values():
                 player_loot = self._generate_player_loot(entry, team)
                 if player_loot is None:
@@ -105,6 +108,7 @@ class CommunityDKPBot(EssentialDKPBot):
             return
 
         for team, history in teams.items():
+            print("{0} : len() {1}".format(team, len(history)))
             for entry in history.values():
                 self._generate_player_history(entry, team)
 
