@@ -258,7 +258,7 @@ class EssentialDKPBot(DKPBot):
             return
 
         team = DKPBot.DEFAULT_TEAM
-
+        print(saved_variable.keys())
         dkp_list = saved_variable.get(self._DKP_SV)
         if not dkp_list:
             return
@@ -280,7 +280,7 @@ class EssentialDKPBot(DKPBot):
 
         if saved_variable is None:
             return
-
+        print(saved_variable.keys())
         team = DKPBot.DEFAULT_TEAM
 
         loot_list = saved_variable.get(self._LOOT_SV)
@@ -308,7 +308,7 @@ class EssentialDKPBot(DKPBot):
 
         if saved_variable is None:
             return
-
+        print(saved_variable.keys())
         team = DKPBot.DEFAULT_TEAM
 
         history = saved_variable.get(self._HISTORY_SV)
