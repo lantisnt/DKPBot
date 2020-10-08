@@ -316,6 +316,7 @@ class DKPBot:
         return team_data['history'].get(player.lower())
 
     def _set_dkp(self, player, entry, team):
+        print(team)
         team_data = self.__db['global'].get(team)
         if team_data is None:
             self.__db['global'][team]  = {}
