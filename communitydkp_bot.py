@@ -47,7 +47,7 @@ class CommunityDKPBot(EssentialDKPBot):
         for guild_name_lua in guilds.keys():
             print("keys guild_name: {0}".format(guild_name_lua.lower()))
             if guild_name_lua.lower() == guild_name:
-                guild_name_key = guild_name
+                guild_name_key = guild_name_lua
                 break
 
         if guild_name_key is None:
