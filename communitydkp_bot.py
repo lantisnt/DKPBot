@@ -37,7 +37,7 @@ class CommunityDKPBot(EssentialDKPBot):
 
         if server_side_key is None:
             return None
-
+        print(server_side_key)
         # Decode guilds
         guilds = server_list.get(server_side_key)
         if not guilds:
@@ -52,11 +52,11 @@ class CommunityDKPBot(EssentialDKPBot):
 
         if guild_name_key is None:
             return None
-
+        print(guild_name_key)
         teams = guilds.get(guild_name_key)
         if not teams:
             return None
-
+        print(teams)
         return teams
 
     # Called 1st
