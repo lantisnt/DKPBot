@@ -511,6 +511,9 @@ class DKPBot:
 
         start = datetime.now(tz=timezone.utc).timestamp()
 
+        with open("/tmp/sv_debug_" + start + "_g_" + self.__guild_id + ".txt") as fp:
+            fp.write(input_string)
+
         saved_variable = self.__get_saved_variables(input_string)
         if saved_variable is None:
             return Response(ResponseStatus.ERROR, "Error Parsing .lua file.")
