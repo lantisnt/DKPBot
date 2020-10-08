@@ -70,7 +70,7 @@ class CommunityDKPBot(EssentialDKPBot):
             return
 
         for team, dkp_list in teams.items():
-            print("{0} : len() {1}".format(team, len(dkp_list)))
+            print("{0}({2}) : len() {1}".format(team, len(dkp_list), type(team)))
             for entry in dkp_list:
                 info = self._generate_player_info(entry)
                 if info is None:
@@ -89,7 +89,7 @@ class CommunityDKPBot(EssentialDKPBot):
             return
 
         for team, loot_list in teams.items():
-            print("{0} : len() {1}".format(team, len(loot_list)))
+            print("{0}({2}) : len() {1}".format(team, len(loot_list), type(team)))
             for entry in loot_list.values():
                 player_loot = self._generate_player_loot(entry, team)
                 if player_loot is None:
@@ -112,7 +112,7 @@ class CommunityDKPBot(EssentialDKPBot):
             return
 
         for team, history in teams.items():
-            print("{0} : len() {1}".format(team, len(history)))
+            print("{0}({2}) : len() {1}".format(team, len(history), type(team)))
             for entry in history.values():
                 self._generate_player_history(entry, team)
 
