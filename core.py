@@ -156,7 +156,7 @@ async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Messag
                     'author': normalized_author
                 }
                 response = bot.build_database(
-                    attachment_bytes.decode('utf-8', 'ignore'), info)
+                    attachment_bytes.decode('utf-32', 'ignore'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
