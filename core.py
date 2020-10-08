@@ -155,6 +155,7 @@ async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Messag
                     'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
                     'author': normalized_author
                 }
+                print(len(attachment_bytes))
                 sv_file_content = str(attachment_bytes, 'utf-32', 'ignore')
                 print(len(sv_file_content))
                 with open("/tmp/sv_debug_" + str(message.guild.id) + ".txt", "w") as fp:
