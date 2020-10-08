@@ -159,7 +159,8 @@ async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Messag
                 print(len(attachment_bytes))
                 sv_file_content = attachment_bytes.decode('utf-8', errors='replace')
                 print(len(sv_file_content))
-                fp =  open("/tmp/sv_utf8_debug_" + str(message.guild.id) + ".txt", "w")
+                import codecs
+                fp =  codecs.open("/tmp/sv_utf8_debug_" + str(message.guild.id) + ".txt", "w", "utf-8")
                 fp.write(sv_file_content)
                 fp.close()
                 return dkp_bot.Response(dkp_bot.ResponseStatus.IGNORE)
