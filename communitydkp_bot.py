@@ -54,6 +54,7 @@ class CommunityDKPBot(EssentialDKPBot):
             return None
         print(guild_name_key)
         teams = guilds.get(guild_name_key)
+        print(guilds.keys())
         if not teams:
             return None
         print(teams)
