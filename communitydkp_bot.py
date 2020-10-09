@@ -96,7 +96,7 @@ class CommunityDKPBot(EssentialDKPBot):
                     continue
 
                 self._add_loot(player_loot, team)
-                self._add_player_loot(player_loot().player().name(), player_loot, team)
+                self._add_player_loot(player_loot.player().name(), player_loot, team)
 
         self._sort_loot()
         self._sort_player_loot()
