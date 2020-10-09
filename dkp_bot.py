@@ -315,16 +315,23 @@ class DKPBot:
             return None
         return team_data['history'].get(player.lower())
 
+    def __init_team_structure(self, team):
+        self.__db['global'][team]  = {}
+        self.__db['global'][team]['dkp']  = {}
+        self.__db['global'][team]['loot']  = {}
+        self.__db['global'][team]['player_loot']  = {}
+        self.__db['global'][team]['history']  = {}
+
     def _set_dkp(self, player, entry, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            self.__db['global'][team]  = {}
+            self.__init_team_structure(team)
         self.__db['global'][team]['dkp'][player.lower()] = entry
 
     def _add_loot(self, entry, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            self.__db['global'][team]  = {}
+            self.__init_team_structure(team)
         self.__db['global'][team]['loot'].append(entry)
 
     def _sort_loot(self, newest=True, team=None):
@@ -406,7 +413,7 @@ class DKPBot:
 
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            self.__db['global'][team]  = {}
+            self.__init_team_structure(team)
 
         player = player.lower()
         player_history = team_data['history'].get(player)
