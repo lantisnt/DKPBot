@@ -277,16 +277,13 @@ class DKPBot:
         return self.__db['info']
 
     def _build_dkp_database(self, saved_variable):  # pylint: disable=unused-argument
-        self.__db['global'][DKPBot.DEFAULT_TEAM] = {}
-        self.__db['group'][DKPBot.DEFAULT_TEAM] = {}
-        self.__db['global'][DKPBot.DEFAULT_TEAM]['dkp'] = {}
+        return
 
     def _build_loot_database(self, saved_variable):  # pylint: disable=unused-argument
-        self.__db['global'][DKPBot.DEFAULT_TEAM]['loot'] = []
-        self.__db['global'][DKPBot.DEFAULT_TEAM]['player_loot'] = {}
+        return
 
     def _build_history_database(self, saved_variable):  # pylint: disable=unused-argument
-        self.__db['global'][DKPBot.DEFAULT_TEAM]['history'] = {}
+        return
 
     def _finalize_database(self):
         return
@@ -318,7 +315,7 @@ class DKPBot:
     def __init_team_structure(self, team):
         self.__db['global'][team]  = {}
         self.__db['global'][team]['dkp']  = {}
-        self.__db['global'][team]['loot']  = {}
+        self.__db['global'][team]['loot']  = []
         self.__db['global'][team]['player_loot']  = {}
         self.__db['global'][team]['history']  = {}
 
