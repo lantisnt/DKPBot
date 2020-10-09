@@ -75,7 +75,7 @@ class CommunityDKPBot(EssentialDKPBot):
                 info = self._generate_player_info(entry)
                 if info is None:
                     continue
-
+                
                 self._set_dkp(info.name(), info, team)
                 self._set_group_dkp(info.ingame_class(), info, team)
 

@@ -156,15 +156,15 @@ async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Messag
                     'author': normalized_author
                 }
                 
-                sv_file_content = attachment_bytes.decode('utf-8', errors='replace')
-                print(len(sv_file_content))
-                import codecs
-                fp =  codecs.open("/tmp/sv_utf8_debug_" + str(message.guild.id) + ".txt", "w", "utf-8")
-                fp.write(sv_file_content)
-                fp.close()
+                #sv_file_content = attachment_bytes.decode('utf-8', errors='replace')
+                # print(len(sv_file_content))
+                # import codecs
+                # fp =  codecs.open("/tmp/sv_utf8_debug_" + str(message.guild.id) + ".txt", "w", "utf-8")
+                # fp.write(sv_file_content)
+                # fp.close()
                 #return dkp_bot.Response(dkp_bot.ResponseStatus.IGNORE)
                 # For now do nothing
-                response = bot.build_database(sv_file_content, info)
+                response = bot.build_database(attachment_bytes.decode('utf-8', errors='replace'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
