@@ -463,6 +463,7 @@ class DKPBot:
                     values.sort(key=lambda info: info.dkp(), reverse=True)
 
     def _set_group_dkp(self, group, entry, team, sort=False):
+        print("SGDKP: {0} {1}".format(team, group))
         if group:
             group = group.lower()
 
