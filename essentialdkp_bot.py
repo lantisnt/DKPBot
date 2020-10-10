@@ -90,6 +90,7 @@ class EssentialDKPBot(DKPBot):
     ### Database - Variables parsing ###
 
     def _fill_history(self, players, dkp, timestamp, reason, index, team):
+        print("Filling history")
         if not players:
             return
 
@@ -200,52 +201,66 @@ class EssentialDKPBot(DKPBot):
 
     def _generate_player_history(self, entry, team):
         if entry is None:
+            print("entry is None:")
             return None
 
         if not isinstance(entry, dict):
+            print("not isinstance(entry, dict):")
             return None
 
         players = entry.get("players")
         if players is None:
+            print("players is None:")
             return None
 
         dkp = entry.get("dkp")
         if dkp is None:
+            print("dkp is None:")
             return None
 
         date = entry.get("date")
         if date is None:
+            print("date is None:")
             return None
 
         reason = entry.get("reason")
         if reason is None:
+            print("reason is None:")
             return None
 
         index = entry.get("index")
         if index is None:
+            print("index is None:")
             return None
 
         ## Skip deletetion and deleted entries ##
         if entry.get("deletes") or entry.get("deletedby"):
+            print("deletes/deletedby")
             return None
 
         if not isinstance(players, str):
+            print("not isinstance(players, str):")
             return None
         if not isinstance(date, int):
+            print("not isinstance(date, int):")
             return None
         if not isinstance(reason, str):
+            print("not isinstance(reason, str):")
             return None
 
         players = list(map(lambda p: p.lower(), players.split(",")))
         if not isinstance(players, list):
+            print("not isinstance(players, list):")
             return None
 
         if isinstance(dkp, str):
             # multiple entries
             dkp = list(map(lambda d: d, dkp.split(",")))
             if len(dkp) == 1:  # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
+                print("isinstance(dkp, str): len(dkp) == 1")
                 return None
             elif not isinstance(dkp, (int, float)):
+                print("not isinstance(dkp, (int, float)):")
                 return None
 
             self._fill_history(players, dkp, date, reason, index, team)
@@ -295,7 +310,7 @@ class EssentialDKPBot(DKPBot):
         elif not isinstance(loot_list, list):
             return
 
-        for entry in loot_list():
+        for entry in loot_list:
             player_loot = self._generate_player_loot(entry, team)
             if player_loot is None:
                 continue
@@ -327,7 +342,7 @@ class EssentialDKPBot(DKPBot):
             return
             
 
-        for entry in history.values():
+        for entry in history:
             self._generate_player_history(entry, team)
 
         self._sort_history()
