@@ -48,6 +48,8 @@ class EssentialDKPBot(DKPBot):
         self._multiple_item_search_output_builder = LootMultipleResponse("Search results", self._get_config().item_search.max_fields, self._get_config(
         ).item_search.max_entries_per_field, self._get_config().item_search.max_separate_messages, self._get_config().item_search.use_multiple_columns)
 
+        self._update_views_db_info()
+
     def __build_dkp_output_single(self, info):
         if not info or not isinstance(info, PlayerInfo):
             return None
@@ -336,6 +338,9 @@ class EssentialDKPBot(DKPBot):
     # Called after whole database is built
 
     def _finalize_database(self):
+        self._update_views_db_info()
+
+    def _update_views_db_info(self):
         self._single_player_profile_builder.set_database_info(
             self._db_get_info())
         self._multiple_dkp_output_builder.set_database_info(

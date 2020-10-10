@@ -68,7 +68,11 @@ class DKPBot:
             'global': {},
             'group': {},   # Database for all grouped data. Indexed by group name. Sorted by DKP value descending
             'time': 0,
-            'info': {}
+            'info': {
+                'comment' : '',
+                'date' : '',
+                'author' : ''
+            }
         }
 
     def _configure(self):
