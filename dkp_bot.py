@@ -78,6 +78,7 @@ class DKPBot:
         self.__premium = bool(self.__config.guild_info.premium)
         self.__server_side = self.__config.guild_info.server_side
         self.__guild_name = self.__config.guild_info.guild_name
+        print(self.__config.guild_info.channel_team_map)
         self.__channel_team_map = json.loads(self.__config.guild_info.channel_team_map)
 
     def _reconfigure(self):
