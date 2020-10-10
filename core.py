@@ -149,6 +149,7 @@ async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Messag
     if len(message.attachments) > 0:
         for attachment in message.attachments:
             if bot.check_attachment_name(attachment.filename) and attachment.size < MAX_ATTACHMENT_BYTES:
+                print(attachment.filename)
                 attachment_bytes = await attachment.read()
                 info = {
                     'comment': message.content[:50],
