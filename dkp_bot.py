@@ -140,20 +140,22 @@ class DKPBot:
 
     ## Class related
     def __decode_aliases(self, groups):
+        print(groups)
         # Always allow querying all
         if 'all' in groups:
             return self._all_groups
 
         # If not premium we don't allow doing any group mixin calls
         if not self.is_premium():
+            print('not premium')
             # Remove groups
             new_groups = [x for x in groups if x not in self._all_groups]
             # Remove mixins
             if len(new_groups) > 1:
                 new_groups = [new_groups[0]]
-
+            print(new_groups)
             return new_groups
-
+        print("premium")
         # Else we consider everything for premium users
         new_groups = groups.copy()
         for group in groups:
@@ -181,7 +183,8 @@ class DKPBot:
 
             elif group == 'melee':
                 new_groups.extend(['warrior', 'rogue', 'shaman'])
-
+        
+        print(new_groups)
         return new_groups
 
     ### Team related
