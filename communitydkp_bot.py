@@ -72,6 +72,7 @@ class CommunityDKPBot(EssentialDKPBot):
         for team, dkp_list in teams.items():
             print("{0}({2}) : len() {1}".format(team, len(dkp_list), type(team)))
             for entry in dkp_list:
+                print("entry type {0}".format(type(entry)))
                 info = self._generate_player_info(entry)
                 if info is None:
                     continue
