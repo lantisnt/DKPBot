@@ -267,11 +267,14 @@ class BotConfig():
             self.__store()
             self.__config.write(file, space_around_delimiters=False)
 
-    def default(self):
+    def default(self, retain_premium=True):
+        is_premium = self.guild_info.premium
         result = self.__config.read(DEFAULT_CONFIG)
         if DEFAULT_CONFIG in result:
             self.__load()
             self.__type = BotConfigType.DEFAULT
+
+        self.guild_info.premium = (is_premium and retain_premium)
 
         self.store()
 
