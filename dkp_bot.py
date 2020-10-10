@@ -415,6 +415,7 @@ class DKPBot:
         team_data = self.__db['global'].get(team)
         if team_data is None:
             self.__init_team_structure(team)
+            team_data = self.__db['global'].get(team)
 
         player = player.lower()
         player_history = team_data['history'].get(player)
@@ -466,7 +467,6 @@ class DKPBot:
     def _set_group_dkp(self, group, entry, team, sort=False):
         if group:
             group = group.lower()
-            print("SGDKP: {0} {1}".format(team, group))
             team_data = self.__db['group'].get(team)
             if team_data is None:
                 self.__init_team_structure(team)
