@@ -196,9 +196,15 @@ class DKPBot:
 
     def _set_channel_team_mapping(self, channel_id, team):
         # String due to how it is used in some lua files
+        # Limit to 10
+        if (len(self.__channel_team_map) == 10) and (str(channel_id) not in self.__channel_team_map):
+            return False
+
         self.__channel_team_map[str(channel_id)] = str(team)
         self.__config.guild_info.channel_team_map = json.dumps(self.__channel_team_map)
         self._reconfigure()
+
+        return True
 
     ### Command handling and parsing ###
 
@@ -715,9 +721,11 @@ class DKPBot:
                 return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
         elif command == 'team':
             if num_params == 2:
-                self._set_channel_team_mapping(request_info['channel'], params[2])
-                return Response(ResponseStatus.SUCCESS,
-                    'Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[2]))
+                success = self._set_channel_team_mapping(request_info['channel'], params[2])
+                if success:
+                    return Response(ResponseStatus.SUCCESS, 'Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[2]))
+                else:
+                    return Response(ResponseStatus.SUCCESS, 'Exceeded maximum number of channels. Please reuse existing one.')
             else:
                 return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
         else:
