@@ -26,7 +26,7 @@ class GuildInfo():
     premium = False
     server_side = ''
     guild_name = ''
-    channel_team_map = '\{\}'
+    channel_team_map = '{{}}'
 
     def __init__(self, bot_type, file_upload_channel, filename, prefix, premium, server_side, guild_name, channel_team_map):
         self.bot_type = bot_type
@@ -163,7 +163,7 @@ class BotConfig():
     __filepath = ""
     __config = None
 
-    guild_info = GuildInfo('essential', 0, 'EssentialDKP.lua', '!', False, '', '','\{\}')
+    guild_info = GuildInfo('essential', 0, 'EssentialDKP.lua', '!', False, '', '','{{}}')
     dkp = DisplayConfig(6, 16, 5, True)
     dkp_history = DisplayConfig(1, 10, 1, True)
     loot_history = DisplayConfig(1, 10, 1, True)
@@ -205,7 +205,7 @@ class BotConfig():
             self.__config.getboolean(group, 'premium', fallback=False),
             self.__config.get(group, 'server_side', fallback=''),
             self.__config.get(group, 'guild_name', fallback=''),
-            self.__config.get(group, 'channel_team_map', fallback='\{\}')
+            self.__config.get(group, 'channel_team_map', fallback='{{}}')
         )
 
         group = 'DKP Display'
