@@ -90,7 +90,6 @@ class EssentialDKPBot(DKPBot):
     ### Database - Variables parsing ###
 
     def _fill_history(self, players, dkp, timestamp, reason, index, team):
-        print("Filling history")
         if not players:
             return
 
@@ -201,66 +200,52 @@ class EssentialDKPBot(DKPBot):
 
     def _generate_player_history(self, entry, team):
         if entry is None:
-            print("entry is None:")
             return None
 
         if not isinstance(entry, dict):
-            print("not isinstance(entry, dict):")
             return None
 
         players = entry.get("players")
         if players is None:
-            print("players is None:")
             return None
 
         dkp = entry.get("dkp")
         if dkp is None:
-            print("dkp is None:")
             return None
 
         date = entry.get("date")
         if date is None:
-            print("date is None:")
             return None
 
         reason = entry.get("reason")
         if reason is None:
-            print("reason is None:")
             return None
 
         index = entry.get("index")
         if index is None:
-            print("index is None:")
             return None
 
         ## Skip deletetion and deleted entries ##
         if entry.get("deletes") or entry.get("deletedby"):
-            print("deletes/deletedby")
             return None
 
         if not isinstance(players, str):
-            print("not isinstance(players, str):")
             return None
         if not isinstance(date, int):
-            print("not isinstance(date, int):")
             return None
         if not isinstance(reason, str):
-            print("not isinstance(reason, str):")
             return None
 
         players = list(map(lambda p: p.lower(), players.split(",")))
         if not isinstance(players, list):
-            print("not isinstance(players, list):")
             return None
 
         if isinstance(dkp, str):
             # multiple entries
             dkp = list(map(lambda d: d, dkp.split(",")))
             if len(dkp) == 1:  # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
-                print("isinstance(dkp, str): len(dkp) == 1")
                 return None
         elif not isinstance(dkp, (int, float)):
-            print("not isinstance(dkp, (int, float)): {0}".format(type(dkp)))
             return None
 
         self._fill_history(players, dkp, date, reason, index, team)
@@ -273,7 +258,7 @@ class EssentialDKPBot(DKPBot):
             return
 
         team = DKPBot.DEFAULT_TEAM
-        print(saved_variable.keys())
+
         dkp_list = saved_variable.get(self._DKP_SV)
         if not dkp_list:
             return
@@ -297,7 +282,7 @@ class EssentialDKPBot(DKPBot):
 
         if saved_variable is None:
             return
-        print(saved_variable.keys())
+
         team = DKPBot.DEFAULT_TEAM
 
         loot_list = saved_variable.get(self._LOOT_SV)
@@ -328,7 +313,7 @@ class EssentialDKPBot(DKPBot):
 
         if saved_variable is None:
             return
-        print(saved_variable.keys())
+
         team = DKPBot.DEFAULT_TEAM
 
         history = saved_variable.get(self._HISTORY_SV)
@@ -414,7 +399,7 @@ class EssentialDKPBot(DKPBot):
         targets = self._parse_param(param)
         output_result_list = []
         if len(targets) > 0:
-            team = self._get_team_id(request_info['channel'])
+            team = self._get_channel_team_mapping(request_info['channel'])
             for target in targets:
                 # Single player
                 info = self._get_dkp(target, team)
@@ -449,7 +434,7 @@ class EssentialDKPBot(DKPBot):
         output_result_list = []
 
         if len(targets) > 0:
-            team = self._get_team_id(request_info['channel'])
+            team = self._get_channel_team_mapping(request_info['channel'])
             for target in targets:
                 # Single player
                 info = self._get_history(target, team)
@@ -475,7 +460,7 @@ class EssentialDKPBot(DKPBot):
         output_result_list = []
 
         if len(targets) > 0:
-            team = self._get_team_id(request_info['channel'])
+            team = self._get_channel_team_mapping(request_info['channel'])
             for target in targets:
                 # Single player
                 info = self._get_player_loot(target, team)
@@ -500,7 +485,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
 
-        output_result_list = self._get_loot(self._get_team_id(request_info['channel']))
+        output_result_list = self._get_loot(self._get_channel_team_mapping(request_info['channel']))
 
         if len(output_result_list) > 0:
             data = self.__build_loot_output_multiple(output_result_list)
@@ -519,7 +504,7 @@ class EssentialDKPBot(DKPBot):
         if len(param) < 3:
             return Response(ResponseStatus.SUCCESS, "Query too short. Please specify at least 3 letters.")
 
-        output_result_list = self._find_loot(param, self._get_team_id(request_info['channel']))
+        output_result_list = self._find_loot(param, self._get_channel_team_mapping(request_info['channel']))
 
         if len(output_result_list) > 0:
             data = self.__build_item_search_output_multiple(output_result_list)

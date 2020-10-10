@@ -1,5 +1,6 @@
 import argparse
 import re
+import json
 
 from datetime import datetime, timezone
 from enum import Enum
@@ -60,7 +61,7 @@ class DKPBot:
         self.__guild_id = int(guild_id)
         self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
-        self.__teams_per_channel = {}
+        self.__channel_team_map = {}
         self.__db_loaded = False
         self.__db = {
             # Database for all global data indexed by player name. Unsorted.
@@ -77,6 +78,7 @@ class DKPBot:
         self.__premium = bool(self.__config.guild_info.premium)
         self.__server_side = self.__config.guild_info.server_side
         self.__guild_name = self.__config.guild_info.guild_name
+        self.__channel_team_map = json.loads(self.__config.guild_info.channel_team_map)
 
     def _reconfigure(self):
         self.__config.store()
@@ -140,22 +142,20 @@ class DKPBot:
 
     ## Class related
     def __decode_aliases(self, groups):
-        print(groups)
         # Always allow querying all
         if 'all' in groups:
             return self._all_groups
 
         # If not premium we don't allow doing any group mixin calls
         if not self.is_premium():
-            print('not premium')
             # Remove groups
             new_groups = [x for x in groups if x not in self._all_groups]
             # Remove mixins
             if len(new_groups) > 1:
                 new_groups = [new_groups[0]]
-            print(new_groups)
+
             return new_groups
-        print("premium")
+
         # Else we consider everything for premium users
         new_groups = groups.copy()
         for group in groups:
@@ -183,21 +183,22 @@ class DKPBot:
 
             elif group == 'melee':
                 new_groups.extend(['warrior', 'rogue', 'shaman'])
-        
-        print(new_groups)
+
         return new_groups
 
     ### Team related
-    def _get_team_id(self, key):
-        team = self.__teams_per_channel.get(key)
+    def _get_channel_team_mapping(self, channel_id):
+        team = self.__channel_team_map.get(str(channel_id))
         if team is None:
             return DKPBot.DEFAULT_TEAM
 
         return team
 
-#    def _set_team_id(self, key, value):
-#        # String due to how it is used in some lua files
-#        team = self.__teams_per_channel[key] = str(value)
+    def _set_channel_team_mapping(self, channel_id, team):
+        # String due to how it is used in some lua files
+        self.__channel_team_map[str(channel_id)] = str(team)
+        self.__config.guild_info.channel_team_map = json.dumps(self.__channel_team_map)
+        self._reconfigure()
 
     ### Command handling and parsing ###
 
@@ -680,7 +681,6 @@ class DKPBot:
                     'Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel']))
 
         elif command == 'server-side':
-            print(params)
             if num_params == 3:
                 server = params[1]
                 side = params[2]
@@ -699,7 +699,6 @@ class DKPBot:
                 return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
 
         elif command == 'guild-name':
-            print(params)
             if num_params >= 2:
                 value = ' '.join(params[1:])
                 if len(value) > 50:
@@ -714,7 +713,11 @@ class DKPBot:
                     return Response(ResponseStatus.ERROR, 'Unexpected error during guild name change.')
             else:
                 return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
-
+        elif command == 'team':
+            if num_params == 3:
+                self._set_channel_team_mapping(request_info['channel'], params[2])
+                return Response(ResponseStatus.SUCCESS,
+                    'Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[2]))
         else:
             string = "Supported commands:\n\n"
 
@@ -722,15 +725,33 @@ class DKPBot:
             string += "current: `{0}`\n".format(self.__config.guild_info.bot_type)
             string += "supported: `essential`, `monolith`, `community`\n\n"
 
-            string += "`server-side` - set ingame server and side data required by some addons\n"
+            string += "`server-side` - set ingame server and side data required by some addons, e.g. `MirageRaceway Alliance`\n"
             data = self.__config.guild_info.server_side.split("-")
             if len(data) == 2:
-                string += "current : `{0} {1}`".format(data[0].capitalize(), data[1].capitalize())
+                string += "current: `{0} {1}`".format(data[0].capitalize(), data[1].capitalize())
             else:
-                string += "current : `not set`"
+                string += "current: `not set`"
+            string += "\n\n"
+
+            string += "`guild-name` - set ingame guild name required by some addons, e.g. `jane doe`\n"
+            if len(self.__config.guild_info.guild_name) > 0:
+                string += "current: `{0}`".format(self.__config.guild_info.guild_name)
+            else:
+                string += "current: `not set`"
+            string += "\n\n"
 
             # string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
             # string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
+
+            string += "`team` - register current channel to handle supplied team number\n"
+            num_teams = len(self.__channel_team_map)
+            string += "current: "
+            if num_teams > 0:
+                for channel, team in self.__channel_team_map.items():
+                    string += "{1}: <#{0}>\n".format(channel, team)
+            else:
+                string += "`not set`\n"
+            string += "\n"
 
             string += "`register` - register current channel as the lua upload one\n"
             string += "current: <#{0}>\n\n".format(self.__config.guild_info.file_upload_channel)
