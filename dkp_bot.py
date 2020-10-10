@@ -721,9 +721,9 @@ class DKPBot:
                 return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
         elif command == 'team':
             if num_params == 2:
-                success = self._set_channel_team_mapping(request_info['channel'], params[2])
+                success = self._set_channel_team_mapping(request_info['channel'], params[1])
                 if success:
-                    return Response(ResponseStatus.SUCCESS, 'Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[2]))
+                    return Response(ResponseStatus.SUCCESS, 'Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[1]))
                 else:
                     return Response(ResponseStatus.SUCCESS, 'Exceeded maximum number of channels. Please reuse existing one.')
             else:
