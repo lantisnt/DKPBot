@@ -16,6 +16,7 @@ class PlayerInfo:
         self.__lifetime_spent = abs(float(lifetime_spent))
         self.__ingame_class = str(ingame_class).lower().capitalize()
         self.__role = str(role).lower().capitalize()
+        print("Creating new player object: {0}".format(str(self)))
 
     def name(self):
         return self.__player
