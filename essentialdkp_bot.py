@@ -123,37 +123,30 @@ class EssentialDKPBot(DKPBot):
 
     def _generate_player_info(self, entry):
         if entry is None:
-            print("entry is None")
             return None
 
         player = entry.get("player")
         if player is None:
-            print("player is None")
             return None
 
         dkp = entry.get("dkp")
         if dkp is None:
-            print("dkp is None")
             return None
 
         lifetime_gained = entry.get("lifetime_gained")
         if lifetime_gained is None:
-            print("lifetime_gained is None")
             return None
 
         lifetime_spent = entry.get("lifetime_spent")
         if lifetime_spent is None:
-            print("lifetime_spent is None")
             return None
 
         ingame_class = entry.get("class")
         if ingame_class is None:
-            print("ingame_class is None")
             return None
 
         role = entry.get("role")
         if role is None:
-            print("role is None")
             return None
 
         return PlayerInfo(player, dkp, lifetime_gained,
