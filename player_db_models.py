@@ -152,7 +152,7 @@ class PlayerDKPHistory:
         self.__reason = str(reason)
         officer = str(index.split("-")[0])
         self.__officer = officer.lower().capitalize()
-        print("New history object: {0}".format(str(self)))
+        #print("New history object: {0}".format(str(self)))
 
     def player(self):
         return self.__player

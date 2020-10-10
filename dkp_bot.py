@@ -78,7 +78,6 @@ class DKPBot:
         self.__premium = bool(self.__config.guild_info.premium)
         self.__server_side = self.__config.guild_info.server_side
         self.__guild_name = self.__config.guild_info.guild_name
-        print(self.__config.guild_info.channel_team_map)
         self.__channel_team_map = json.loads(self.__config.guild_info.channel_team_map)
 
     def _reconfigure(self):
@@ -715,10 +714,12 @@ class DKPBot:
             else:
                 return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
         elif command == 'team':
-            if num_params == 3:
+            if num_params == 2:
                 self._set_channel_team_mapping(request_info['channel'], params[2])
                 return Response(ResponseStatus.SUCCESS,
                     'Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[2]))
+            else:
+                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
         else:
             string = "Supported commands:\n\n"
 
