@@ -669,6 +669,9 @@ class DKPBot:
             self.__config.default()
             return Response(ResponseStatus.REQUEST, Request.RESPAWN)
 
+        elif command == 'reload':
+            return Response(ResponseStatus.REQUEST, Request.RESPAWN)
+
         elif command == 'register':
             if request_info['channel'] > 0:
                 self.__register_file_upload_channel(request_info['channel'])
