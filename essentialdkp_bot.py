@@ -259,11 +259,11 @@ class EssentialDKPBot(DKPBot):
             if len(dkp) == 1:  # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
                 print("isinstance(dkp, str): len(dkp) == 1")
                 return None
-            elif not isinstance(dkp, (int, float)):
-                print("not isinstance(dkp, (int, float)):")
-                return None
+        elif not isinstance(dkp, (int, float)):
+            print("not isinstance(dkp, (int, float)): {0}".format(type(dkp)))
+            return None
 
-            self._fill_history(players, dkp, date, reason, index, team)
+        self._fill_history(players, dkp, date, reason, index, team)
 
     # Called 1st
     def _build_dkp_database(self, saved_variable):
