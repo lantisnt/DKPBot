@@ -149,22 +149,13 @@ async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Messag
     if len(message.attachments) > 0:
         for attachment in message.attachments:
             if bot.check_attachment_name(attachment.filename) and attachment.size < MAX_ATTACHMENT_BYTES:
-                print(attachment.filename)
                 attachment_bytes = await attachment.read()
                 info = {
                     'comment': message.content[:50],
                     'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
                     'author': normalized_author
                 }
-                
-                #sv_file_content = attachment_bytes.decode('utf-8', errors='replace')
-                # print(len(sv_file_content))
-                # import codecs
-                # fp =  codecs.open("/tmp/sv_utf8_debug_" + str(message.guild.id) + ".txt", "w", "utf-8")
-                # fp.write(sv_file_content)
-                # fp.close()
-                #return dkp_bot.Response(dkp_bot.ResponseStatus.IGNORE)
-                # For now do nothing
+
                 response = bot.build_database(attachment_bytes.decode('utf-8', errors='replace'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     await discord_respond(message.channel, response.data)
