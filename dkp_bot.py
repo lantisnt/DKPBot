@@ -321,6 +321,7 @@ class DKPBot:
         self.__db['global'][team]['loot']  = []
         self.__db['global'][team]['player_loot']  = {}
         self.__db['global'][team]['history']  = {}
+        self.__db['group'][team] = {}
 
     def _set_dkp(self, player, entry, team):
         team_data = self.__db['global'].get(team)
@@ -463,13 +464,12 @@ class DKPBot:
                     values.sort(key=lambda info: info.dkp(), reverse=True)
 
     def _set_group_dkp(self, group, entry, team, sort=False):
-        print("SGDKP: {0} {1}".format(team, group))
         if group:
             group = group.lower()
-
+            print("SGDKP: {0} {1}".format(team, group))
             team_data = self.__db['group'].get(team)
             if team_data is None:
-                return None
+                self.__init_team_structure(team)
 
             if not group in team_data:
                 team_data[group] = []
