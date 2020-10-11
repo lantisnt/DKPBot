@@ -8,7 +8,7 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 import bot_memory_manager
-from display_templates import RawEmbed, preformatted_block
+from display_templates import preformatted_block, RawEmbed
 
 class ResponseStatus(Enum):
     SUCCESS = 0
