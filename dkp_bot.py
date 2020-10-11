@@ -8,7 +8,7 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 import bot_memory_manager
-
+from display_templates import RawEmbed
 
 class ResponseStatus(Enum):
     SUCCESS = 0
@@ -621,161 +621,84 @@ class DKPBot:
             return Response(ResponseStatus.IGNORE)
 
         command = params[0]
-        if command == 'bot-type':
-            if num_params == 2:
-                value = params[1]
-                if value in ['community', 'monolith', 'essential']:
-                    current = self.__config.guild_info.bot_type
-                    if value == current:
-                        return Response(ResponseStatus.SUCCESS, 'Retaining current bot type')
 
-                    self.__config.guild_info.bot_type = value
-                    new = self.__config.guild_info.bot_type
-
-                    if new == value:
-                        self.__config.guild_info.filename = value.capitalize() + 'DKP.lua'
-                        self._reconfigure()
-                        return Response(ResponseStatus.REQUEST, Request.RESPAWN)
-                    else:
-                        return Response(ResponseStatus.ERROR, 'Unexpected error during bot type setup')
-                else:
-                    return Response(ResponseStatus.SUCCESS, 'Unsupported bot type')
-            else:
-                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
-
-        # elif command == 'filename':
-        #     if num_params == 2:
-        #         value = params[1]
-        #         if len(value) <= 20:
-        #             sanitized_value = re.sub('[^a-zA-Z0-9-.]', '', value)
-        #             self.__config.guild_info.filename = sanitized_value
-        #             new = self.__config.guild_info.filename
-        #             if new == value:
-        #                 self._reconfigure()
-        #                 return Response(ResponseStatus.SUCCESS, 'Set expected filename to `{0}`'.format(sanitized_value))
-        #             else:
-        #                 return Response(ResponseStatus.ERROR, 'Unexpected error during filename change')
-        #         else:
-        #             print(params)
-        #             return Response(ResponseStatus.SUCCESS, 'Filename too long')
-        #     else:
-        #         return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
-
-        elif command == 'prefix':
-            if num_params == 2:
-                value = params[1]
-                if value in self.get_supported_prefixes():
-                    self.__config.guild_info.prefix = value
-                    new = self.__config.guild_info.prefix
-                    if new == value:
-                        self._reconfigure()
-                        return Response(ResponseStatus.SUCCESS, 'Set prefix to `{0}`'.format(value))
-                    else:
-                        return Response(ResponseStatus.ERROR, 'Unexpected error during prefix change')
-                else:
-                    return Response(ResponseStatus.SUCCESS, 'Unsupported prefix')
-            else:
-                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
-
-        elif command == 'default':
-            self.__config.default()
-            return Response(ResponseStatus.REQUEST, Request.RESPAWN)
-
-        elif command == 'reload':
-            return Response(ResponseStatus.REQUEST, Request.RESPAWN)
-
-        elif command == 'register':
-            if request_info['channel'] > 0:
-                self.__register_file_upload_channel(request_info['channel'])
-                return Response(ResponseStatus.SUCCESS,
-                    'Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel']))
-
-        elif command == 'server-side':
-            if num_params == 3:
-                server = params[1]
-                side = params[2]
-                value = "{0}-{1}".format(server, side).lower()
-                if len(value) > 50:
-                    return Response(ResponseStatus.ERROR, 'Data is too long.')
-
-                self.__config.guild_info.server_side = value
-                new = self.__config.guild_info.server_side
-                if new == value:
-                    self._reconfigure()
-                    return Response(ResponseStatus.SUCCESS, 'Serve-side data set to `{0} {1}`'.format(server, side))
-                else:
-                    return Response(ResponseStatus.ERROR, 'Unexpected error during server-side change.')
-            else:
-                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
-
-        elif command == 'guild-name':
-            if num_params >= 2:
-                value = ' '.join(params[1:])
-                if len(value) > 50:
-                    return Response(ResponseStatus.ERROR, 'Data is too long.')
-
-                self.__config.guild_info.guild_name = value
-                new = self.__config.guild_info.guild_name
-                if new == value:
-                    self._reconfigure()
-                    return Response(ResponseStatus.SUCCESS, 'Guild Name set to `{0}`'.format(value))
-                else:
-                    return Response(ResponseStatus.ERROR, 'Unexpected error during guild name change.')
-            else:
-                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
-        elif command == 'team':
-            if num_params == 2:
-                success = self._set_channel_team_mapping(request_info['channel'], params[1])
-                if success:
-                    return Response(ResponseStatus.SUCCESS, 'Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[1]))
-                else:
-                    return Response(ResponseStatus.SUCCESS, 'Exceeded maximum number of channels. Please reuse existing one.')
-            else:
-                return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+        method = "config_call_" + command.replace("-", "_").lower()
+        callback = getattr(self, method, None)
+        if callback and callable(callback):
+            return callback(params, num_params, request_info)
         else:
-            string = "Supported commands:\n\n"
-
-            string += "`bot-type` - change bot type\n"
-            string += "current: `{0}`\n".format(self.__config.guild_info.bot_type)
-            string += "supported: `essential`, `monolith`, `community`\n\n"
-
-            string += "`server-side` - set ingame server and side data required by some addons, e.g. `MirageRaceway Alliance`\n"
-            data = self.__config.guild_info.server_side.split("-")
-            if len(data) == 2:
-                string += "current: `{0} {1}`".format(data[0].capitalize(), data[1].capitalize())
-            else:
-                string += "current: `not set`"
-            string += "\n\n"
-
-            string += "`guild-name` - set ingame guild name required by some addons, e.g. `jane doe`\n"
-            if len(self.__config.guild_info.guild_name) > 0:
-                string += "current: `{0}`".format(self.__config.guild_info.guild_name)
-            else:
-                string += "current: `not set`"
-            string += "\n\n"
-
             # string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
             # string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
-
-            string += "`team` - register current channel to handle supplied team number\n"
+            embed = RawEmbed(None, "Supported commands", None, None, 16553987, "[WoW DKP Bot Discord](https://discord.gg/t42qW4j)")
+            # bot-type
+            string = "Set bot type to handle specified addon\n"
+            string += "```"
+            string += "Current:   {0}\n".format(self.__config.guild_info.bot_type)
+            string += "Supported: essential monolith community\n"
+            string += "Usage:     {0}config bot-type essential".format(self.__prefix)
+            string += "```"
+            embed.add_field("bot-type", string, False)
+            # server-side
+            string = "Set ingame server and side data required by some addons\n"
+            string += "```"
+            data = self.__config.guild_info.server_side.split("-")
+            if len(data) == 2:
+                string += "Current:   {0}".format(' '.join(word.capitalize() for word in data))
+            else:
+                string += "Current:   not set"
+            string += "Usage:     {0}config server-side MirageRaceway Alliance".format(self.__prefix)
+            string += "```"
+            embed.add_field("server-side", string, False)
+            # guild-name
+            string = "Set ingame guild name required by some addons\n"
+            string += "```"
+            data = self.__config.guild_info.guild_name
+            if len(data) == 2:
+                string += "Current:   {0}".format(' '.join(word.capitalize() for word in data))
+            else:
+                string += "Current:   not set"
+            string += "Usage:     {0}config guild-name Some Guild".format(self.__prefix)
+            string += "```"
+            embed.add_field("guild-name", string, False)
+            # team
+            string = "`Register current channel to handle specified team number\n"
+            string += "```"
             num_teams = len(self.__channel_team_map)
-            string += "current: "
+            string += "Current:\n"
             if num_teams > 0:
                 for channel, team in self.__channel_team_map.items():
                     string += "{1}: <#{0}>\n".format(channel, team)
             else:
-                string += "`not set`\n"
-            string += "\n"
+                string += "none\n"
+            string += "Usage:     {0}config team 0".format(self.__prefix)
+            string += "```"
+            embed.add_field("team", string, False)
+            # register
+            string = "Register current channel as the only one on which lua saved variable upload will be accepted\n"
+            string += "```"
+            if self.__config.guild_info.bot_type == 0:
+                string += "Current:   any\n"
+            else:
+                string += "Current:   <#{0}>\n".format(self.__config.guild_info.bot_type)
+            string += "Usage:     {0}config register".format(self.__prefix)
+            string += "```"
+            embed.add_field("register", string, False)
+            # prefix
+            string = "Change bot prefix\n"
+            string += "```"
+            string += "Current:   {0}\n".format(self.__prefix)
+            string += "Supported: {0}\n".format(' '.join(self.get_supported_prefixes()))
+            string += "Usage:     {0}config register".format(self.__prefix)
+            string += "```"
+            embed.add_field("prefix", string, False)
+            # default
+            string = "Instantly reset bot configuration to default - this also resets `prefix` and `bot type`\n"
+            string += "```"
+            string += "Usage:     {0}config default".format(self.__prefix)
+            string += "```"
+            embed.add_field("default", string, False)
 
-            string += "`register` - register current channel as the lua upload one\n"
-            string += "current: <#{0}>\n\n".format(self.__config.guild_info.file_upload_channel)
-
-            string += "`prefix` - change prefix\n"
-            string += "current: `{0}`\n".format(self.__prefix)
-            string += "supported: {0}\n\n".format(self.get_supported_prefixes_string(self.get_supported_prefixes()))
-
-            string += "`default` - instantly reset bot configuration to default - this also resets **prefix** and **bot type**\n"
-            return Response(ResponseStatus.SUCCESS, string)
+            return Response(ResponseStatus.SUCCESS, embed.get())
         return Response(ResponseStatus.IGNORE)
 
     def call_display(self, param, request_info):
@@ -804,3 +727,99 @@ class DKPBot:
                 return Response(ResponseStatus.SUCCESS, "Invalid category **{0}**".format(param[0]))
 
         return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
+    ### Config handlers ###
+
+    def config_call_bot_type(self, params, num_params, request_info):
+        if num_params == 2:
+            value = params[1]
+            if value in ['community', 'monolith', 'essential']:
+                current = self.__config.guild_info.bot_type
+                if value == current:
+                    return Response(ResponseStatus.SUCCESS, 'Retaining current bot type')
+
+                self.__config.guild_info.bot_type = value
+                new = self.__config.guild_info.bot_type
+
+                if new == value:
+                    self.__config.guild_info.filename = value.capitalize() + 'DKP.lua'
+                    self._reconfigure()
+                    return Response(ResponseStatus.REQUEST, Request.RESPAWN)
+                else:
+                    return Response(ResponseStatus.ERROR, 'Unexpected error during bot type setup')
+            else:
+                return Response(ResponseStatus.SUCCESS, 'Unsupported bot type')
+        else:
+            return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
+    def config_call_prefix(self, params, num_params, request_info):
+        if num_params == 2:
+            value = params[1]
+            if value in self.get_supported_prefixes():
+                self.__config.guild_info.prefix = value
+                new = self.__config.guild_info.prefix
+                if new == value:
+                    self._reconfigure()
+                    return Response(ResponseStatus.SUCCESS, 'Set prefix to `{0}`'.format(value))
+                else:
+                    return Response(ResponseStatus.ERROR, 'Unexpected error during prefix change')
+            else:
+                return Response(ResponseStatus.SUCCESS, 'Unsupported prefix')
+        else:
+            return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
+    def config_call_default(self, params, num_params, request_info):
+        self.__config.default()
+        return Response(ResponseStatus.REQUEST, Request.RESPAWN)
+
+    def config_call_reload(self, params, num_params, request_info):
+        return Response(ResponseStatus.REQUEST, Request.RESPAWN)
+
+    def config_call_register(self, params, num_params, request_info):
+        self.__register_file_upload_channel(request_info['channel'])
+        return Response(ResponseStatus.SUCCESS,
+            'Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel']))
+
+    def config_call_server_side(self, params, num_params, request_info):
+        if num_params == 3:
+            server = params[1]
+            side = params[2]
+            value = "{0}-{1}".format(server, side).lower()
+            if len(value) > 50:
+                return Response(ResponseStatus.ERROR, 'Data is too long.')
+
+            self.__config.guild_info.server_side = value
+            new = self.__config.guild_info.server_side
+            if new == value:
+                self._reconfigure()
+                return Response(ResponseStatus.SUCCESS, 'Serve-side data set to `{0} {1}`'.format(server, side))
+            else:
+                return Response(ResponseStatus.ERROR, 'Unexpected error during server-side change.')
+        else:
+            return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
+    def config_call_guild_name(self, params, num_params, request_info):
+        if num_params >= 2:
+            value = ' '.join(params[1:])
+            if len(value) > 50:
+                return Response(ResponseStatus.ERROR, 'Data is too long.')
+
+            self.__config.guild_info.guild_name = value
+            new = self.__config.guild_info.guild_name
+            if new == value:
+                self._reconfigure()
+                return Response(ResponseStatus.SUCCESS, 'Guild Name set to `{0}`'.format(value))
+            else:
+                return Response(ResponseStatus.ERROR, 'Unexpected error during guild name change.')
+        else:
+            return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+
+    def config_call_team(self, params, num_params, request_info):
+        if num_params == 2:
+            success = self._set_channel_team_mapping(request_info['channel'], params[1])
+            if success:
+                return Response(ResponseStatus.SUCCESS, 'Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[1]))
+            else:
+                return Response(ResponseStatus.SUCCESS, 'Exceeded maximum number of channels. Please reuse existing one.')
+        else:
+            return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")

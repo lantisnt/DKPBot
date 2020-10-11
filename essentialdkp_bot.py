@@ -327,7 +327,6 @@ class EssentialDKPBot(DKPBot):
             history = history.values()
         elif not isinstance(history, list):
             return
-            
 
         for entry in history:
             self._generate_player_history(entry, team)
