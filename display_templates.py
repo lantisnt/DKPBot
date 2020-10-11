@@ -3,6 +3,12 @@ import pytz
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp
 
+def get_bot_links():
+    invite = "[Invite WoW DKP Bot](https://discord.com/api/oauth2/authorize?client_id=746132320297156608&permissions=518208&scope=bot)"
+    support_server = "[Support Server](https://discord.gg/t42qW4j)"
+    donate = "[Donate - coming soon!](https://)"
+    return invite + " | " + support_server + " | " + donate
+
 def get_class_color(class_name=None):
     if not class_name:
         return 10204605

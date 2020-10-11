@@ -8,7 +8,7 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 import bot_memory_manager
-from display_templates import preformatted_block, RawEmbed
+from display_templates import get_bot_links, preformatted_block, RawEmbed
 
 class ResponseStatus(Enum):
     SUCCESS = 0
@@ -652,7 +652,7 @@ class DKPBot:
             string += preformatted_block("Usage:     {0}config guild-name Some Guild\n".format(self.__prefix))
             data = self.__config.guild_info.guild_name
             if len(data) > 0:
-                string2 = "Current:   {0}".format(' '.join(data).lower())
+                string2 = "Current:   {0}".format(data.lower())
             else:
                 string2 = "Current:   none"
             string += preformatted_block(string2)
@@ -679,7 +679,7 @@ class DKPBot:
             embed.add_field("register", string, False)
             # prefix
             string = "Change bot prefix\n"
-            string += preformatted_block("Usage:     {0}config prefix !".format(self.__prefix))
+            string += preformatted_block("Usage:     {0}config prefix *".format(self.__prefix))
             string += preformatted_block("Current:   {0}\n".format(self.__prefix))
             string += preformatted_block("Supported: {0}\n".format(' '.join(self.get_supported_prefixes())))
             embed.add_field("prefix", string, False)
@@ -689,7 +689,7 @@ class DKPBot:
             embed.add_field("default", string, False)
 
             # Pseudo-Footer: Discord link
-            embed.add_field("\u200b", "[WoW DKP Bot Discord](https://discord.gg/t42qW4j)", False)
+            embed.add_field("\u200b", get_bot_links(), False)
 
             return Response(ResponseStatus.SUCCESS, embed.get())
         return Response(ResponseStatus.IGNORE)
