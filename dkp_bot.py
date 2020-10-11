@@ -629,7 +629,8 @@ class DKPBot:
         else:
             # string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
             # string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
-            embed = RawEmbed(None, "Supported commands", None, None, 16553987, "[WoW DKP Bot Discord](https://discord.gg/t42qW4j)")
+            embed = RawEmbed()
+            embed.build(None, "Supported commands", None, None, 16553987, "[WoW DKP Bot Discord](https://discord.gg/t42qW4j)")
             # bot-type
             string = "Set bot type to handle specified addon\n"
             string += "```"
