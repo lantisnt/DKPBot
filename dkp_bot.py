@@ -8,7 +8,7 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 import bot_memory_manager
-from display_templates import RawEmbed
+from display_templates import RawEmbed, preformatted_block
 
 class ResponseStatus(Enum):
     SUCCESS = 0
@@ -633,76 +633,59 @@ class DKPBot:
             embed.build(None, "Available configurations", None, None, 16553987, None)
             # bot-type
             string = "Set bot type to handle specified addon\n"
-            string += "```"
-            string += "Usage:     {0}config bot-type <type>\n".format(self.__prefix)
-            string += "Current:   {0}\n".format(self.__config.guild_info.bot_type)
-            string += "Supported: essential monolith community"
-            string += "```"
+            string += preformatted_block("Usage:     {0}config bot-type <type>\n".format(self.__prefix))
+            string += preformatted_block("Current:   {0}\n".format(self.__config.guild_info.bot_type))
+            string += preformatted_block("Supported: essential monolith community")
             embed.add_field("bot-type", string, False)
             # server-side
             string = "Set ingame server and side data required by some addons\n"
-            string += "```"
-            string += "Usage:     {0}config server-side ServerName Side\n".format(self.__prefix)
+            string += preformatted_block("Usage:     {0}config server-side ServerName Side\n".format(self.__prefix))
             data = self.__config.guild_info.server_side.split("-")
             if len(data) == 2:
-                string += "Current:   {0}".format(' '.join(word.capitalize() for word in data))
+                string2 = "Current:   {0}".format(' '.join(word.capitalize() for word in data))
             else:
-                string += "Current:   not set"
-            string += "```"
+                string2 = "Current:   not set"
+            string += preformatted_block(string2)
             embed.add_field("server-side", string, False)
             # guild-name
             string = "Set ingame guild name required by some addons\n"
-            string += "```"
-            string += "Usage:     {0}config guild-name Some Guild\n".format(self.__prefix)
+            string += preformatted_block("Usage:     {0}config guild-name Some Guild\n".format(self.__prefix))
             data = self.__config.guild_info.guild_name
             if len(data) == 2:
-                string += "Current:   {0}".format(' '.join(word.capitalize() for word in data))
+                string2 = "Current:   {0}".format(' '.join(word.capitalize() for word in data))
             else:
-                string += "Current:   not set"
-            string += "```"
+                string2 = "Current:   not set"
+            string += preformatted_block(string2)
             embed.add_field("guild-name", string, False)
             # team
             string = "Register current channel to handle specified team number\n"
-            string += "```"
-            string += "Usage:     {0}config team id".format(self.__prefix)
-            string += "``` "
+            string += preformatted_block("Usage:     {0}config team id".format(self.__prefix))
             num_teams = len(self.__channel_team_map)
-            string += "```"
-            string += "Current:"
-            string += "```"
+            string += preformatted_block("Current:")
             if num_teams > 0:
                 for channel, team in self.__channel_team_map.items():
-                    string += "<#{0}> `{1}`\n".format(channel, team)
+                    string += "`{1}` <#{0}>\n".format(channel, team)
             else:
                 string += "`none`\n"
-            string += "```"
             embed.add_field("team", string, False)
             # register
             string = "Register current channel as the only one on which lua saved variable upload will be accepted\n"
-            string += "```"
-            string += "Usage:     {0}config register".format(self.__prefix)
-            string += "```"
-            string += " ```"
-            string += "Current:"
-            string += "```"
+            string += preformatted_block("Usage:     {0}config register".format(self.__prefix))
+            string += preformatted_block("Current:")
             if self.__config.guild_info.bot_type == 0:
                 string += "`any`"
             else:
-                string += "<#{0}>\n".format(self.__config.guild_info.bot_type)
+                string += "<#{0}>".format(self.__config.guild_info.file_upload_channel)
             embed.add_field("register", string, False)
             # prefix
             string = "Change bot prefix\n"
-            string += "```"
-            string += "Usage:     {0}config prefix !".format(self.__prefix)
-            string += "Current:   {0}\n".format(self.__prefix)
-            string += "Supported: {0}\n".format(' '.join(self.get_supported_prefixes()))
-            string += "```"
+            string += preformatted_block("Usage:     {0}config prefix !".format(self.__prefix))
+            string += preformatted_block("Current:   {0}\n".format(self.__prefix))
+            string += preformatted_block("Supported: {0}\n".format(' '.join(self.get_supported_prefixes())))
             embed.add_field("prefix", string, False)
             # default
             string = "Instantly reset bot configuration to default - this also resets `prefix` and `bot type`\n"
-            string += "```"
-            string += "Usage:     {0}config default".format(self.__prefix)
-            string += "```"
+            string += preformatted_block("Usage:     {0}config default".format(self.__prefix))
             embed.add_field("default", string, False)
 
             # Pseudo-Footer: Discord link
