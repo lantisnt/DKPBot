@@ -102,8 +102,8 @@ def get_thumbnail(class_name):
 
     return None
 
-def preformatted_block(string: str):
-    return "```" + string + "```"
+def preformatted_block(string: str, language='swift'):
+    return "```" + language + "\n" + string + "```"
 
 def generate_dkp_history_entry(history_entry, format_string=None):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):

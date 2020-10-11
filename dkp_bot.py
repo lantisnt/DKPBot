@@ -633,9 +633,9 @@ class DKPBot:
             embed.build(None, "Available configurations", None, None, 16553987, None)
             # bot-type
             string = "Set bot type to handle specified addon\n"
-            string += preformatted_block("Usage:     {0}config bot-type <type>\n".format(self.__prefix))
+            string += preformatted_block("Usage:     {0}config bot-type Type\n".format(self.__prefix))
             string += preformatted_block("Current:   {0}\n".format(self.__config.guild_info.bot_type))
-            string += preformatted_block("Supported: essential monolith community")
+            string += preformatted_block("Supported: Essential Monolith Community")
             embed.add_field("bot-type", string, False)
             # server-side
             string = "Set ingame server and side data required by some addons\n"
@@ -659,9 +659,9 @@ class DKPBot:
             embed.add_field("guild-name", string, False)
             # team
             string = "Register current channel to handle specified team number\n"
-            string += preformatted_block("Usage:     {0}config team id".format(self.__prefix))
+            string += preformatted_block("Usage:     {0}config team Id".format(self.__prefix))
             num_teams = len(self.__channel_team_map)
-            string += preformatted_block("Current:")
+            string += preformatted_block("Current:") + "\n"
             if num_teams > 0:
                 for channel, team in self.__channel_team_map.items():
                     string += "`{1}` <#{0}>\n".format(channel, team)
@@ -671,7 +671,7 @@ class DKPBot:
             # register
             string = "Register current channel as the only one on which lua saved variable upload will be accepted\n"
             string += preformatted_block("Usage:     {0}config register".format(self.__prefix))
-            string += preformatted_block("Current:")
+            string += preformatted_block("Current:") + "\n"
             if self.__config.guild_info.bot_type == 0:
                 string += "`any`"
             else:
