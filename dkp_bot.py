@@ -630,74 +630,80 @@ class DKPBot:
             # string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
             # string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
             embed = RawEmbed()
-            embed.build(None, "Supported commands", None, None, 16553987, "[WoW DKP Bot Discord](https://discord.gg/t42qW4j)")
+            embed.build(None, "Available configurations", None, None, 16553987, None)
             # bot-type
-            string = "```Set bot type to handle specified addon```"
-            
-            string += "`Current:   ` {0}\n".format(self.__config.guild_info.bot_type)
+            string = "Set bot type to handle specified addon\n"
+            string += "```"
+            string += "Usage:     {0}config bot-type essential".format(self.__prefix)
+            string += "Current:   {0}\n".format(self.__config.guild_info.bot_type)
             string += "Supported: essential monolith community\n"
-            string += "Example:   {0}config bot-type essential".format(self.__prefix)
-            
+            string += "```"
             embed.add_field("bot-type", string, False)
             # server-side
-            string = "```Set ingame server and side data required by some addons```"
-            
+            string = "Set ingame server and side data required by some addons\n"
+            string += "```"
+            string += "Usage:     {0}config server-side MirageRaceway Alliance".format(self.__prefix)
             data = self.__config.guild_info.server_side.split("-")
             if len(data) == 2:
-                string += "`Current:   ` {0}\n".format(' '.join(word.capitalize() for word in data))
+                string += "Current:   {0}".format(' '.join(word.capitalize() for word in data))
             else:
-                string += "`Current:   ` not set\n"
-            string += "Example:   {0}config server-side MirageRaceway Alliance".format(self.__prefix)
-            
+                string += "Current:   not set"
+            string += "```"
             embed.add_field("server-side", string, False)
             # guild-name
-            string = "```Set ingame guild name required by some addons```"
-            
+            string = "Set ingame guild name required by some addons\n"
+            string += "```"
+            string += "Usage:     {0}config guild-name Some Guild".format(self.__prefix)
             data = self.__config.guild_info.guild_name
             if len(data) == 2:
-                string += "`Current:   ` {0}".format(' '.join(word.capitalize() for word in data))
+                string += "Current:   {0}".format(' '.join(word.capitalize() for word in data))
             else:
-                string += "`Current:   ` not set"
-            string += "Example:   {0}config guild-name Some Guild".format(self.__prefix)
-            
+                string += "Current:   not set"
+            string += "```"
             embed.add_field("guild-name", string, False)
             # team
-            string = "```Register current channel to handle specified team number```"
-            
+            string = "`Register current channel to handle specified team number\n"
+            string += "```"
+            string += "Usage:     {0}config team 0".format(self.__prefix)
+            string += "```"
             num_teams = len(self.__channel_team_map)
-            string += "`Current:   ` \n"
+            string += "```"
+            string += "Current:"
+            string += "```"
             if num_teams > 0:
                 for channel, team in self.__channel_team_map.items():
-                    string += "{1}: <#{0}>\n".format(channel, team)
+                    string += "<#{0}> `{1}`\n".format(channel, team)
             else:
-                string += "none\n"
-            string += "Example:   {0}config team 0".format(self.__prefix)
-            
+                string += "`none`\n"
+            string += "```"
             embed.add_field("team", string, False)
             # register
-            string = "```Register current channel as the only one on which lua saved variable upload will be accepted```"
-            
+            string = "Register current channel as the only one on which lua saved variable upload will be accepted\n"
+            string += "```"
             if self.__config.guild_info.bot_type == 0:
-                string += "`Current:   ` any\n"
+                string += "Current:   any\n"
             else:
-                string += "`Current:   ` <#{0}>\n".format(self.__config.guild_info.file_upload_channel)
-            string += "Example:   {0}config register".format(self.__prefix)
-            
+                string += "Current:   <#{0}>\n".format(self.__config.guild_info.bot_type)
+            string += "Usage:     {0}config register".format(self.__prefix)
+            string += "```"
             embed.add_field("register", string, False)
             # prefix
-            string = "```Change bot prefix```"
-            
-            string += "`Current:   ` {0}\n".format(self.__prefix)
+            string = "Change bot prefix\n"
+            string += "```"
+            string += "Current:   {0}\n".format(self.__prefix)
             string += "Supported: {0}\n".format(' '.join(self.get_supported_prefixes()))
-            string += "Example:   {0}config register".format(self.__prefix)
-            
+            string += "Usage:     {0}config prefix !".format(self.__prefix)
+            string += "```"
             embed.add_field("prefix", string, False)
             # default
-            string = "```Instantly reset bot configuration to default - this also resets prefix and bot type```"
-            
-            string += "Example:   {0}config default".format(self.__prefix)
-            
+            string = "Instantly reset bot configuration to default - this also resets `prefix` and `bot type`\n"
+            string += "```"
+            string += "Usage:     {0}config default".format(self.__prefix)
+            string += "```"
             embed.add_field("default", string, False)
+
+            # Pseudo-Footer: Discord link
+            embed.add_field("\u200b", "[WoW DKP Bot Discord](https://discord.gg/t42qW4j)", False)
 
             return Response(ResponseStatus.SUCCESS, embed.get())
         return Response(ResponseStatus.IGNORE)
