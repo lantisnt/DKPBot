@@ -672,7 +672,7 @@ class DKPBot:
             string = "Register current channel as the only one on which lua saved variable upload will be accepted\n"
             string += preformatted_block("Usage:     {0}config register".format(self.__prefix))
             string += preformatted_block("Current:") + "\n"
-            if self.__config.guild_info.bot_type == 0:
+            if self.__config.guild_info.file_upload_channel == 0:
                 string += "`any`"
             else:
                 string += "<#{0}>".format(self.__config.guild_info.file_upload_channel)
