@@ -630,31 +630,31 @@ class DKPBot:
             # string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
             # string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
             embed = RawEmbed()
-            embed.build(None, "Available configurations", None, None, 16553987, None)
+            embed.build(None, "Available configurations", "All command and values are case insensitive", None, 16553987, None)
             # bot-type
             string = "Set bot type to handle specified addon\n"
             string += preformatted_block("Usage:     {0}config bot-type Type\n".format(self.__prefix))
-            string += preformatted_block("Current:   {0}\n".format(self.__config.guild_info.bot_type))
-            string += preformatted_block("Supported: Essential Monolith Community")
+            string += preformatted_block("Current:   {0}\n".format(self.__config.guild_info.bot_type).lower())
+            string += preformatted_block("Supported: essential monolith community")
             embed.add_field("bot-type", string, False)
             # server-side
             string = "Set ingame server and side data required by some addons\n"
             string += preformatted_block("Usage:     {0}config server-side ServerName Side\n".format(self.__prefix))
             data = self.__config.guild_info.server_side.split("-")
             if len(data) == 2:
-                string2 = "Current:   {0}".format(' '.join(word.capitalize() for word in data))
+                string2 = "Current:   {0}".format(' '.join(data).lower())
             else:
-                string2 = "Current:   not set"
+                string2 = "Current:   none"
             string += preformatted_block(string2)
             embed.add_field("server-side", string, False)
             # guild-name
             string = "Set ingame guild name required by some addons\n"
             string += preformatted_block("Usage:     {0}config guild-name Some Guild\n".format(self.__prefix))
             data = self.__config.guild_info.guild_name
-            if len(data) == 2:
-                string2 = "Current:   {0}".format(' '.join(word.capitalize() for word in data))
+            if len(data) > 0:
+                string2 = "Current:   {0}".format(' '.join(data).lower())
             else:
-                string2 = "Current:   not set"
+                string2 = "Current:   none"
             string += preformatted_block(string2)
             embed.add_field("guild-name", string, False)
             # team
