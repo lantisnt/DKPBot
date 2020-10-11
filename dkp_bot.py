@@ -634,15 +634,15 @@ class DKPBot:
             # bot-type
             string = "Set bot type to handle specified addon\n"
             string += "```"
-            string += "Usage:     {0}config bot-type essential".format(self.__prefix)
+            string += "Usage:     {0}config bot-type <type>\n".format(self.__prefix)
             string += "Current:   {0}\n".format(self.__config.guild_info.bot_type)
-            string += "Supported: essential monolith community\n"
+            string += "Supported: essential monolith community"
             string += "```"
             embed.add_field("bot-type", string, False)
             # server-side
             string = "Set ingame server and side data required by some addons\n"
             string += "```"
-            string += "Usage:     {0}config server-side MirageRaceway Alliance".format(self.__prefix)
+            string += "Usage:     {0}config server-side ServerName Side\n".format(self.__prefix)
             data = self.__config.guild_info.server_side.split("-")
             if len(data) == 2:
                 string += "Current:   {0}".format(' '.join(word.capitalize() for word in data))
@@ -653,7 +653,7 @@ class DKPBot:
             # guild-name
             string = "Set ingame guild name required by some addons\n"
             string += "```"
-            string += "Usage:     {0}config guild-name Some Guild".format(self.__prefix)
+            string += "Usage:     {0}config guild-name Some Guild\n".format(self.__prefix)
             data = self.__config.guild_info.guild_name
             if len(data) == 2:
                 string += "Current:   {0}".format(' '.join(word.capitalize() for word in data))
@@ -662,10 +662,10 @@ class DKPBot:
             string += "```"
             embed.add_field("guild-name", string, False)
             # team
-            string = "`Register current channel to handle specified team number\n"
+            string = "Register current channel to handle specified team number\n"
             string += "```"
-            string += "Usage:     {0}config team 0".format(self.__prefix)
-            string += "```"
+            string += "Usage:     {0}config team id".format(self.__prefix)
+            string += "``` "
             num_teams = len(self.__channel_team_map)
             string += "```"
             string += "Current:"
@@ -680,19 +680,22 @@ class DKPBot:
             # register
             string = "Register current channel as the only one on which lua saved variable upload will be accepted\n"
             string += "```"
-            if self.__config.guild_info.bot_type == 0:
-                string += "Current:   any\n"
-            else:
-                string += "Current:   <#{0}>\n".format(self.__config.guild_info.bot_type)
             string += "Usage:     {0}config register".format(self.__prefix)
             string += "```"
+            string += " ```"
+            string += "Current:"
+            string += "```"
+            if self.__config.guild_info.bot_type == 0:
+                string += "`any`"
+            else:
+                string += "<#{0}>\n".format(self.__config.guild_info.bot_type)
             embed.add_field("register", string, False)
             # prefix
             string = "Change bot prefix\n"
             string += "```"
+            string += "Usage:     {0}config prefix !".format(self.__prefix)
             string += "Current:   {0}\n".format(self.__prefix)
             string += "Supported: {0}\n".format(' '.join(self.get_supported_prefixes()))
-            string += "Usage:     {0}config prefix !".format(self.__prefix)
             string += "```"
             embed.add_field("prefix", string, False)
             # default
