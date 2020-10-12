@@ -741,6 +741,9 @@ class DKPBot:
             string += "```swift\nExample:\n\n.config loot-history multiple-columns True```"
             embed.add_field("\u200b", string, False)
 
+            # Pseudo-Footer: Discord link
+            embed.add_field("\u200b", get_bot_links(), False)
+
             return Response(ResponseStatus.SUCCESS, embed.get())
 
         if num_params >= 3:
