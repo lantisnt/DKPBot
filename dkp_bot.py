@@ -828,7 +828,7 @@ class DKPBot:
             new = self.__config.guild_info.server_side
             if new == value:
                 self._reconfigure()
-                return Response(ResponseStatus.SUCCESS, BasicSuccess('Serve-side data set to `{0} {1}`'.format(server, side)).get())
+                return Response(ResponseStatus.SUCCESS, BasicSuccess('Server-side data set to `{0} {1}`'.format(server, side)).get())
             else:
                 return Response(ResponseStatus.ERROR, 'Unexpected error during server-side change.')
         else:

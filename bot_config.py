@@ -145,8 +145,8 @@ class DisplayConfig(object):
                 supported_values_string = " {0}".format(supported_values)
 
             current = attributes[attr]
-#            if isinstance(current, bool):
-#                current = "True" if current else "False"
+            if isinstance(current, bool):
+                current = "True" if current else "False"
 
             string += row_format.format(attr.replace("_", "-"), current, supported_values_string) + "\n"
         return string
