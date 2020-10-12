@@ -10,6 +10,7 @@ from bot_config import BotConfig
 import bot_memory_manager
 from display_templates import get_bot_links, preformatted_block, RawEmbed, BasicError, BasicSuccess, BasicAnnouncement
 
+
 class ResponseStatus(Enum):
     SUCCESS = 0
     ERROR = 1
@@ -61,7 +62,7 @@ class DKPBot:
         self.__guild_id = int(guild_id)
         self.__channel = 0
         self.__announcement_channel = 0
-        self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
+        self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
         self.__channel_team_map = {}
         self.__db_loaded = False
@@ -71,9 +72,9 @@ class DKPBot:
             'group': {},   # Database for all grouped data. Indexed by group name. Sorted by DKP value descending
             'time': 0,
             'info': {
-                'comment' : '',
-                'date' : '',
-                'author' : ''
+                'comment': '',
+                'date': '',
+                'author': ''
             }
         }
 
@@ -164,7 +165,7 @@ class DKPBot:
         self.__db = {}
         self.__db_loaded = False
 
-    ## Class related
+    # Class related
     def __decode_aliases(self, groups):
         # Always allow querying all
         if 'all' in groups:
@@ -210,7 +211,7 @@ class DKPBot:
 
         return new_groups
 
-    ### Team related
+    # Team related
     def _get_channel_team_mapping(self, channel_id):
         team = self.__channel_team_map.get(str(channel_id))
         if team is None:
@@ -347,11 +348,11 @@ class DKPBot:
         return team_data['history'].get(player.lower())
 
     def __init_team_structure(self, team):
-        self.__db['global'][team]  = {}
-        self.__db['global'][team]['dkp']  = {}
-        self.__db['global'][team]['loot']  = []
-        self.__db['global'][team]['player_loot']  = {}
-        self.__db['global'][team]['history']  = {}
+        self.__db['global'][team] = {}
+        self.__db['global'][team]['dkp'] = {}
+        self.__db['global'][team]['loot'] = []
+        self.__db['global'][team]['player_loot'] = {}
+        self.__db['global'][team]['history'] = {}
         self.__db['group'][team] = {}
 
     def _set_dkp(self, player, entry, team):
@@ -583,7 +584,7 @@ class DKPBot:
 
         return Response(ResponseStatus.SUCCESS, BasicSuccess("Database building complete.").get())
 
-    ### Setting Handlers
+    # Setting Handlers
     def __set_config(self, group, config, value):
         internal_group = getattr(self.__config, group, None)
         if internal_group:
@@ -602,7 +603,7 @@ class DKPBot:
 
         return False
 
-    def __set_config_specific(self, config, value): # pylint: disable=unused-argument
+    def __set_config_specific(self, config, value):  # pylint: disable=unused-argument
         return "Invalid value"
 
     ### Command related ###
@@ -618,11 +619,59 @@ class DKPBot:
 
         return string.rstrip(", ")
 
-
     ### Command callbacks ###
 
-    def call_help(self, param, request_info): # pylint: disable=unused-argument
-        return Response(ResponseStatus.IGNORE)
+    def call_help(self, param, request_info):  # pylint: disable=unused-argument
+        embed = RawEmbed()
+        embed.build(None, "Commands", "WoW DKP Bot allows players access thier DKP information."
+                    "All commands and values are case insensitive.\n"
+                    "You can also preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM.\n"
+                    "Your request will be removed by the bot afterwards.".format(self.__prefix), None, 16553987, None)
+        # Basic
+        help_string = '`{0}` Display this help. You can also get it by @mentioning the bot.\n'.format(self.get_prefix() + "help")
+        help_string = '`{0}` Get basic informations about the bot.\n'.format(self.get_prefix() + "info")
+        embed.add_field("General", help_string, False)
+        # DKP
+        help_string = '`{0}` Display dkp list for all active players. Players are assumed active if they gained positive DKP within last 45 days.\n'.format(
+            self.get_prefix() + "dkp all")
+        help_string += '`{0}` Display summary information for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format(
+            self.get_prefix() + "dkp")
+        help_string += '`{0}` Display summary information for specified `player`.\n'.format(
+            self.get_prefix() + "dkp player")
+        help_string += '`{0}` Display current DKP for multiple playeres, classes or aliases mixed together.'.format(
+            self.get_prefix() + "dkp class alias player")
+        help_string += 'Supported aliases: `all tanks healers dps casters physical ranged melee`'
+        help_string += '`Example: {0}dkp janedoe someguy healers mage`\n'.format(self.__prefix)
+        help_string += '```Supporter only command.```'
+        embed.add_field("DKP", help_string, False)
+        # History
+        help_string = '`{0}` Display DKP history for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format(
+            self.get_prefix() + "dkphistory")
+        help_string += '`{0}` Display DKP history  for specified `player`.\n'.format(
+            self.get_prefix() + "dkphistory player")
+        help_string += '`{0}` Display latest loot for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format(
+            self.get_prefix() + "loot")
+        help_string += '`{0}` Display latest loot  for specified `player`.\n'.format(
+            self.get_prefix() + "loot player")
+        embed.add_field("History", help_string, False)
+        # Items - Supporter only
+        help_string = '```Supporter only commands.```'
+        help_string += '`{0}` Display latest 30 loot entries from raids.\n'.format(
+            self.get_prefix() + "raidloot")
+        help_string += '`{0}` Find loot entries matching `name`. May be a partial match.\n'.format(
+            self.get_prefix() + "item name")
+        embed.add_field("Items", help_string, False)
+        # Administration
+        if request_info['is_privileged']:
+            help_string = '```Administrator only options:```'
+            help_string += '`{0}` Generic bot config.\n'.format(
+                self.get_prefix() + "config")
+            help_string += '`{0}` Display related config.'.format(
+                self.get_prefix() + "display")
+        embed.add_field("Administration", help_string, False)
+        # Pseudo-Footer: Discord link
+        embed.add_field("\u200b", get_bot_links(), False)
+        return Response(ResponseStatus.SUCCESS, embed.get())
 
     def call_config(self, param, request_info):
         if not request_info.get('is_privileged'):
@@ -727,7 +776,8 @@ class DKPBot:
         if num_params <= 1:
             display_info = self.__config.get_configs_data()
             embed = RawEmbed()
-            embed.build(None, "Available display settings", "Configure number of data displayed in single request. All commands and values are case insensitive.", None, 16553987, None)
+            embed.build(None, "Available display settings",
+                        "Configure number of data displayed in single request. All commands and values are case insensitive.", None, 16553987, None)
 
             for category, data in display_info.items():
                 string = ""
@@ -812,12 +862,12 @@ class DKPBot:
     def config_call_register(self, params, num_params, request_info):
         self.__register_file_upload_channel(request_info['channel'])
         return Response(ResponseStatus.SUCCESS,
-            BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel'])).get())
+                        BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel'])).get())
 
     def config_call_announcement(self, params, num_params, request_info):
         self.__register_announcement_channel(request_info['channel'])
         return Response(ResponseStatus.SUCCESS,
-            BasicSuccess('Registered channel <#{0}> to announce updated DKP standings'.format(request_info['channel'])).get())
+                        BasicSuccess('Registered channel <#{0}> to announce updated DKP standings'.format(request_info['channel'])).get())
 
     def config_call_server_side(self, params, num_params, request_info):
         if num_params == 3:

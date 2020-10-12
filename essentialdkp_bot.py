@@ -2,7 +2,7 @@ import re
 
 from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
-from display_templates import BasicError, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
+from display_templates import RawEmbed, BasicError, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
 
 
 class EssentialDKPBot(DKPBot):
@@ -354,47 +354,6 @@ class EssentialDKPBot(DKPBot):
             self._db_get_info())
 
     ### Commands ###
-
-    def call_help(self, param, request_info):  # pylint: disable=unused-argument
-        help_string = 'WoW DKP Bot allows access to dkp information.\n'
-        help_string += 'Currently supported commands:\n'
-        help_string += '**{0}**\n Display this help. You can also get it by @mentioning the bot.\n'.format(self.get_prefix() + "help")
-
-        help_string += '**{0}**\n Display dkp list for all active players.\n'.format(
-            self.get_prefix() + "dkp all")
-        help_string += '**{0}**\n Display summary information of the requester.\n'.format(
-            self.get_prefix() + "dkp")
-        help_string += '**{0}**\n Display summary information of [player].\n'.format(
-            self.get_prefix() + "dkp player")
-
-        help_string += '**{0}**\n Display DKP history of the requester.\n'.format(
-            self.get_prefix() + "dkphistory ")
-        help_string += '**{0}**\n Display DKP history of [player].\n'.format(
-            self.get_prefix() + "dkphistory player")
-        help_string += '**{0}**\n Display latest loot of the requester.\n'.format(
-            self.get_prefix() + "loot")
-        help_string += '**{0}**\n Display latest loot of [player].\n'.format(
-            self.get_prefix() + "loot player")
-        help_string += '\n\n'
-        help_string += 'Supporter only options:\n'
-        help_string += '**{0}**\n Display current DKP for player, class or alias mixed together.'.format(
-            self.get_prefix() + "dkp class alias player")
-        help_string += 'Supported aliases: all, tanks, healers, dps, casters, physical, ranged, melee.'
-        help_string += 'Example: !dkp shadowlifes healers mage\n'
-        help_string += '**{0}**\n Display latest 30 loot entries from raids.\n'.format(
-            self.get_prefix() + "raidloot")
-        help_string += '**{0}**\n Find loot entries matching __name__.\n'.format(
-            self.get_prefix() + "item name")
-        help_string += 'You can also preceed any command with **double prefix !!** instead of single one to get the response in DM.'
-        help_string += 'Your request will be removed by the bot afterwards if it has proper accesses.\n'
-        if request_info['is_privileged']:
-            help_string += '\n\n'
-            help_string += 'Administrator only options:\n'
-            help_string += '**{0}**\n Generic bot config.\n'.format(
-                self.get_prefix() + "config")
-            help_string += '**{0}**\n Display related config.'.format(
-                self.get_prefix() + "display")
-        return Response(ResponseStatus.SUCCESS, help_string)
 
     def call_dkp(self, param, request_info):
         if not self.is_database_loaded():
