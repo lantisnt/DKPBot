@@ -2,7 +2,7 @@ import re
 
 from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
-from display_templates import SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
+from display_templates import BasicError, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
 
 
 class EssentialDKPBot(DKPBot):
@@ -398,7 +398,7 @@ class EssentialDKPBot(DKPBot):
 
     def call_dkp(self, param, request_info):
         if not self.is_database_loaded():
-            return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
+            return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
         targets = self._parse_param(param)
         output_result_list = []
@@ -417,7 +417,7 @@ class EssentialDKPBot(DKPBot):
                             if info and isinstance(info, PlayerInfo):
                                 output_result_list.append(info)
         else:
-            return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
+            return Response(ResponseStatus.ERROR, BasicError("Unable to find data for {0}.".format(param)).get())
 
         if len(output_result_list) == 1:
             data = self.__build_dkp_output_single(output_result_list[0])
@@ -425,14 +425,14 @@ class EssentialDKPBot(DKPBot):
             output_result_list.sort(key=lambda info: info.dkp(), reverse=True)
             data = self.__build_dkp_output_multiple(output_result_list, request_info.get('name'))
         else:
-            data = "{0}'s DKP was not found in database.".format(
-                param.capitalize())
+            data = BasicError("{0}'s DKP was not found in database.".format(
+                param.capitalize())).get()
 
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_dkphistory(self, param, request_info):  # pylint: disable=unused-argument
         if not self.is_database_loaded():
-            return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
+            return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
         targets = self._parse_param(param)
         output_result_list = []
@@ -451,14 +451,14 @@ class EssentialDKPBot(DKPBot):
         if len(output_result_list) > 0:
             data = self.__build_history_output_multiple(output_result_list)
         else:
-            data = "{0}'s DKP history was not found in database.".format(
-                param.capitalize())
+            data = BasicError("{0}'s DKP history was not found in database.".format(
+                param.capitalize())).get()
 
         return Response(ResponseStatus.SUCCESS, data)
 
     def call_loot(self, param, request_info):  # pylint: disable=unused-argument
         if not self.is_database_loaded():
-            return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
+            return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
         targets = self._parse_param(param)
         output_result_list = []
@@ -477,8 +477,8 @@ class EssentialDKPBot(DKPBot):
         if len(output_result_list) > 0:
             data = self.__build_player_loot_output_multiple(output_result_list)
         else:
-            data = "{0}'s DKP loot was not found in database.".format(
-                param.capitalize())
+            data = BasicError("{0}'s DKP loot was not found in database.".format(
+                param.capitalize())).get()
 
         return Response(ResponseStatus.SUCCESS, data)
 
@@ -487,14 +487,14 @@ class EssentialDKPBot(DKPBot):
             return Response(ResponseStatus.IGNORE)
 
         if not self.is_database_loaded():
-            return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
+            return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
         output_result_list = self._get_loot(self._get_channel_team_mapping(request_info['channel']))
 
         if len(output_result_list) > 0:
             data = self.__build_loot_output_multiple(output_result_list)
         else:
-            data = "Unable to find data loot data."
+            data = BasicError("Unable to find data loot data.").get()
 
         return Response(ResponseStatus.SUCCESS, data)
 
@@ -503,16 +503,16 @@ class EssentialDKPBot(DKPBot):
             return Response(ResponseStatus.IGNORE)
 
         if not self.is_database_loaded():
-            return Response(ResponseStatus.SUCCESS, "Database does not exist. Please upload .lua file.")
+            return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
         if len(param) < 3:
-            return Response(ResponseStatus.SUCCESS, "Query too short. Please specify at least 3 letters.")
+            return Response(ResponseStatus.SUCCESS, BasicError("Query too short. Please specify at least 3 letters.").get())
 
         output_result_list = self._find_loot(param, self._get_channel_team_mapping(request_info['channel']))
 
         if len(output_result_list) > 0:
             data = self.__build_item_search_output_multiple(output_result_list)
         else:
-            data = "No loot matching `{0}` found.".format(param)
+            data = BasicError("No loot matching `{0}` found.".format(param)).get()
 
         return Response(ResponseStatus.SUCCESS, data)

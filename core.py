@@ -10,6 +10,7 @@ import dkp_bot
 import bot_factory
 import bot_memory_manager
 from bot_config import BotConfig
+from display_templates import BasicSuccess
 
 import footprint
 
@@ -229,6 +230,9 @@ async def on_message(message):
         if isinstance(message.channel, discord.DMChannel):
             return
 
+        # Add per-server ratelimiting
+
+
         # Check if we have proper bot for the requester
         bot = bots.get(message.guild.id)
         if not isinstance(bot, dkp_bot.DKPBot):
@@ -269,7 +273,7 @@ async def on_message(message):
                 if response.data == dkp_bot.Request.RESPAWN:
                     response_channel = await discord_get_response_channel(message, response.direct_message)
                     await spawn_bot(message.guild) # Respawn bot
-                    await discord_respond(response_channel, "Complete")
+                    await discord_respond(response_channel, BasicSuccess("Bot created successfuly").get())
                 else:
                     print("Requested but not respawn. This should not happen atm")
 

@@ -8,7 +8,7 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 import bot_memory_manager
-from display_templates import get_bot_links, preformatted_block, RawEmbed
+from display_templates import get_bot_links, preformatted_block, RawEmbed, BasicError, BasicSuccess
 
 class ResponseStatus(Enum):
     SUCCESS = 0
@@ -553,15 +553,15 @@ class DKPBot:
         for team in self.__db['global']:
             for table in team:
                 if len(table) <= 0:
-                    return Response(ResponseStatus.SUCCESS, "Database building failed.")
+                    return Response(ResponseStatus.SUCCESS, BasicError("Database building failed.").get())
 
         for team in self.__db['group']:
             if len(team) <= 0:
-                return Response(ResponseStatus.SUCCESS, "Database building failed.")
+                return Response(ResponseStatus.SUCCESS, BasicError("Database building failed.").get())
 
         self.__db_loaded = True
 
-        return Response(ResponseStatus.SUCCESS, "Database building complete.")
+        return Response(ResponseStatus.SUCCESS, BasicSuccess("Database building complete.").get())
 
     ### Setting Handlers
     def __list_configs(self):
@@ -661,20 +661,20 @@ class DKPBot:
             string = "Register current channel to handle specified team number\n"
             string += preformatted_block("Usage:     {0}config team Id".format(self.__prefix))
             num_teams = len(self.__channel_team_map)
-            string += preformatted_block("Current:") + "\n"
             if num_teams > 0:
+                string += preformatted_block("Current:") + "\n"
                 for channel, team in self.__channel_team_map.items():
-                    string += "`{1}` <#{0}>\n".format(channel, team)
+                    string += "`Team {1}` <#{0}>\n".format(channel, team)
             else:
-                string += "`none`\n"
+                string += preformatted_block("Current:   none") + "\n"
             embed.add_field("team", string, False)
             # register
             string = "Register current channel as the only one on which lua saved variable upload will be accepted\n"
             string += preformatted_block("Usage:     {0}config register".format(self.__prefix))
-            string += preformatted_block("Current:") + "\n"
             if self.__config.guild_info.file_upload_channel == 0:
-                string += "`any`"
+                string += preformatted_block("Current:   any")
             else:
+                string += preformatted_block("Current:") + "\n"
                 string += "<#{0}>".format(self.__config.guild_info.file_upload_channel)
             embed.add_field("register", string, False)
             # prefix
@@ -713,13 +713,13 @@ class DKPBot:
                 if self.__set_config(category, config, value):
                     self.__config.store()
                     self._configure()
-                    return Response(ResponseStatus.SUCCESS, "Successfuly set **{0} {1}** to **{2}**".format(param[0], param[1], param[2]))
+                    return Response(ResponseStatus.SUCCESS, BasicSuccess("Successfuly set **{0} {1}** to **{2}**".format(param[0], param[1], param[2])).get())
                 else:
-                    return Response(ResponseStatus.SUCCESS, "Unsupported value **{2}** provided for **{0} {1}**".format(param[0], param[1], param[2]))
+                    return Response(ResponseStatus.SUCCESS, BasicError("Unsupported value **{2}** provided for **{0} {1}**".format(param[0], param[1], param[2])).get())
             else:
-                return Response(ResponseStatus.SUCCESS, "Invalid category **{0}**".format(param[0]))
+                return Response(ResponseStatus.SUCCESS, BasicError("Invalid category **{0}**".format(param[0])).get())
 
-        return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+        return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     ### Config handlers ###
 
@@ -741,9 +741,9 @@ class DKPBot:
                 else:
                     return Response(ResponseStatus.ERROR, 'Unexpected error during bot type setup')
             else:
-                return Response(ResponseStatus.SUCCESS, 'Unsupported bot type')
+                return Response(ResponseStatus.SUCCESS, BasicError('Unsupported bot type').get())
         else:
-            return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+            return Response(ResponseStatus.SUCCESS, BasicSuccess("Invalid number of parameters").get())
 
     def config_call_prefix(self, params, num_params, request_info):
         if num_params == 2:
@@ -753,13 +753,13 @@ class DKPBot:
                 new = self.__config.guild_info.prefix
                 if new == value:
                     self._reconfigure()
-                    return Response(ResponseStatus.SUCCESS, 'Set prefix to `{0}`'.format(value))
+                    return Response(ResponseStatus.SUCCESS, BasicSuccess('Set prefix to `{0}`'.format(value)).get())
                 else:
                     return Response(ResponseStatus.ERROR, 'Unexpected error during prefix change')
             else:
-                return Response(ResponseStatus.SUCCESS, 'Unsupported prefix')
+                return Response(ResponseStatus.SUCCESS, BasicError('Unsupported prefix').get())
         else:
-            return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+            return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_default(self, params, num_params, request_info):
         self.__config.default()
@@ -771,7 +771,7 @@ class DKPBot:
     def config_call_register(self, params, num_params, request_info):
         self.__register_file_upload_channel(request_info['channel'])
         return Response(ResponseStatus.SUCCESS,
-            'Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel']))
+            BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel'])).get())
 
     def config_call_server_side(self, params, num_params, request_info):
         if num_params == 3:
@@ -779,40 +779,40 @@ class DKPBot:
             side = params[2]
             value = "{0}-{1}".format(server, side).lower()
             if len(value) > 50:
-                return Response(ResponseStatus.ERROR, 'Data is too long.')
+                return Response(ResponseStatus.SUCCESS, BasicError('Data is too long.').get())
 
             self.__config.guild_info.server_side = value
             new = self.__config.guild_info.server_side
             if new == value:
                 self._reconfigure()
-                return Response(ResponseStatus.SUCCESS, 'Serve-side data set to `{0} {1}`'.format(server, side))
+                return Response(ResponseStatus.SUCCESS, BasicSuccess('Serve-side data set to `{0} {1}`'.format(server, side)).get())
             else:
                 return Response(ResponseStatus.ERROR, 'Unexpected error during server-side change.')
         else:
-            return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+            return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_guild_name(self, params, num_params, request_info):
         if num_params >= 2:
             value = ' '.join(params[1:])
             if len(value) > 50:
-                return Response(ResponseStatus.ERROR, 'Data is too long.')
+                return Response(ResponseStatus.ERROR, BasicError('Data is too long.').get())
 
             self.__config.guild_info.guild_name = value
             new = self.__config.guild_info.guild_name
             if new == value:
                 self._reconfigure()
-                return Response(ResponseStatus.SUCCESS, 'Guild Name set to `{0}`'.format(value))
+                return Response(ResponseStatus.SUCCESS, BasicSuccess('Guild Name set to `{0}`'.format(value)).get())
             else:
                 return Response(ResponseStatus.ERROR, 'Unexpected error during guild name change.')
         else:
-            return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+            return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_team(self, params, num_params, request_info):
         if num_params == 2:
             success = self._set_channel_team_mapping(request_info['channel'], params[1])
             if success:
-                return Response(ResponseStatus.SUCCESS, 'Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[1]))
+                return Response(ResponseStatus.SUCCESS, BasicSuccess('Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[1])).get())
             else:
-                return Response(ResponseStatus.SUCCESS, 'Exceeded maximum number of channels. Please reuse existing one.')
+                return Response(ResponseStatus.SUCCESS, BasicError('Exceeded maximum number of channels. Please reuse existing one.').get())
         else:
-            return Response(ResponseStatus.SUCCESS, "Invalid number of parameters")
+            return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
