@@ -1,3 +1,4 @@
+from dkp_bot import DKPBot
 from essentialdkp_bot import EssentialDKPBot
 from display_templates import SinglePlayerProfile
 
@@ -49,7 +50,7 @@ class CommunityDKPBot(EssentialDKPBot):
 
         if guild_name_key is None:
             return None
-        
+
         return guilds.get(guild_name_key)
 
     # Called 1st
@@ -64,7 +65,7 @@ class CommunityDKPBot(EssentialDKPBot):
                 info = self._generate_player_info(entry)
                 if info is None:
                     continue
-                
+
                 self._set_dkp(info.name(), info, team)
                 self._set_group_dkp(info.ingame_class(), info, team)
 
@@ -101,3 +102,6 @@ class CommunityDKPBot(EssentialDKPBot):
 
         self._sort_history()
         self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
+
+    def config_call_team(self, params, num_params, request_info):
+        return DKPBot.config_call_team(self, params, num_params, request_info)

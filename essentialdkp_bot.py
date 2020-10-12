@@ -516,3 +516,6 @@ class EssentialDKPBot(DKPBot):
             data = BasicError("No loot matching `{0}` found.".format(param)).get()
 
         return Response(ResponseStatus.SUCCESS, data)
+
+    def config_call_team(self, params, num_params, request_info):
+        return Response(ResponseStatus.SUCCESS, BasicError("Multiple teams are not supported.").get())

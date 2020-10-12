@@ -146,7 +146,7 @@ async def discord_respond(channel, responses):
             await channel.send(file=await discord_build_file(response))
 
 
-async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Message, normalized_author: str):
+async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message, normalized_author: str, announce: bool):
     if len(message.attachments) > 0:
         for attachment in message.attachments:
             if bot.check_attachment_name(attachment.filename) and attachment.size < MAX_ATTACHMENT_BYTES:
@@ -159,7 +159,10 @@ async def discord_attachment_parse(bot : dkp_bot.DKPBot, message: discord.Messag
 
                 response = bot.build_database(attachment_bytes.decode('utf-8', errors='replace'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
-                    await discord_respond(message.channel, response.data)
+                    if announce and bot.is_announcement_channel_registered(): # announce
+                        await discord_respond(bot.get_announcement_channel(), bot.get_announcement())
+                    else: # otherwise write short message to upload channel
+                        await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
                     print('ERROR: {0}'.format(response.data))
                 return response.status
@@ -179,7 +182,7 @@ async def spawn_bot(guild):
                 try:  # in case we dont have access we still want to check other channels not die here
                     if (bot.is_channel_registered() and bot.check_channel(channel.id)) or not bot.is_channel_registered():
                         async for message in channel.history(limit=50):
-                            status = await discord_attachment_parse(bot, message, normalize_author(message.author))
+                            status = await discord_attachment_parse(bot, message, normalize_author(message.author), False)
                             if status == dkp_bot.ResponseStatus.SUCCESS:
                                 break
                 except discord.Forbidden:
@@ -280,7 +283,7 @@ async def on_message(message):
         # No command response
         # Check if we have attachment on registered channel
         if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
-            await discord_attachment_parse(bot, message, normalize_author(message.author))
+            await discord_attachment_parse(bot, message, normalize_author(message.author), True)
 
     except (SystemExit, Exception):
         handle_exception(message.content)

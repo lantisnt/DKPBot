@@ -8,7 +8,7 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 import bot_memory_manager
-from display_templates import get_bot_links, preformatted_block, RawEmbed, BasicError, BasicSuccess
+from display_templates import get_bot_links, preformatted_block, RawEmbed, BasicError, BasicSuccess, BasicAnnouncement
 
 class ResponseStatus(Enum):
     SUCCESS = 0
@@ -59,6 +59,8 @@ class DKPBot:
     def __init__(self, guild_id: int, config: BotConfig):
         self.__config = config
         self.__guild_id = int(guild_id)
+        self.__channel = 0
+        self.__announcement_channel = 0
         self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*") # pylint: disable=anomalous-backslash-in-string
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
         self.__channel_team_map = {}
@@ -78,6 +80,7 @@ class DKPBot:
     def _configure(self):
         self.__input_file_name = self.__config.guild_info.filename
         self.__channel = int(self.__config.guild_info.file_upload_channel)
+        self.__announcement_channel = int(self.__config.guild_info.announcement_channel)
         self.__prefix = str(self.__config.guild_info.prefix)
         self.__premium = bool(self.__config.guild_info.premium)
         self.__server_side = self.__config.guild_info.server_side
@@ -103,6 +106,12 @@ class DKPBot:
     def check_channel(self, channel):
         return self.__channel == channel
 
+    def is_announcement_channel_registered(self):
+        return self.__announcement_channel != 0
+
+    def get_announcement_channel(self):
+        return self.__announcement_channel
+
     def check_attachment_name(self, filename):
         return self.__input_file_name == filename
 
@@ -121,6 +130,12 @@ class DKPBot:
     def is_premium(self):
         return self.__premium
 
+    def get_announcement(self):
+        announcement = "DKP standings have just been updated by {0}!\n".format(self.__db['info']['author'])
+        announcement += "```{0}```".format(self.__db['info']['comment'])
+
+        return BasicAnnouncement(announcement).get()
+
     # Config
     def _get_config(self):
         return self.__config
@@ -128,6 +143,11 @@ class DKPBot:
     def __register_file_upload_channel(self, channel):
         self.__channel = channel
         self.__config.guild_info.file_upload_channel = channel
+        self._reconfigure()
+
+    def __register_announcement_channel(self, channel):
+        self.__announcement_channel = channel
+        self.__config.guild_info.announcement_channel = channel
         self._reconfigure()
 
     # Direct access for pickling
@@ -677,6 +697,15 @@ class DKPBot:
                 string += preformatted_block("Current:") + "\n"
                 string += "<#{0}>".format(self.__config.guild_info.file_upload_channel)
             embed.add_field("register", string, False)
+            # announcement
+            string = "Register current channel as announcement channel on which bot will post message on new DKP standings upload\n"
+            string += preformatted_block("Usage:     {0}config announcement".format(self.__prefix))
+            if self.__config.guild_info.announcement_channel == 0:
+                string += preformatted_block("Current:   any")
+            else:
+                string += preformatted_block("Current:") + "\n"
+                string += "<#{0}>".format(self.__config.guild_info.announcement_channel)
+            embed.add_field("announcement", string, False)
             # prefix
             string = "Change bot prefix\n"
             string += preformatted_block("Usage:     {0}config prefix *".format(self.__prefix))
@@ -729,7 +758,7 @@ class DKPBot:
             if value in ['community', 'monolith', 'essential']:
                 current = self.__config.guild_info.bot_type
                 if value == current:
-                    return Response(ResponseStatus.SUCCESS, 'Retaining current bot type')
+                    return Response(ResponseStatus.SUCCESS,  BasicSuccess('Retaining current bot type').get())
 
                 self.__config.guild_info.bot_type = value
                 new = self.__config.guild_info.bot_type
@@ -772,6 +801,11 @@ class DKPBot:
         self.__register_file_upload_channel(request_info['channel'])
         return Response(ResponseStatus.SUCCESS,
             BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel'])).get())
+
+    def config_call_announcement(self, params, num_params, request_info):
+        self.__register_announcement_channel(request_info['channel'])
+        return Response(ResponseStatus.SUCCESS,
+            BasicSuccess('Registered channel <#{0}> to announce updated DKP standings'.format(request_info['channel'])).get())
 
     def config_call_server_side(self, params, num_params, request_info):
         if num_params == 3:

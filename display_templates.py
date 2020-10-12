@@ -14,7 +14,7 @@ def get_class_color(class_name=None):
         return 10204605
 
     class_name = class_name.lower()
-# TODO shaman
+
     if class_name == 'rogue':
         return 16774505
 
@@ -110,7 +110,7 @@ def get_thumbnail(class_name):
         return "https://cdn.discordapp.com/attachments/765089790295015425/765091102545412096/mage.pngx`"
 
     if class_name == 'shaman':
-        return None
+        return "https://cdn.discordapp.com/attachments/765089790295015425/765241408449019914/shaman.png"
 
     return None
 
@@ -239,6 +239,18 @@ class BasicSuccess(RawEmbed):
             message,
             "https://cdn.discordapp.com/attachments/765089790295015425/765113827414245407/check_mark_2.png",
             966400,
+            None)
+        self.add_field("\u200b", get_bot_links(), False)
+
+class BasicAnnouncement(RawEmbed):
+
+    def __init__(self, message):
+        self.build(
+            None,
+            "Success",
+            message,
+            None,
+            get_class_color(),
             None)
         self.add_field("\u200b", get_bot_links(), False)
 

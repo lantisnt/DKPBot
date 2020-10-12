@@ -21,6 +21,7 @@ class BotConfigType(Enum):
 class GuildInfo():
     bot_type = ''
     file_upload_channel = 0
+    announcement_channel = 0
     filename = ''
     prefix = "!"
     premium = False
@@ -28,9 +29,10 @@ class GuildInfo():
     guild_name = ''
     channel_team_map = '{}'
 
-    def __init__(self, bot_type, file_upload_channel, filename, prefix, premium, server_side, guild_name, channel_team_map):
+    def __init__(self, bot_type, file_upload_channel, announcement_channel, filename, prefix, premium, server_side, guild_name, channel_team_map):
         self.bot_type = bot_type
         self.file_upload_channel = file_upload_channel
+        self.announcement_channel = announcement_channel
         self.filename = filename
         self.prefix = prefix
         self.premium = bool(premium)
@@ -163,7 +165,7 @@ class BotConfig():
     __filepath = ""
     __config = None
 
-    guild_info = GuildInfo('essential', 0, 'EssentialDKP.lua', '!', False, '', '','{}')
+    guild_info = GuildInfo('essential', 0, 0, 'EssentialDKP.lua', '!', False, '', '','{}')
     dkp = DisplayConfig(6, 16, 5, True)
     dkp_history = DisplayConfig(1, 10, 1, True)
     loot_history = DisplayConfig(1, 10, 1, True)
@@ -200,6 +202,7 @@ class BotConfig():
         self.guild_info = GuildInfo(
             self.__config.get(group, 'bot_type', fallback='essential'),
             self.__config.getint(group, 'file_upload_channel', fallback=0),
+            self.__config.getint(group, 'announcement_channel', fallback=0),
             self.__config.get(group, 'filename', fallback='EssentialDKP.lua'),
             self.__config.get(group, 'prefix', fallback='!'),
             self.__config.getboolean(group, 'premium', fallback=False),
