@@ -247,7 +247,7 @@ class BasicAnnouncement(RawEmbed):
     def __init__(self, message):
         self.build(
             None,
-            "Success",
+            "Announcement",
             message,
             None,
             get_class_color(),

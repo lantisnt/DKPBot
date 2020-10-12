@@ -584,13 +584,6 @@ class DKPBot:
         return Response(ResponseStatus.SUCCESS, BasicSuccess("Database building complete.").get())
 
     ### Setting Handlers
-    def __list_configs(self):
-        string = str(self.__config)
-        string += "\n"
-        string += "To set new value type:\n"
-        string += "{0}config `category` `config` `value` e.g. `{0}config dkp max-fields 6`".format(self.__prefix)
-        return Response(ResponseStatus.SUCCESS, string)
-
     def __set_config(self, group, config, value):
         internal_group = getattr(self.__config, group, None)
         if internal_group:
@@ -731,8 +724,8 @@ class DKPBot:
         params = list(map(lambda p: p.lower().replace("-", "_"), param))
 
         num_params = len(params)
-        if num_params<= 1:
-            return self.__list_configs() # list current config
+        if num_params <= 1:
+            return Response(ResponseStatus.SUCCESS, self.__config.get_configs_data())
 
         if num_params >= 3:
             category = params[0]

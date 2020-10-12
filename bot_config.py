@@ -8,10 +8,10 @@ from bot_utility import public_to_dict
 DEFAULT_CONFIG = "/var/wowdkpbot-runner/default.ini"
 
 def get_row_format():
-    return  "{0:21} | {1:5} | {2:17}"
+    return  "{0:21} | {1:4} | {2:17}"
 
 def get_row_separator():
-    return "----------------------+-------+------------------"
+    return "----------------------+---------+------------------"
 
 class BotConfigType(Enum):
     SPECIFIC = 0  # Server specific ini
@@ -41,16 +41,16 @@ class GuildInfo():
         self.channel_team_map = channel_team_map
 
 class DisplayConfig(object):
-    __max_fields = 0
-    __max_entries_per_field = 0
-    __max_separate_messages = 0
-    __use_multiple_columns = False
+    __fields = 0
+    __entries_per_field = 0
+    __separate_messages = 0
+    __multiple_columns = False
 
-    def __init__(self, max_fields, max_entries_per_field, max_separate_messages, use_multiple_columns):
-        self.__max_fields = max_fields
-        self.__max_entries_per_field = max_entries_per_field
-        self.__max_separate_messages = max_separate_messages
-        self.__use_multiple_columns = use_multiple_columns
+    def __init__(self, fields, entries_per_field, separate_messages, multiple_columns):
+        self.__fields = fields
+        self.__entries_per_field = entries_per_field
+        self.__separate_messages = separate_messages
+        self.__multiple_columns = bool(multiple_columns)
 
     def __getattr__(self, name):
         if not name.startswith('__get_') and hasattr(self,'__get_' + name):
@@ -68,74 +68,69 @@ class DisplayConfig(object):
             print("ValueError in bot_config")
 
     @staticmethod
-    def __supported_max_fields():
+    def __supported_fields():
         return (1, 9)
 
-    def __get_max_fields(self):
-        return self.__max_fields
+    def __get_fields(self):
+        return self.__fields
 
-    def __set_max_fields(self, max_fields):
-        max_fields = int(max_fields)
-        val = self.__supported_max_fields()
-        if val[0] <= max_fields <= val[1]:
-            self.__max_fields = max_fields
+    def __set_fields(self, fields):
+        fields = int(fields)
+        val = self.__supported_fields()
+        if val[0] <= fields <= val[1]:
+            self.__fields = fields
 
-    max_fields = property(__get_max_fields, __set_max_fields)
+    fields = property(__get_fields, __set_fields)
 
     @staticmethod
-    def __supported_max_entries_per_field():
+    def __supported_entries_per_field():
         return (1, 16)
 
-    def __get_max_entries_per_field(self):
-        return self.__max_entries_per_field
+    def __get_entries_per_field(self):
+        return self.__entries_per_field
 
-    def __set_max_entries_per_field(self, max_entries_per_field):
-        max_entries_per_field = int(max_entries_per_field)
-        val = self.__supported_max_entries_per_field()
-        if val[0] <= max_entries_per_field <= val[1]:
-            self.__max_entries_per_field = max_entries_per_field
+    def __set_entries_per_field(self, entries_per_field):
+        entries_per_field = int(entries_per_field)
+        val = self.__supported_entries_per_field()
+        if val[0] <= entries_per_field <= val[1]:
+            self.__entries_per_field = entries_per_field
 
-    max_entries_per_field = property(__get_max_entries_per_field, __set_max_entries_per_field)
+    entries_per_field = property(__get_entries_per_field, __set_entries_per_field)
 
     @staticmethod
-    def __supported_max_separate_messages():
+    def __supported_separate_messages():
         return (0, 16)
 
-    def __get_max_separate_messages(self):
-        return self.__max_separate_messages
+    def __get_separate_messages(self):
+        return self.__separate_messages
 
-    def __set_max_separate_messages(self, max_separate_messages):
-        max_separate_messages = int(max_separate_messages)
-        val = self.__supported_max_separate_messages()
-        if val[0] <= max_separate_messages <= val[1]:
-            self.__max_separate_messages = max_separate_messages
+    def __set_separate_messages(self, separate_messages):
+        separate_messages = int(separate_messages)
+        val = self.__supported_separate_messages()
+        if val[0] <= separate_messages <= val[1]:
+            self.__separate_messages = separate_messages
 
-    max_separate_messages = property(__get_max_separate_messages, __set_max_separate_messages)
+    separate_messages = property(__get_separate_messages, __set_separate_messages)
 
     @staticmethod
-    def __supported_use_multiple_columns():
+    def __supported_multiple_columns():
         return [True, False]
 
-    def __get_use_multiple_columns(self):
-        return self.__use_multiple_columns
+    def __get_multiple_columns(self):
+        return self.__multiple_columns
 
-    def __set_use_multiple_columns(self, use_multiple_columns):
-        use_multiple_columns = str(use_multiple_columns)
-        if use_multiple_columns.lower() == 'true':
-            self.__use_multiple_columns = True
-        elif use_multiple_columns.lower() == 'false':
-            self.__use_multiple_columns = False
+    def __set_multiple_columns(self, multiple_columns):
+        multiple_columns = str(multiple_columns)
+        if multiple_columns.lower() == 'true':
+            self.__multiple_columns = True
+        elif multiple_columns.lower() == 'false':
+            self.__multiple_columns = False
 
-    use_multiple_columns = property(__get_use_multiple_columns, __set_use_multiple_columns)
+    multiple_columns = property(__get_multiple_columns, __set_multiple_columns)
 
     def __str__(self):
-        string = "```"
         row_format = get_row_format()
-        separator = get_row_separator()
-
-        string += row_format.format("config", "value", "supported values") + "\n"
-        string += separator + "\n"
-
+        string = ""
         attributes = public_to_dict(self)
         for attr in attributes:
             supported_values_string = ""
@@ -152,12 +147,11 @@ class DisplayConfig(object):
             else:
                 supported_values_string = " {0}".format(supported_values)
 
-            string += row_format.format(
-                attr.replace("_", "-"),
-                attributes[attr],
-                supported_values_string
-            ) + "\n"
-        string += "```"
+            current = attributes[attr]
+#            if isinstance(current, bool):
+#                current = "True" if current else "False"
+
+            string += row_format.format(attr.replace("_", "-"), current, supported_values_string) + "\n"
         return string
 
 class BotConfig():
@@ -213,42 +207,42 @@ class BotConfig():
 
         group = 'DKP Display'
         self.dkp = DisplayConfig(
-            self.__config.getint(group, 'max_fields', fallback=1),
-            self.__config.getint(group, 'max_entries_per_field', fallback=1),
-            self.__config.getint(group, 'max_separate_messages', fallback=1),
-            self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
+            self.__config.getint(group, 'fields', fallback=1),
+            self.__config.getint(group, 'entries_per_field', fallback=1),
+            self.__config.getint(group, 'separate_messages', fallback=1),
+            self.__config.getboolean(group, 'multiple_columns', fallback=False)
         )
 
         group = 'DKP History Display'
         self.dkp_history = DisplayConfig(
-            self.__config.getint(group, 'max_fields', fallback=1),
-            self.__config.getint(group, 'max_entries_per_field', fallback=1),
-            self.__config.getint(group, 'max_separate_messages', fallback=1),
-            self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
+            self.__config.getint(group, 'fields', fallback=1),
+            self.__config.getint(group, 'entries_per_field', fallback=1),
+            self.__config.getint(group, 'separate_messages', fallback=1),
+            self.__config.getboolean(group, 'multiple_columns', fallback=False)
         )
 
         group = 'Loot History Display'
         self.loot_history = DisplayConfig(
-            self.__config.getint(group, 'max_fields', fallback=1),
-            self.__config.getint(group, 'max_entries_per_field', fallback=1),
-            self.__config.getint(group, 'max_separate_messages', fallback=1),
-            self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
+            self.__config.getint(group, 'fields', fallback=1),
+            self.__config.getint(group, 'entries_per_field', fallback=1),
+            self.__config.getint(group, 'separate_messages', fallback=1),
+            self.__config.getboolean(group, 'multiple_columns', fallback=False)
         )
 
         group = 'Latest Loot Display'
         self.latest_loot = DisplayConfig(
-            self.__config.getint(group, 'max_fields', fallback=1),
-            self.__config.getint(group, 'max_entries_per_field', fallback=1),
-            self.__config.getint(group, 'max_separate_messages', fallback=1),
-            self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
+            self.__config.getint(group, 'fields', fallback=1),
+            self.__config.getint(group, 'entries_per_field', fallback=1),
+            self.__config.getint(group, 'separate_messages', fallback=1),
+            self.__config.getboolean(group, 'multiple_columns', fallback=False)
         )
 
         group = 'Item Search Display'
         self.item_search = DisplayConfig(
-            self.__config.getint(group, 'max_fields', fallback=1),
-            self.__config.getint(group, 'max_entries_per_field', fallback=1),
-            self.__config.getint(group, 'max_separate_messages', fallback=1),
-            self.__config.getboolean(group, 'use_multiple_columns', fallback=False)
+            self.__config.getint(group, 'fields', fallback=1),
+            self.__config.getint(group, 'entries_per_field', fallback=1),
+            self.__config.getint(group, 'separate_messages', fallback=1),
+            self.__config.getboolean(group, 'multiple_columns', fallback=False)
         )
 
     # Store from config to dictionary
@@ -288,17 +282,23 @@ class BotConfig():
     def get_directly_accessible_configs():
         return ['dkp', 'dkp_history', 'loot_history', 'latest_loot', 'item_search']
 
-    def __str__(self):
+    def get_configs_data(self):
+        configs = {
+            'dkp'          : str(self.dkp),
+            'dkp-history'  : str(self.dkp_history),
+            'loot-history' : str(self.loot_history),
+            'latest-loot'  : str(self.latest_loot),
+            'item-search'  : str(self.item_search)
+        }
+
         string = ""
-        string += "**DKP Display (`dkp`)**" + "\n"
-        string += str(self.dkp)
-        string += "**DKP History Display (`dkp-history`)**" + "\n"
-        string += str(self.dkp_history)
-        string += "**Loot History Display** (`loot-history`)" + "\n"
-        string += str(self.loot_history)
-        string += "**Latest Loot Display** (`latest-loot`)" + "\n"
-        string += str(self.latest_loot)
-        string += "**Item Search Display** (`item-search`)" + "\n"
-        string += str(self.item_search)
+        for category, data in configs.items():
+            string += "```swift\n"
+            string += "Category: {0}\n\n".format(category)
+            string += data
+            string += "```"
+
+        string += "```swift\nUsage:\n\n.config Category Config Value```"
+        string += "```swift\nExample:\n\n.config loot-history multiple-columns True```"
 
         return string
