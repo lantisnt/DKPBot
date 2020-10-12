@@ -160,8 +160,16 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
                 response = bot.build_database(attachment_bytes.decode('utf-8', errors='replace'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     if announce and bot.is_announcement_channel_registered(): # announce
-                        await discord_respond(bot.get_announcement_channel(), bot.get_announcement())
-                    else: # otherwise write short message to upload channel
+                        announcement_channel = None
+                        for channel in message.guild.channels:
+                            if channel.id == bot.get_announcement_channel():
+                                announcement_channel = channel
+                                break
+                        if announcement_channel is not None:
+                            await discord_respond(announcement_channel, bot.get_announcement())
+                        else: # some misshap, handle default way
+                            await discord_respond(message.channel, response.data)
+                    else: # otherwise write standard message to upload channel
                         await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
                     print('ERROR: {0}'.format(response.data))
