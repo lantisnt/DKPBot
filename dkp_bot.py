@@ -667,7 +667,7 @@ class DKPBot:
             help_string += '{0} Generic bot config.\n'.format(
                 preformatted_block(self.get_prefix() + "config"))
             help_string += '{0} Display related config.'.format(
-                preformatted_block((self.get_prefix() + "display"))
+                preformatted_block(self.get_prefix() + "display"))
         embed.add_field("Administration", help_string, False)
         # Pseudo-Footer: Discord link
         embed.add_field("\u200b", get_bot_links(), False)
