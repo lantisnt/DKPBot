@@ -8,10 +8,7 @@ from bot_utility import public_to_dict
 DEFAULT_CONFIG = "/var/wowdkpbot-runner/default.ini"
 
 def get_row_format():
-    return  "{0:21} | {1:4} | {2:17}"
-
-def get_row_separator():
-    return "----------------------+---------+------------------"
+    return  "{0:17} | {1:4} | {2:17}"
 
 class BotConfigType(Enum):
     SPECIFIC = 0  # Server specific ini
@@ -283,22 +280,25 @@ class BotConfig():
         return ['dkp', 'dkp_history', 'loot_history', 'latest_loot', 'item_search']
 
     def get_configs_data(self):
-        configs = {
-            'dkp'          : str(self.dkp),
-            'dkp-history'  : str(self.dkp_history),
-            'loot-history' : str(self.loot_history),
-            'latest-loot'  : str(self.latest_loot),
-            'item-search'  : str(self.item_search)
+        return {
+            'dkp' : {
+                'title' : "Multiple players DKP Display",
+                'value' : str(self.dkp)
+            },
+            'dkp-history' : {
+                'title' : "Player DKP history",
+                'value' : str(self.dkp_history)
+            },
+            'loot-history' : {
+                'title' : "Player loot history",
+                'value' : str(self.loot_history)
+            },
+            'latest-loot' : {
+                'title' : "Latest raid loot",
+                'value' : str(self.latest_loot)
+            },
+            'item-search'  : {
+                'title' : "Item search results",
+                'value' : str(self.item_search)
+            },
         }
-
-        string = ""
-        for category, data in configs.items():
-            string += "```swift\n"
-            string += "Category: {0}\n\n".format(category)
-            string += data
-            string += "```"
-
-        string += "```swift\nUsage:\n\n.config Category Config Value```"
-        string += "```swift\nExample:\n\n.config loot-history multiple-columns True```"
-
-        return string

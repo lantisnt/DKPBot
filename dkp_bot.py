@@ -643,7 +643,7 @@ class DKPBot:
             # string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
             # string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
             embed = RawEmbed()
-            embed.build(None, "Available configurations", "All command and values are case insensitive", None, 16553987, None)
+            embed.build(None, "Available configurations", "All commands and values are case insensitive.", None, 16553987, None)
             # bot-type
             string = "Set bot type to handle specified addon\n"
             string += preformatted_block("Usage:     {0}config bot-type Type\n".format(self.__prefix))
@@ -725,7 +725,23 @@ class DKPBot:
 
         num_params = len(params)
         if num_params <= 1:
-            return Response(ResponseStatus.SUCCESS, self.__config.get_configs_data())
+            display_info = self.__config.get_configs_data()
+            embed = RawEmbed()
+            embed.build(None, "Available display settings", "Configure number of data displayed in single request. All commands and values are case insensitive.", None, 16553987, None)
+
+            for category, data in display_info.items():
+                string = ""
+                string += "```swift\n"
+                string += "Category: {0}\n\n".format(category)
+                string += data['value']
+                string += "```"
+                embed.add_field(data['title'], string, False)
+
+            string = "```swift\nUsage:\n\n.config Category Config Value```"
+            string += "```swift\nExample:\n\n.config loot-history multiple-columns True```"
+            embed.add_field("\u200b", string, False)
+
+            return Response(ResponseStatus.SUCCESS, embed.get())
 
         if num_params >= 3:
             category = params[0]
