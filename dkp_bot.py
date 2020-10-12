@@ -628,7 +628,7 @@ class DKPBot:
                     "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM. "
                     "Request will be removed by the bot afterwards.".format(self.__prefix), None, 16553987, None)
         # Basic
-        help_string  = '{0} Display this help. You can also get it by @mentioning the bot.\n\n'.format(preformatted_block(self.get_prefix() + "help"), '')
+        help_string  = '{0} Display this help. You can also get it by @mentioning the bot.\n\n'.format(preformatted_block(self.get_prefix() + "help", ''))
         help_string += '{0} Get basic informations about the bot.\n\n'.format(preformatted_block(self.get_prefix() + "info", ''))
         embed.add_field("General", help_string, False)
         # DKP
@@ -663,9 +663,9 @@ class DKPBot:
         if request_info['is_privileged']:
             help_string = 'Administrator only options.'
             help_string += '{0} Generic bot config\n\n'.format(
-                preformatted_block(self.get_prefix() + "config"), '')
+                preformatted_block(self.get_prefix() + "config", ''))
             help_string += '{0} Display related config'.format(
-                preformatted_block(self.get_prefix() + "display"), '')
+                preformatted_block(self.get_prefix() + "display", ''))
         embed.add_field("Administration", help_string, False)
         # Pseudo-Footer: Discord link
         embed.add_field("\u200b", get_bot_links(), False)
