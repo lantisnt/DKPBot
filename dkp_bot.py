@@ -624,50 +624,50 @@ class DKPBot:
     def call_help(self, param, request_info):  # pylint: disable=unused-argument
         embed = RawEmbed()
         embed.build(None, "Commands", "WoW DKP Bot allows players access thier DKP information."
-                    "All commands and values are case insensitive.\n"
-                    "You can also preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM.\n"
+                    "All commands and values are case insensitive."
+                    "You can also preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM."
                     "Your request will be removed by the bot afterwards.".format(self.__prefix), None, 16553987, None)
         # Basic
-        help_string = '`{0}` Display this help. You can also get it by @mentioning the bot.\n'.format(self.get_prefix() + "help")
-        help_string = '`{0}` Get basic informations about the bot.\n'.format(self.get_prefix() + "info")
+        help_string  = '{0} Display this help. You can also get it by @mentioning the bot.\n'.format(preformatted_block(self.get_prefix() + "help"))
+        help_string += '{0} Get basic informations about the bot.\n'.format(preformatted_block(self.get_prefix() + "info"))
         embed.add_field("General", help_string, False)
         # DKP
-        help_string = '`{0}` Display dkp list for all active players. Players are assumed active if they gained positive DKP within last 45 days.\n'.format(
-            self.get_prefix() + "dkp all")
-        help_string += '`{0}` Display summary information for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format(
-            self.get_prefix() + "dkp")
-        help_string += '`{0}` Display summary information for specified `player`.\n'.format(
-            self.get_prefix() + "dkp player")
-        help_string += '`{0}` Display current DKP for multiple playeres, classes or aliases mixed together.'.format(
-            self.get_prefix() + "dkp class alias player")
+        help_string = '{0} Display dkp list for all active players. Players are assumed active if they gained positive DKP within last 45 days.\n'.format(
+            preformatted_block(self.get_prefix() + "dkp all"))
+        help_string += '{0} Display summary information for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format(
+            preformatted_block(self.get_prefix() + "dkp"))
+        help_string += '{0} Display summary information for specified `player`.\n'.format(
+            preformatted_block(self.get_prefix() + "dkp player"))
+        help_string += '{0} Display current DKP for multiple playeres, classes or aliases mixed together.'.format(
+            preformatted_block(self.get_prefix() + "dkp class alias player"))
         help_string += 'Supported aliases: `all tanks healers dps casters physical ranged melee`'
         help_string += '`Example: {0}dkp janedoe someguy healers mage`\n'.format(self.__prefix)
         help_string += '```Supporter only command.```'
         embed.add_field("DKP", help_string, False)
         # History
-        help_string = '`{0}` Display DKP history for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format(
-            self.get_prefix() + "dkphistory")
-        help_string += '`{0}` Display DKP history  for specified `player`.\n'.format(
-            self.get_prefix() + "dkphistory player")
-        help_string += '`{0}` Display latest loot for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format(
-            self.get_prefix() + "loot")
-        help_string += '`{0}` Display latest loot  for specified `player`.\n'.format(
-            self.get_prefix() + "loot player")
+        help_string = '{0} Display DKP history for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format(
+            preformatted_block(self.get_prefix() + "dkphistory"))
+        help_string += '{0} Display DKP history  for specified `player`.\n'.format(
+            preformatted_block(self.get_prefix() + "dkphistory player"))
+        help_string += '{0} Display latest loot for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format(
+            preformatted_block(self.get_prefix() + "loot"))
+        help_string += '{0} Display latest loot  for specified `player`.\n'.format(
+            preformatted_block(self.get_prefix() + "loot player"))
         embed.add_field("History", help_string, False)
         # Items - Supporter only
         help_string = '```Supporter only commands.```'
-        help_string += '`{0}` Display latest 30 loot entries from raids.\n'.format(
-            self.get_prefix() + "raidloot")
-        help_string += '`{0}` Find loot entries matching `name`. May be a partial match.\n'.format(
-            self.get_prefix() + "item name")
+        help_string += '{0} Display latest 30 loot entries from raids.\n'.format(
+            preformatted_block(self.get_prefix() + "raidloot"))
+        help_string += '{0} Find loot entries matching `name`. May be a partial match.\n'.format(
+            preformatted_block(self.get_prefix() + "item name"))
         embed.add_field("Items", help_string, False)
         # Administration
         if request_info['is_privileged']:
-            help_string = '```Administrator only options:```'
-            help_string += '`{0}` Generic bot config.\n'.format(
-                self.get_prefix() + "config")
-            help_string += '`{0}` Display related config.'.format(
-                self.get_prefix() + "display")
+            help_string = 'Administrator only options.'
+            help_string += '{0} Generic bot config.\n'.format(
+                preformatted_block(self.get_prefix() + "config"))
+            help_string += '{0} Display related config.'.format(
+                preformatted_block((self.get_prefix() + "display"))
         embed.add_field("Administration", help_string, False)
         # Pseudo-Footer: Discord link
         embed.add_field("\u200b", get_bot_links(), False)
@@ -743,7 +743,7 @@ class DKPBot:
             string = "Register current channel as announcement channel on which bot will post message on new DKP standings upload\n"
             string += preformatted_block("Usage:     {0}config announcement".format(self.__prefix))
             if self.__config.guild_info.announcement_channel == 0:
-                string += preformatted_block("Current:   any")
+                string += preformatted_block("Current:   none")
             else:
                 string += preformatted_block("Current:") + "\n"
                 string += "<#{0}>".format(self.__config.guild_info.announcement_channel)
