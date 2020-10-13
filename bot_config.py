@@ -169,7 +169,7 @@ class BotConfig():
         self.__config = ConfigParser()
 
         if os.path.isfile(filepath):
-            result = self.__config.read(filepath)
+            result = self.__config.read(filepath, encoding='utf-8')
             if filepath in result:
                 self.__load()
                 self.__type = BotConfigType.SPECIFIC
@@ -179,7 +179,7 @@ class BotConfig():
         else:
             BotLogger().get().warning("Server specific config {0} not found.".format(filepath))
 
-        result = self.__config.read(DEFAULT_CONFIG)
+        result = self.__config.read(DEFAULT_CONFIG, encoding='utf-8')
         if DEFAULT_CONFIG in result:
             self.__load()
             self.__type = BotConfigType.DEFAULT
@@ -261,7 +261,7 @@ class BotConfig():
                 self.__config.set(section, str(option), str(value))
 
     def store(self):
-        with open(self.__filepath, "w") as file:
+        with open(self.__filepath, "w", encoding='utf-8') as file:
             self.__store()
             self.__config.write(file, space_around_delimiters=False)
 
