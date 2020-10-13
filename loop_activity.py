@@ -20,7 +20,7 @@ class LoopActivity(Game):
         if self.__num_activities > 0:
             activity = self.__activities.popitem(False)
             self.__current_activity = activity[1]
-            print(self.__current_activity)
+#            print(self.__current_activity)
             self.__activities[activity[0]] = activity[1]
             self.name = self.__current_activity
         return self
