@@ -625,7 +625,7 @@ class DKPBot:
         params = self._parse_param(param, False)
         num_params = len(params)
         embed = RawEmbed()
-        supported_groups = ['general', 'dkp', 'history', 'item', 'administration']
+        supported_groups = ['general', 'dkp', 'history', 'items', 'administration']
         if num_params == 0 or ((num_params == 1) and (params[0] not in supported_groups)):
             embed.build(None, "Help", "WoW DKP Bot allows players access their DKP information.\n"
                     "All commands and values are case insensitive.\n\n"
@@ -650,12 +650,12 @@ class DKPBot:
                 embed.add_field("General", help_string, False)
             # DKP
             if 'dkp' in params:
-                help_string = 'Display dkp list for all active players.\nPlayers are assumed active if they gained positive DKP within last 45 days.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "dkp all", ''))
-                help_string += 'Display summary information for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n{0}\n'.format(
+                help_string  = 'Display summary information for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkp", ''))
                 help_string += 'Display summary information for specified `player`.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkp player", ''))
+                help_string += 'Display dkp list for all active players.\nPlayers are assumed active if they gained positive DKP within last 45 days.\n{0}\n'.format(
+                    preformatted_block(self.get_prefix() + "dkp all", ''))
                 help_string += 'Display current DKP for multiple players, classes or aliases mixed together.\n{0}'.format(
                     preformatted_block(self.get_prefix() + "dkp class alias player", '') + preformatted_block('Supporter only command', 'css'))
                 help_string += '```Supported aliases:\n* all\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee```'
