@@ -4,7 +4,7 @@ class Manager(object):
     class __Manager: #pylint: disable=invalid-name, attribute-defined-outside-init
         def initialize(self, limit, bots, save_fn, restore_fn):
             # In Memory bots limit
-            self.__limit = limit
+            self.__limit = int(limit)
 
             # Bots handled by core
             self.__bots = bots
