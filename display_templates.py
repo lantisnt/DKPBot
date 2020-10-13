@@ -344,7 +344,7 @@ class MultipleResponse(BaseResponse):
                 self.__field_limit = field_limit
 
         if entry_limit and isinstance(entry_limit, int):
-            if entry_limit > 16:
+            if entry_limit > 100:#16:
                 self.__entry_limit = 16
             elif entry_limit < 1:
                 self.__entry_limit = 1
