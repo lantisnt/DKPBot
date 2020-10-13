@@ -162,6 +162,17 @@ async def discord_respond(channel, responses):
             await channel.send(embed=await discord_build_embed(response))
         elif isinstance(response, io.IOBase):
             await channel.send(file=await discord_build_file(response))
+        elif isinstance(response, tuple):
+            message = response[0]
+            extra = response[1]
+            if isinstance(message, str):
+                if isinstance(extra, dict):
+                    await channel.send(message, embed=await discord_build_embed(extra))
+                elif isinstance(extra, io.IOBase):
+                    await channel.send(message, file=await discord_build_file(extra))
+
+
+
 
 
 async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message, normalized_author: str, announce: bool):
