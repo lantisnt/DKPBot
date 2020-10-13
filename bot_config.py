@@ -1,5 +1,6 @@
 import os
 from configparser import ConfigParser
+from bot_logger import BotLogger
 
 from enum import Enum
 
@@ -61,8 +62,8 @@ class DisplayConfig(object):
                 return getattr(self,'__set_' + name)(value)
             except AttributeError:
                 return super(DisplayConfig,self).__setattr__(name, value)
-        except ValueError:
-            print("ValueError in bot_config")
+        except ValueError as exception:
+            BotLogger().get().error(exception, exc_info=True)
 
     @staticmethod
     def __supported_fields():
@@ -174,9 +175,9 @@ class BotConfig():
                 self.__type = BotConfigType.SPECIFIC
                 return
             else:
-                print("Server specific config {0} not loaded.".format(filepath))
+                BotLogger().get().warning("Server specific config {0} not loaded.".format(filepath))
         else:
-            print("Server specific config {0} not found.".format(filepath))
+            BotLogger().get().warning("Server specific config {0} not found.".format(filepath))
 
         result = self.__config.read(DEFAULT_CONFIG)
         if DEFAULT_CONFIG in result:
@@ -184,7 +185,7 @@ class BotConfig():
             self.__type = BotConfigType.DEFAULT
             return
         else:
-            print("Error loading DEFAULT_CONFIG file.")
+            BotLogger().get().error("Error loading DEFAULT_CONFIG file.")
 
 
     # Load from config to dictionary

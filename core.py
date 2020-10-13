@@ -2,8 +2,8 @@ import sys
 import traceback
 import io
 import pickle
-import pytz
 import asyncio
+import pytz
 
 import discord
 
@@ -12,6 +12,7 @@ import dkp_bot
 import bot_factory
 import bot_memory_manager
 from bot_config import BotConfig
+from bot_logger import BotLogger
 from display_templates import BasicSuccess, BasicError
 from loop_activity import LoopActivity
 import footprint
@@ -27,7 +28,7 @@ class ScriptControl():
     token = 0
     config_dir = "/tmp"
     storage_dir = "/tmp"
-    in_memory_objects_limit = 50
+    in_memory_objects_limit = 2
 
     def initialize(self, token, config_dir="/tmp", storage_dir="/tmp", in_memory_objects_limit=2):
         self.token = token
@@ -53,23 +54,17 @@ activity.update({
     "servers"   : "{0} servers".format(0)
     })
 
-
-# Main
-
 async def discord_update_activity():
     await client.wait_until_ready()
     while True:
         await client.change_presence(activity=activity.next())
         await asyncio.sleep(60)
 
-def main(control: ScriptControl):
-    if len(sys.argv) > 3:
-        control.initialize(sys.argv[1], sys.argv[2], sys.argv[3])
-    elif len(sys.argv) > 2:
-        control.initialize(sys.argv[1], sys.argv[2])
-    else:
-        control.initialize(sys.argv[1])
 
+# Main
+def main(control: ScriptControl):
+    control.initialize(sys.argv[1], sys.argv[2], sys.argv[3])
+    BotLogger().initialize(sys.argv[4])
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
 
     client.loop.create_task(discord_update_activity())
@@ -81,13 +76,11 @@ def update_activity_data():
 
 # Error handling
 
-def handle_exception(text):
-    print("=== EXCEPTION ===")
-    print(text)
-    print("=== TRACEBACK ===")
-    exc_type, exc_value, exc_traceback = sys.exc_info()
-    traceback.print_exception(exc_type, exc_value, exc_traceback, limit=15, file=sys.stdout)
-    print("====== END ======")
+def handle_exception(note, exception):
+    BotLogger().get().error("=== EXCEPTION ===")
+    BotLogger().get().error(note)
+    BotLogger().get().error(exception, exc_info=True, stack_info=True)
+    BotLogger().get().error("====== END ======")
 
 
 # Data related
@@ -128,7 +121,7 @@ async def discord_get_response_channel(message, direct_message: bool):
             await message.author.create_dm()
             dm_channel = message.author.dm_channel
             if dm_channel is None:
-                print('ERROR: Unable to create DM channel with {0}'.format(
+                BotLogger().get().error('Unable to create DM channel with {0}'.format(
                     message.author))
             else:
                 response_channel = dm_channel
@@ -205,7 +198,7 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
                     else: # otherwise write standard message to upload channel
                         await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
-                    print('ERROR: {0}'.format(response.data))
+                    BotLogger().get().error(response.data)
                 return response.status
 
     return dkp_bot.ResponseStatus.IGNORE
@@ -229,11 +222,11 @@ async def spawn_bot(guild):
                     continue
             # We call it here so we will have it tracked from beginning
             bot_memory_manager.Manager().Handle(guild.id, True)
-            print("Bot for server {0} total footprint: {1} B".format(
+            BotLogger().get().info("Bot for server {0} total footprint: {1} B".format(
                         guild.name.encode('ascii', 'ignore').decode(), footprint.total_size(bot)))
 
-    except (SystemExit, Exception):
-        handle_exception("spawn_bot()")
+    except (SystemExit, Exception) as exception:
+        handle_exception("spawn_bot()", exception)
 
 # Discord API
 
@@ -242,8 +235,8 @@ async def on_guild_join(guild):
     try:
         await spawn_bot(guild)
         update_activity_data()
-    except (SystemExit, Exception):
-        handle_exception("on_guild_join()")
+    except (SystemExit, Exception) as exception:
+        handle_exception("on_guild_join()", exception)
 
 
 @client.event
@@ -257,11 +250,11 @@ async def on_ready():
 
         update_activity_data()
 
-    except (SystemExit, Exception):
-        handle_exception("on_ready()")
+    except (SystemExit, Exception) as exception:
+        handle_exception("on_ready()", exception)
 
     script_control.set_initialized()
-    print("Ready!")
+    BotLogger().get().info("Ready!")
 
 
 @client.event
@@ -312,7 +305,7 @@ async def on_message(message):
                 if isinstance(response_channel, discord.DMChannel):
                     await message.delete()
             elif response.status == dkp_bot.ResponseStatus.ERROR:
-                print('ERROR: {0}'.format(response.data))
+                BotLogger().get().error(response.data)
                 return
             elif response.status == dkp_bot.ResponseStatus.REQUEST:
                 if response.data == dkp_bot.Request.RESPAWN:
@@ -320,18 +313,18 @@ async def on_message(message):
                     await spawn_bot(message.guild) # Respawn bot
                     await discord_respond(response_channel, BasicSuccess("Bot created successfuly").get())
                 else:
-                    print("Requested but not respawn. This should not happen atm")
+                    BotLogger().get().error("Requested but not respawn. This should not happen atm")
 
         # No command response
         # Check if we have attachment on registered channel
         if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
             await discord_attachment_parse(bot, message, normalize_author(message.author), True)
 
-    except (SystemExit, Exception):
-        handle_exception(message.content)
+    except (SystemExit, Exception) as exception:
+        handle_exception(message.content, exception)
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
+    if len(sys.argv) != 5:
         sys.exit(1)
     main(script_control)

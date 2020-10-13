@@ -36,8 +36,8 @@ def total_size(o, handlers={}, verbose=False):
         seen.add(id(o))
         s = getsizeof(o, default_size)
 
-        if verbose:
-            print(s, type(o), repr(o), file=stderr)
+#        if verbose:
+#            print(s, type(o), repr(o), file=stderr)
 
         for typ, handler in all_handlers.items():
             if isinstance(o, typ):

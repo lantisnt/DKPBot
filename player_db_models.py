@@ -16,7 +16,6 @@ class PlayerInfo:
         self.__lifetime_spent = abs(float(lifetime_spent))
         self.__ingame_class = str(ingame_class).lower().capitalize()
         self.__role = str(role).lower().capitalize()
-        #print("New player object: {0}".format(str(self)))
 
     def name(self):
         return self.__player
@@ -113,7 +112,6 @@ class PlayerLoot:
         self.__item_name = str(item_name)
         self.__dkp = float(abs(dkp))
         self.__timestamp = int(timestamp)
-        #print("New loot object: {0}".format(str(self)))
 
     def player(self):
         return self.__player
@@ -152,7 +150,6 @@ class PlayerDKPHistory:
         self.__reason = str(reason)
         officer = str(index.split("-")[0])
         self.__officer = officer.lower().capitalize()
-        #print("New history object: {0}".format(str(self)))
 
     def player(self):
         return self.__player

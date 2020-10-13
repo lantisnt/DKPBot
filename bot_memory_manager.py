@@ -40,14 +40,12 @@ class Manager(object):
         # Save bot database
         def __save(self, server_id: int):
             # handle the data and save it through the api
-            print("Save {0}".format(server_id))
             data = self.__bots[server_id].database_get()
             self.__save_fn(server_id, data)
             self.__bots[server_id].database_free()
 
         # Restore bot database
         def __restore(self, server_id: int):
-            print("Restore {0}".format(server_id))
             data = self.__restore_fn(server_id)
             self.__bots[server_id].database_set(data)
             # restore the data it through the api and handle it

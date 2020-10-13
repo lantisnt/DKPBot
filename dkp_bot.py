@@ -7,6 +7,7 @@ from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
+from bot_logger import BotLogger
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER, DONATE
 from display_templates import get_config_color, get_bot_color, get_bot_links, preformatted_block
@@ -549,7 +550,7 @@ class DKPBot:
                             break
 
     def build_database(self, input_string, info):
-        print('Building database')
+        BotLogger().get().info('Building database for server {0}({1})'.format(self.__guild_name, self.__guild_id))
 
         start = datetime.now(tz=timezone.utc).timestamp()
 
@@ -570,7 +571,7 @@ class DKPBot:
 
         self._finalize_database()
 
-        print('Building complete in {:04.2f} seconds'.format(
+        BotLogger().get().info('Building complete in {:04.2f} seconds'.format(
             datetime.now(tz=timezone.utc).timestamp() - start))
 
         for team in self.__db['global']:
