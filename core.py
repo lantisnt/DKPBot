@@ -63,8 +63,8 @@ async def discord_update_activity():
 
 # Main
 def main(control: ScriptControl):
-    control.initialize(sys.argv[1], sys.argv[2], sys.argv[3])
-    BotLogger().initialize(sys.argv[4])
+    control.initialize(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
+    BotLogger().initialize(sys.argv[5])
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
 
     client.loop.create_task(discord_update_activity())
@@ -325,6 +325,6 @@ async def on_message(message):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 5:
+    if len(sys.argv) != 6:
         sys.exit(1)
     main(script_control)
