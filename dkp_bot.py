@@ -8,7 +8,7 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 import bot_memory_manager
-from display_templates import get_config_color, get_bot_color, get_bot_links, preformatted_block, RawEmbed, BasicError, BasicSuccess, BasicAnnouncement
+from display_templates import get_bot_links, preformatted_block, RawEmbed, BasicError, BasicSuccess, BasicAnnouncement
 
 
 class ResponseStatus(Enum):
@@ -622,48 +622,54 @@ class DKPBot:
     ### Command callbacks ###
 
     def call_help(self, param, request_info):  # pylint: disable=unused-argument
-        help_string = "WoW DKP Bot allows players access their DKP information.\n" + "All commands and values are case insensitive.\n" + "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM. ".format(self.__prefix) + "Request will be removed by the bot afterwards." + "\n"
+        embed = RawEmbed()
+        embed.build(None, "Commands", "WoW DKP Bot allows players access their DKP information.\n"
+                    "All commands and values are case insensitive.\n\n"
+                    "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM. "
+                    "Request will be removed by the bot afterwards.".format(self.__prefix), None, 16553987, None)
         # Basic
-        help_string_block  = '{0:22} :: Display this help. You can also get it by @mentioning the bot.\n'.format("help")
-        help_string_block += '{0:22} :: Get basic informations about the bot.'.format("info")
-        help_string += "**General**\n"
-        help_string += preformatted_block(help_string_block, 'asciidoc') + "\n"
+        help_string  = '{0} Display this help. You can also get it by @mentioning the bot.\n\n'.format(preformatted_block(self.get_prefix() + "help", ''))
+        help_string += '{0} Get basic informations about the bot.\n\n'.format(preformatted_block(self.get_prefix() + "info", ''))
+        embed.add_field("General", help_string, False)
         # DKP
-        help_string += "**DKP**\n"
-        help_string_block  = '{0:22} :: Display dkp list for all active players. Players are assumed active if they gained positive DKP within last 45 days.\n'.format("dkp all")
-        help_string_block += '{0:22} :: Display summary information for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format("dkp")
-        help_string_block += '{0:22} :: Display summary information for specified `player`.\n'.format("dkp player")
-        help_string_block += "=== Supporter only commands ===\n"
-        help_string_block += '{0:22} :: Display current DKP for multiple players, classes or aliases mixed together.'.format("dkp class alias player")
-        help_string_block += 'Supported aliases: .all tanks healers dps casters physical ranged melee.'
-        help_string += preformatted_block(help_string_block, 'asciidoc') + "\n"
+        help_string = '{0} Display dkp list for all active players.\nPlayers are assumed active if they gained positive DKP within last 45 days.\n\n'.format(
+            preformatted_block(self.get_prefix() + "dkp all", ''))
+        help_string += '{0} Display summary information for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n\n'.format(
+            preformatted_block(self.get_prefix() + "dkp", ''))
+        help_string += '{0} Display summary information for specified `player`.\n\n'.format(
+            preformatted_block(self.get_prefix() + "dkp player", ''))
+        help_string += '{0} Display current DKP for multiple players, classes or aliases mixed together.\n'.format(
+            preformatted_block(self.get_prefix() + "dkp class alias player", '') + preformatted_block('Supporter only command', 'css'))
+        help_string += 'Supported aliases: ```all tanks healers dps casters physical ranged melee```'
+        help_string += '```Example: {0}dkp janedoe someguy healers mage```'.format(self.__prefix)
+        embed.add_field("DKP", help_string, False)
         # History
-        help_string += "**History**\n"
-        help_string_block  = '{0:22} :: Display DKP history for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format("dkphistory")
-        help_string_block += '{0:22} :: Display DKP history  for specified `player`.\n'.format("dkphistory player")
-        help_string_block += '{0:22} :: Display latest loot for the requester. Uses nickname if set. Takes Discord user name otherwise.\n'.format("loot")
-        help_string_block += '{0:22} :: Display latest loot  for specified `player`.\n'.format("loot player")
-        help_string += preformatted_block(help_string_block, 'asciidoc') + "\n"
-        # Items
-        help_string += "**Items**\n"
-        help_string_block  = "=== Supporter only commands ===\n"
-        help_string_block += '{0:22} :: Display latest 30 loot entries from raids.\n'.format("raidloot")
-        help_string_block += '{0:22} :: Find loot entries matching name. Supports partial match.\n'.format("item name")
-        help_string += preformatted_block(help_string_block, 'asciidoc') + "\n"
+        help_string = '{0} Display DKP history for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n\n'.format(
+            preformatted_block(self.get_prefix() + "dkphistory", ''))
+        help_string += '{0} Display DKP history  for specified `player`.\n\n'.format(
+            preformatted_block(self.get_prefix() + "dkphistory player", ''))
+        help_string += '{0} Display latest loot for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n\n'.format(
+            preformatted_block(self.get_prefix() + "loot", ''))
+        help_string += '{0} Display latest loot  for specified `player`.\n\n'.format(
+            preformatted_block(self.get_prefix() + "loot player", ''))
+        embed.add_field("History", help_string, False)
+        # Items - Supporter only
+        help_string += '{0} Display latest 30 loot entries from raids.\n\n'.format(
+            preformatted_block(self.get_prefix() + "raidloot", '') + preformatted_block('Supporter only command', 'css'))
+        help_string += '{0} Find loot entries matching `name`. Supports partial match.\n\n'.format(
+            preformatted_block(self.get_prefix() + "item name", '') + preformatted_block('Supporter only command', 'css'))
+        embed.add_field("Items", help_string, False)
         # Administration
         if request_info['is_privileged']:
-            help_string += "**Administration**\n"
-            help_string_block = "=== Administrator only commands ===\n"
-            help_string_block += '{0:22} :: Generic bot (including guild and server) configuration\n'.format("config")
-            help_string_block += '{0:22} :: Display related configuration'.format("display")
-            help_string += preformatted_block(help_string_block, 'asciidoc') + "\n"
-
+            help_string = 'Administrator only options.'
+            help_string += '{0} Generic bot config\n\n'.format(
+                preformatted_block(self.get_prefix() + "config", ''))
+            help_string += '{0} Display related config'.format(
+                preformatted_block(self.get_prefix() + "display", ''))
+        embed.add_field("Administration", help_string, False)
         # Pseudo-Footer: Discord link
-        embed = RawEmbed()
-        embed.build(None, None, None, None, get_bot_color(), None)
-        embed.add_field("Find out more:", get_bot_links(), False)
-
-        return Response(ResponseStatus.SUCCESS, (help_string, embed.get()))
+        embed.add_field("\u200b", get_bot_links(), False)
+        return Response(ResponseStatus.SUCCESS, embed.get())
 
     def call_config(self, param, request_info):
         if not request_info.get('is_privileged'):
@@ -684,7 +690,7 @@ class DKPBot:
             # string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
             # string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
             embed = RawEmbed()
-            embed.build(None, "Available configurations", "All commands and values are case insensitive.", None, get_config_color(), None)
+            embed.build(None, "Available configurations", "All commands and values are case insensitive.", None, 16553987, None)
             # bot-type
             string = "Set bot type to handle specified addon\n"
             string += preformatted_block("Usage:     {0}config bot-type Type\n".format(self.__prefix))
@@ -769,7 +775,7 @@ class DKPBot:
             display_info = self.__config.get_configs_data()
             embed = RawEmbed()
             embed.build(None, "Available display settings",
-                        "Configure number of data displayed in single request. All commands and values are case insensitive.", None, get_config_color(), None)
+                        "Configure number of data displayed in single request. All commands and values are case insensitive.", None, 16553987, None)
 
             for category, data in display_info.items():
                 string = ""
