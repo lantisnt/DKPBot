@@ -625,7 +625,8 @@ class DKPBot:
         params = self._parse_param(param, False)
         num_params = len(params)
         embed = RawEmbed()
-        if num_params == 0:
+        supported_groups = ['general', 'dkp', 'history', 'item', 'administration']
+        if num_params == 0 or ((num_params == 1) and (params[0] not in supported_groups)):
             embed.build(None, "Help", "WoW DKP Bot allows players access their DKP information.\n"
                     "All commands and values are case insensitive.\n\n"
                     "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM.\n"
