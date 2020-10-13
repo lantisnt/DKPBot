@@ -53,6 +53,26 @@ activity.update({
     "servers"   : "{0} servers".format(0)
     })
 
+
+# Main
+
+def main(control: ScriptControl):
+    if len(sys.argv) > 3:
+        control.initialize(sys.argv[1], sys.argv[2], sys.argv[3])
+    elif len(sys.argv) > 2:
+        control.initialize(sys.argv[1], sys.argv[2])
+    else:
+        control.initialize(sys.argv[1])
+
+    bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
+
+    async def discord_update_activity():
+        await client.change_presence(activity=activity.next())
+        await asyncio.sleep(60)
+
+    client.loop.create_task(discord_update_activity())
+    client.run(control.token)
+
 # Utility
 def update_activity_data():
     activity.update({"servers" : "{0} servers".format(len(client.guilds))})
@@ -173,10 +193,6 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
 
     return dkp_bot.ResponseStatus.IGNORE
 
-async def discord_update_activity():
-    await client.change_presence(activity=activity.next())
-    await asyncio.sleep(60)
-
 async def spawn_bot(guild):
     try:
         config_filename = "{0}/{1}.ini".format(script_control.config_dir, guild.id)
@@ -201,22 +217,6 @@ async def spawn_bot(guild):
 
     except (SystemExit, Exception):
         handle_exception("spawn_bot()")
-
-
-# Main
-
-def main(control: ScriptControl):
-    if len(sys.argv) > 3:
-        control.initialize(sys.argv[1], sys.argv[2], sys.argv[3])
-    elif len(sys.argv) > 2:
-        control.initialize(sys.argv[1], sys.argv[2])
-    else:
-        control.initialize(sys.argv[1])
-
-    bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
-
-    client.loop.create_task(discord_update_activity())
-    client.run(control.token)
 
 # Discord API
 
