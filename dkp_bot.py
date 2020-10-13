@@ -695,11 +695,14 @@ class DKPBot:
 
     def call_info(self, param, request_info):
         embed = RawEmbed()
-        info_string  = "WoW DKP Bot allows querying DKP standings, history and loot data directly through the discord.\n"
-        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP` and `CommunityDKP`.\n"
-        info_string += "Due to many possible usages of the addons and discord limitations bot data may exceed maxium accetable size. To mitigate this issue extensive `display` configuration is available to tweak response sizes."
-        info_string += "If you want to become supporter and get access to `supporter onlt commands` or you need help configuring the bot checkout the {0}.\n\n".format(SUPPORT_SERVER)
-        embed.build(None, "Info", info_string, None, get_bot_color(), None)
+        embed.build(None, "Info", None, None, get_bot_color(), None)
+        info_string  = "WoW DKP Bot allows querying DKP standings, history and loot data directly through the discord."
+        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP` and `CommunityDKP` to a discord channel.\n"
+        embed.add_field("\u200b", info_string, False)
+        info_string = "Due to many possible usages of the addons and discord limitations bot data may exceed maxium accetable size. To mitigate this issue extensive `display` configuration is available to tweak response sizes."
+        embed.add_field("\u200b", info_string, False)
+        info_string = "If you want to become supporter and get access to `supporter only commands` or you need help configuring the bot checkout the {0}.\n\n".format(SUPPORT_SERVER)
+        embed.add_field("\u200b", info_string, False)
         #embed.add_field("\u200b", info_string, False)
         # Pseudo-Footer: Discord link
         embed.add_field("\u200b", get_bot_links(), False)
