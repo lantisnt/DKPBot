@@ -2,12 +2,13 @@ from datetime import datetime
 import pytz
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp
+import build_info
 
 def get_bot_links():
     invite = "[Invite Bot](https://discord.com/api/oauth2/authorize?client_id=746132320297156608&permissions=518208&scope=bot)"
     support_server = "[Support Server](https://discord.gg/t42qW4j)"
     donate = "[Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Z6UK2VPSZS2J6)"
-    return invite + " | " + support_server + " | " + donate + " | " + "v0.8.0"
+    return invite + " | " + support_server + " | " + donate + " | " + build_info.VERSION
 
 def get_class_color(class_name=None):
     if not class_name:

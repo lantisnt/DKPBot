@@ -6,6 +6,7 @@ import pytz
 
 import discord
 
+import build_info
 import dkp_bot
 import bot_factory
 import bot_memory_manager
@@ -44,10 +45,19 @@ class ScriptControl():
 script_control = ScriptControl()
 client = discord.Client()
 bots = {}
+activity = discord.Activity(
+    type=discord.ActivityType.listening,
+    state="{0}".format(build_info.VERSION),
+    details="@mention me to get help",
+    assets={
+        'large_image' : 'dkpbot-logo',
+        'large_text' : '@mention me to get help',
+        'small_image' : 'dkpbot-logo',
+        'small_text' : '@mention me to get help'
+    })
+
 
 # Main
-
-
 def main(control: ScriptControl):
     if len(sys.argv) > 3:
         control.initialize(sys.argv[1], sys.argv[2], sys.argv[3])
@@ -85,6 +95,11 @@ def unpickle_data(uid):
     return data
 
 # Discord related
+
+def update_client_activity():
+    num_guilds = len(client.guilds)
+    activity.state = "{0} servers | {0}".format(num_guilds, build_info.VERSION)
+
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
@@ -199,17 +214,19 @@ async def spawn_bot(guild):
             bot_memory_manager.Manager().Handle(guild.id, True)
             print("Bot for server {0} total footprint: {1} B".format(
                         guild.name.encode('ascii', 'ignore').decode(), footprint.total_size(bot)))
+            # Update activity
+            update_client_activity()
     except (SystemExit, Exception):
         handle_exception("spawn_bot()")
 
-# Discord API
 
+# Discord API
 
 @client.event
 async def on_guild_join(guild):
     try:
         await spawn_bot(guild)
-
+        await client.change_presence(activity=activity)
     except (SystemExit, Exception):
         handle_exception("on_guild_join()")
 
@@ -219,6 +236,8 @@ async def on_ready():
     try:
         if script_control.is_initialized():
             return
+
+        await client.change_presence(activity=activity)
 
         for guild in client.guilds:
             await spawn_bot(guild)
@@ -243,7 +262,7 @@ async def on_message(message):
 
         # Add per-server ratelimiting
 
-
+    
         # Check if we have proper bot for the requester
         bot = bots.get(message.guild.id)
         if not isinstance(bot, dkp_bot.DKPBot):
