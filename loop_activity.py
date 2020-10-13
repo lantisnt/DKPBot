@@ -13,7 +13,7 @@ class LoopActivity(Game):
 
     def update(self, activities):
         if isinstance(activities, dict):
-            for key, value in activities:
+            for key, value in activities.items():
                 self.__activities[key] = value
 
     def next(self):
