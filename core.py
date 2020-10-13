@@ -190,7 +190,7 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
 async def discord_update_activity():
     num_guilds = len(client.guilds)
     activity.state = "{0} servers | {1}".format(num_guilds, build_info.VERSION)
-   await client.change_presence(activity=activity)
+    await client.change_presence(activity=activity)
 
 async def spawn_bot(guild):
     try:
