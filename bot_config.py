@@ -81,7 +81,7 @@ class DisplayConfig(object):
 
     @staticmethod
     def __supported_entries_per_field():
-        return (1, 100)#16)
+        return (1, 16)
 
     def __get_entries_per_field(self):
         return self.__entries_per_field
