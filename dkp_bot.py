@@ -650,23 +650,24 @@ class DKPBot:
                 embed.add_field("General", help_string, False)
             # DKP
             if 'dkp' in params:
-                help_string  = 'Display summary information for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n{0}\n'.format(
+                help_string  = 'Display summary information for the requester.\nUses nickname if set. Takes Discord username otherwise.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkp", ''))
                 help_string += 'Display summary information for specified `player`.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkp player", ''))
                 help_string += 'Display dkp list for all active players.\nPlayers are assumed active if they gained positive DKP within last 45 days.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkp all", ''))
                 help_string += 'Display current DKP for multiple players, classes or aliases mixed together.\n{0}'.format(
-                    preformatted_block(self.get_prefix() + "dkp class alias player", '') + preformatted_block('Supporter only command', 'css'))
-                help_string += '```Supported aliases:\n* all\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee```'
+                    preformatted_block(self.get_prefix() + "dkp class alias player", ''))
+                help_string += preformatted_block('Supported aliases:\n* all\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee', '')
+                help_string += preformatted_block('Supporter only command', 'css')
                 embed.add_field("DKP", help_string, False)
             # History
             if 'history' in params:
-                help_string = 'Display DKP history for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n{0}\n'.format(
+                help_string = 'Display DKP history for the requester.\nUses nickname if set. Takes Discord username otherwise.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkphistory", ''))
                 help_string += 'Display DKP history  for specified `player`.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkphistory player", ''))
-                help_string += 'Display latest loot for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n{0}\n'.format(
+                help_string += 'Display latest loot for the requester.\nUses nickname if set. Takes Discord username otherwise.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "loot", ''))
                 help_string += 'Display latest loot  for specified `player`.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "loot player", ''))
