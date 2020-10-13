@@ -656,12 +656,12 @@ class DKPBot:
             help_string_block = "=== Administrator only commands ===\n"
             help_string_block += '{0:22} :: Generic bot (including guild and server) configuration\n'.format("config")
             help_string_block += '{0:22} :: Display related configuration'.format("display")
-            help_string += preformatted_block(help_string_block, 'asciidoc') + "\n"
+            help_string += preformatted_block(help_string_block, 'asciidoc') + "\n\n"
 
         # Pseudo-Footer: Discord link
         embed = RawEmbed()
         embed.build(None, None, None, None, 16553987, None)
-        embed.add_field("\u200b", get_bot_links(), False)
+        embed.add_field("Find out more:", get_bot_links(), False)
 
         return Response(ResponseStatus.SUCCESS, (help_string, embed.get()))
 
