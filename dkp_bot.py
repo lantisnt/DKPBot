@@ -637,9 +637,9 @@ class DKPBot:
             embed.add_field(":information_source: General", "{0} commands".format(3), True)
             embed.add_field(":crossed_swords: DKP", "{0} commands".format(4), True)
             embed.add_field(":scroll: History", "{0} commands".format(4), True)
-            embed.add_field(":mag: Item", "{0} commands".format(2), True)
+            embed.add_field(":mag: Items", "{0} commands".format(2), True)
             if request_info['is_privileged']:
-                embed.add_field(":a:  Administration", "{0} commands".format(2), True)
+                embed.add_field(":a:  Administration", "{0} commands".format(2), False)
         else:
             embed.build(None, "Commands", None, None, 16553987, None)
             # General
@@ -655,7 +655,7 @@ class DKPBot:
                     preformatted_block(self.get_prefix() + "dkp", ''))
                 help_string += 'Display summary information for specified `player`.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkp player", ''))
-                help_string += 'Display current DKP for multiple players, classes or aliases mixed together.\n{0}\n'.format(
+                help_string += 'Display current DKP for multiple players, classes or aliases mixed together.\n{0}'.format(
                     preformatted_block(self.get_prefix() + "dkp class alias player", '') + preformatted_block('Supporter only command', 'css'))
                 help_string += '```Supported aliases:\n* all\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee```'
                 embed.add_field("DKP", help_string, False)
@@ -679,8 +679,9 @@ class DKPBot:
                 embed.add_field("Items", help_string, False)
             # Administration
             if request_info['is_privileged'] and 'administration' in params:
+                help_string = preformatted_block('Administrator only commands', 'css')
                 help_string  = 'Generic bot configuration (including server and guild)\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "config", '') + preformatted_block('Administrator only command', 'css'))
+                    preformatted_block(self.get_prefix() + "config", ''))
                 help_string += 'Display related configuration\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "display", ''))
                 embed.add_field("Administration", help_string, False)
