@@ -550,7 +550,7 @@ class DKPBot:
                             break
 
     def build_database(self, input_string, info):
-        BotLogger().get().info('Building database for server {0}({1})'.format(self.__guild_name, self.__guild_id))
+        BotLogger().get().info('Building database for server({0})'.format(self.__guild_id), self.__guild_name)
 
         start = datetime.now(tz=timezone.utc).timestamp()
 
