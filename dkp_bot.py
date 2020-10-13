@@ -628,43 +628,43 @@ class DKPBot:
                     "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM. "
                     "Request will be removed by the bot afterwards.".format(self.__prefix), None, 16553987, None)
         # Basic
-        help_string  = '{0}\nDisplay this help. You can also get it by @mentioning the bot.\n\n'.format(preformatted_block(self.get_prefix() + "help", ''))
-        help_string += '{0}\nGet basic informations about the bot.\n\n'.format(preformatted_block(self.get_prefix() + "info", ''))
+        help_string  = 'Display this help. You can also get it by @mentioning the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "help", ''))
+        help_string += 'Get basic informations about the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "info", ''))
         embed.add_field("General", help_string, False)
         # DKP
-        help_string = '{0}\nDisplay dkp list for all active players.\nPlayers are assumed active if they gained positive DKP within last 45 days.\n\n'.format(
+        help_string = 'Display dkp list for all active players.\nPlayers are assumed active if they gained positive DKP within last 45 days.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "dkp all", ''))
-        help_string += '{0}\nDisplay summary information for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n\n'.format(
+        help_string += 'Display summary information for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "dkp", ''))
-        help_string += '{0}\nDisplay summary information for specified `player`.\n\n'.format(
+        help_string += 'Display summary information for specified `player`.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "dkp player", ''))
-        help_string += '{0}\nDisplay current DKP for multiple players, classes or aliases mixed together.\n'.format(
+        help_string += 'Display current DKP for multiple players, classes or aliases mixed together.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "dkp class alias player", '') + preformatted_block('Supporter only command', 'css'))
         help_string += 'Supported aliases: ```all tanks healers dps casters physical ranged melee```'
         help_string += '```Example: {0}dkp janedoe someguy healers mage```'.format(self.__prefix)
         embed.add_field("DKP", help_string, False)
         # History
-        help_string = '{0}\nDisplay DKP history for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n\n'.format(
+        help_string = 'Display DKP history for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "dkphistory", ''))
-        help_string += '{0}\nDisplay DKP history  for specified `player`.\n\n'.format(
+        help_string += 'Display DKP history  for specified `player`.\n\n'.format(
             preformatted_block(self.get_prefix() + "dkphistory player", ''))
-        help_string += '{0}\nDisplay latest loot for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n\n'.format(
+        help_string += 'Display latest loot for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "loot", ''))
-        help_string += '{0}\nDisplay latest loot  for specified `player`.\n\n'.format(
+        help_string += 'Display latest loot  for specified `player`.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "loot player", ''))
         embed.add_field("History", help_string, False)
         # Items - Supporter only
-        help_string += '{0}\nDisplay latest 30 loot entries from raids.\n\n'.format(
+        help_string += 'Display latest 30 loot entries from raids.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "raidloot", '') + preformatted_block('Supporter only command', 'css'))
-        help_string += '{0}\nFind loot entries matching `name`. Supports partial match.\n\n'.format(
+        help_string += 'Find loot entries matching `name`. Supports partial match.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "item name", '') + preformatted_block('Supporter only command', 'css'))
         embed.add_field("Items", help_string, False)
         # Administration
         if request_info['is_privileged']:
             help_string = 'Administrator only options.'
-            help_string += '{0}\nGeneric bot configuration (including server and guild)\n\n'.format(
+            help_string += 'Generic bot configuration (including server and guild)\n{0}\n'.format(
                 preformatted_block(self.get_prefix() + "config", ''))
-            help_string += '{0}\nDisplay related configuration'.format(
+            help_string += 'Display related configuration\n{0}\n'.format(
                 preformatted_block(self.get_prefix() + "display", ''))
         embed.add_field("Administration", help_string, False)
         # Pseudo-Footer: Discord link
