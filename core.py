@@ -3,6 +3,7 @@ import traceback
 import io
 import pickle
 import pytz
+import asyncio
 
 import discord
 
@@ -12,7 +13,7 @@ import bot_factory
 import bot_memory_manager
 from bot_config import BotConfig
 from display_templates import BasicSuccess
-
+from loop_activity import LoopActivity
 import footprint
 
 # PERFORMANCE_TEST_ENABLED = False
@@ -45,34 +46,18 @@ class ScriptControl():
 script_control = ScriptControl()
 client = discord.Client()
 bots = {}
-activity = discord.Game("{0}".format(build_info.VERSION),#Activity(
-    type=discord.ActivityType.listening,
-#    state="{0}".format(build_info.VERSION),
-    details="@mention me to get help",
-#    assets={
-#        'large_image' : 'dkpbot-logo',
-#        'large_text' : '@mention me to get help',
-#        'small_image' : 'dkpbot-logo',
-#        'small_text' : '@mention me to get help'
-#    }
-)
+activity = LoopActivity("", type=discord.ActivityType.listening)
+activity.update({
+    "version"   : "{0}".format(build_info.VERSION),
+    "discord"   : "{0}".format(build_info.SUPPORT_SERVER),
+    "servers"   : "{0} servers".format(0)
+    })
 
-
-# Main
-def main(control: ScriptControl):
-    if len(sys.argv) > 3:
-        control.initialize(sys.argv[1], sys.argv[2], sys.argv[3])
-    elif len(sys.argv) > 2:
-        control.initialize(sys.argv[1], sys.argv[2])
-    else:
-        control.initialize(sys.argv[1])
-
-    bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
-
-    client.run(control.token)
+# Utility
+def update_activity_data():
+    activity.update({"servers" : "{0} servers".format(len(client.guilds))})
 
 # Error handling
-
 
 def handle_exception(text):
     print("=== EXCEPTION ===")
@@ -189,10 +174,8 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
     return dkp_bot.ResponseStatus.IGNORE
 
 async def discord_update_activity():
-    num_guilds = len(client.guilds)
-    #activity.state = "{0} servers | {1}".format(num_guilds, build_info.VERSION)
-    activity.name = "{0} servers | {1}".format(num_guilds, build_info.VERSION)
-    await client.change_presence(activity=activity)
+    await client.change_presence(activity=activity.next())
+    await asyncio.sleep(60)
 
 async def spawn_bot(guild):
     try:
@@ -220,13 +203,28 @@ async def spawn_bot(guild):
         handle_exception("spawn_bot()")
 
 
+# Main
+
+def main(control: ScriptControl):
+    if len(sys.argv) > 3:
+        control.initialize(sys.argv[1], sys.argv[2], sys.argv[3])
+    elif len(sys.argv) > 2:
+        control.initialize(sys.argv[1], sys.argv[2])
+    else:
+        control.initialize(sys.argv[1])
+
+    bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
+
+    client.loop.create_task(discord_update_activity())
+    client.run(control.token, activity=activity)
+
 # Discord API
 
 @client.event
 async def on_guild_join(guild):
     try:
         await spawn_bot(guild)
-        await discord_update_activity()
+        update_activity_data()
     except (SystemExit, Exception):
         handle_exception("on_guild_join()")
 
@@ -240,7 +238,7 @@ async def on_ready():
         for guild in client.guilds:
             await spawn_bot(guild)
 
-        await discord_update_activity()
+        update_activity_data()
 
     except (SystemExit, Exception):
         handle_exception("on_ready()")
