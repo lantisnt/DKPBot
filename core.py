@@ -46,7 +46,7 @@ class ScriptControl():
 script_control = ScriptControl()
 client = discord.Client()
 bots = {}
-activity = LoopActivity("", type=discord.ActivityType.listening)
+activity = LoopActivity("")
 activity.update({
     "version"   : "{0}".format(build_info.VERSION),
     "discord"   : "{0}".format(build_info.SUPPORT_SERVER),
@@ -57,12 +57,10 @@ activity.update({
 # Main
 
 async def discord_update_activity():
-    print("discord_update_activity ONCE")
     await client.wait_until_ready()
     while True:
-        print("discord_update_activity")
         await client.change_presence(activity=activity.next())
-        await asyncio.sleep(5)
+        await asyncio.sleep(60)
 
 def main(control: ScriptControl):
     if len(sys.argv) > 3:
