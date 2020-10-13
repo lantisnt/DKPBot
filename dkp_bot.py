@@ -629,19 +629,29 @@ class DKPBot:
         embed = RawEmbed()
         supported_groups = ['general', 'dkp', 'history', 'items', 'administration']
         if num_params == 0 or ((num_params == 1) and (params[0] not in supported_groups)):
-            embed.build(None, "Help", "WoW DKP Bot allows players access their DKP information.\n"
+            embed.build(None, "Help", "WoW DKP Bot allows querying DKP standings, history and loot data directly through the discord.\n"
                     "All commands and values are case insensitive.\n\n"
                     "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM.\n"
                     "Request will be removed by the bot afterwards.\n\n"
                     "To get more information on supported commands type"
                     "```{0}help group```"
                     "Supported command groups:".format(self.__prefix), None, get_bot_color(), None)
-            embed.add_field(":information_source: General", "{0} commands".format(2), True)
-            embed.add_field(":crossed_swords: DKP", "{0} commands".format(4), True)
-            embed.add_field(":scroll: History", "{0} commands".format(4), True)
-            embed.add_field(":mag: Items", "{0} commands".format(2), True)
+            commands  = "{0}help\n".format(self.__prefix)
+            commands += "{0}info\n".format(self.__prefix)
+            embed.add_field(":information_source: General", commands, True)
+            commands  = "{0}dkp [player class or alias]\n".format(self.__prefix)
+            embed.add_field(":crossed_swords: DKP", commands, True)
+            commands  = "{0}dkphistory [player class or alias]\n".format(self.__prefix)
+            commands += "{0}lott [player class or alias]\n".format(self.__prefix)
+            embed.add_field(":scroll: History", commands, True)
+            commands  = "{0}raidloot\n".format(self.__prefix)
+            commands += "{0}item\n".format(self.__prefix)
+            embed.add_field(":mag: Items", commands, True)
             if request_info['is_privileged']:
-                embed.add_field(":a:  Administration", "{0} commands".format(2), False)
+                commands  = "{0}config\n".format(self.__prefix)
+                commands += "{0}display\n".format(self.__prefix)
+                embed.add_field(":a:  Administration", commands, False)
+                
         else:
             embed.build(None, "Commands", None, None, get_bot_color(), None)
             # General
