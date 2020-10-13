@@ -96,12 +96,6 @@ def unpickle_data(uid):
 
 # Discord related
 
-def update_client_activity():
-    num_guilds = len(client.guilds)
-    activity.state = "{0} servers | {1}".format(num_guilds, build_info.VERSION)
-    client.change_presence(activity=activity)
-
-
 def normalize_author(author):
     if isinstance(author, discord.Member):
         if author.nick:
@@ -193,6 +187,10 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
 
     return dkp_bot.ResponseStatus.IGNORE
 
+async def discord_update_activity():
+    num_guilds = len(client.guilds)
+    activity.state = "{0} servers | {1}".format(num_guilds, build_info.VERSION)
+   await client.change_presence(activity=activity)
 
 async def spawn_bot(guild):
     try:
@@ -216,7 +214,7 @@ async def spawn_bot(guild):
             print("Bot for server {0} total footprint: {1} B".format(
                         guild.name.encode('ascii', 'ignore').decode(), footprint.total_size(bot)))
             # Update activity
-            update_client_activity()
+            await discord_update_activity()
     except (SystemExit, Exception):
         handle_exception("spawn_bot()")
 
