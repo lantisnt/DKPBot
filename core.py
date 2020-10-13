@@ -46,6 +46,7 @@ script_control = ScriptControl()
 client = discord.Client()
 bots = {}
 activity = discord.Activity(
+    application_id=759088047328460820,
     type=discord.ActivityType.listening,
     state="{0}".format(build_info.VERSION),
     details="@mention me to get help",
