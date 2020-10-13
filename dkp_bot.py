@@ -8,7 +8,9 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 import bot_memory_manager
-from display_templates import get_bot_links, preformatted_block, RawEmbed, BasicError, BasicSuccess, BasicAnnouncement
+from display_templates import SUPPORT_SERVER, DONATE
+from display_templates import get_config_color, get_bot_color, get_bot_links, preformatted_block
+from display_templates import RawEmbed, BasicError, BasicSuccess, BasicAnnouncement
 
 
 class ResponseStatus(Enum):
@@ -633,20 +635,19 @@ class DKPBot:
                     "Request will be removed by the bot afterwards.\n\n"
                     "To get more information on supported commands type"
                     "```{0}help group```"
-                    "Supported command groups:".format(self.__prefix), None, 16553987, None)
-            embed.add_field(":information_source: General", "{0} commands".format(3), True)
+                    "Supported command groups:".format(self.__prefix), None, get_bot_color(), None)
+            embed.add_field(":information_source: General", "{0} commands".format(2), True)
             embed.add_field(":crossed_swords: DKP", "{0} commands".format(4), True)
             embed.add_field(":scroll: History", "{0} commands".format(4), True)
             embed.add_field(":mag: Items", "{0} commands".format(2), True)
             if request_info['is_privileged']:
                 embed.add_field(":a:  Administration", "{0} commands".format(2), False)
         else:
-            embed.build(None, "Commands", None, None, 16553987, None)
+            embed.build(None, "Commands", None, None, get_bot_color(), None)
             # General
             if 'general' in params:
                 help_string  = 'Display this help. You can also get it by @mentioning the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "help", ''))
                 help_string += 'Get basic information about the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "info", ''))
-                help_string += 'Want to become supporter? Get more info here.\n{0}\n'.format(preformatted_block(self.get_prefix() + "support", ''))
                 embed.add_field("General", help_string, False)
             # DKP
             if 'dkp' in params:
@@ -688,6 +689,18 @@ class DKPBot:
                     preformatted_block(self.get_prefix() + "display", ''))
                 embed.add_field("Administration", help_string, False)
 
+        # Pseudo-Footer: Discord link
+        embed.add_field("\u200b", get_bot_links(), False)
+        return Response(ResponseStatus.SUCCESS, embed.get())
+
+    def call_info(self, param, request_info):
+        embed = RawEmbed()
+        info_string  = "WoW DKP Bot allows querying DKP standings, history and loot data directly through the discord.\n"
+        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP` and `CommunityDKP`.\n"
+        info_string += "Due to many possible usages of the addons and discord limitations bot data may exceed maxium accetable size. To mitigate this issue extensive `display` configuration is available to tweak response sizes."
+        info_string += "If you want to become supporter and get access to `supporter onlt commands` or you need help configuring the bot checkout the {0}.\n\n".format(SUPPORT_SERVER)
+        embed.build(None, "Info", info_string, None, get_bot_color(), None)
+        #embed.add_field("\u200b", info_string, False)
         # Pseudo-Footer: Discord link
         embed.add_field("\u200b", get_bot_links(), False)
         return Response(ResponseStatus.SUCCESS, embed.get())

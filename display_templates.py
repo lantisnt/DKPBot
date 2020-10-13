@@ -4,11 +4,12 @@ from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp
 import build_info
 
+INVITE = "[Invite Bot](https://discord.com/api/oauth2/authorize?client_id=746132320297156608&permissions=518208&scope=bot)"
+SUPPORT_SERVER = "[Support Server]({0})".format(build_info.SUPPORT_SERVER)
+DONATE = "[Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Z6UK2VPSZS2J6)"
 def get_bot_links():
-    invite = "[Invite Bot](https://discord.com/api/oauth2/authorize?client_id=746132320297156608&permissions=518208&scope=bot)"
-    support_server = "[Support Server]({0})".format(build_info.SUPPORT_SERVER)
-    donate = "[Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Z6UK2VPSZS2J6)"
-    return invite + " | " + support_server + " | " + donate
+    return INVITE + " | " + SUPPORT_SERVER + " | " + DONATE
+
 def get_bot_color():
     return 10204605
 
