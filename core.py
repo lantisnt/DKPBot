@@ -56,6 +56,10 @@ activity.update({
 
 # Main
 
+async def discord_update_activity():
+    await client.change_presence(activity=activity.next())
+    await asyncio.sleep(60)
+
 def main(control: ScriptControl):
     if len(sys.argv) > 3:
         control.initialize(sys.argv[1], sys.argv[2], sys.argv[3])
@@ -66,11 +70,7 @@ def main(control: ScriptControl):
 
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
 
-    async def discord_update_activity(discord_client):
-        await discord_client.change_presence(activity=activity.next())
-        await asyncio.sleep(60)
-
-    client.loop.create_task(discord_update_activity(client))
+    client.loop.create_task(discord_update_activity())
     client.run(control.token)
 
 # Utility
