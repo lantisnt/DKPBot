@@ -98,7 +98,7 @@ def unpickle_data(uid):
 
 def update_client_activity():
     num_guilds = len(client.guilds)
-    activity.state = "{0} servers | {0}".format(num_guilds, build_info.VERSION)
+    activity.state = "{0} servers | {1}".format(num_guilds, build_info.VERSION)
 
 
 def normalize_author(author):
