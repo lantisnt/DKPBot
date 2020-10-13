@@ -8,8 +8,7 @@ def get_bot_links():
     invite = "[Invite Bot](https://discord.com/api/oauth2/authorize?client_id=746132320297156608&permissions=518208&scope=bot)"
     support_server = "[Support Server]({0})".format(build_info.SUPPORT_SERVER)
     donate = "[Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Z6UK2VPSZS2J6)"
-    return invite + " | " + support_server + " | " + donate + " | " + build_info.VERSION
-
+    return invite + " | " + support_server + " | " + donate
 def get_bot_color():
     return 10204605
 

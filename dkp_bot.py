@@ -640,13 +640,12 @@ class DKPBot:
             preformatted_block(self.get_prefix() + "dkp player", ''))
         help_string += 'Display current DKP for multiple players, classes or aliases mixed together.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "dkp class alias player", '') + preformatted_block('Supporter only command', 'css'))
-        help_string += 'Supported aliases: ```all tanks healers dps casters physical ranged melee```'
-        help_string += '```Example: {0}dkp janedoe someguy healers mage```'.format(self.__prefix)
+        help_string += '```Supported aliases:\n* all\ntanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee```'
         embed.add_field("DKP", help_string, False)
         # History
         help_string = 'Display DKP history for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "dkphistory", ''))
-        help_string += 'Display DKP history  for specified `player`.\n\n'.format(
+        help_string += 'Display DKP history  for specified `player`.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "dkphistory player", ''))
         help_string += 'Display latest loot for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "loot", ''))
@@ -661,9 +660,8 @@ class DKPBot:
         embed.add_field("Items", help_string, False)
         # Administration
         if request_info['is_privileged']:
-            help_string = 'Administrator only options.'
-            help_string += 'Generic bot configuration (including server and guild)\n{0}\n'.format(
-                preformatted_block(self.get_prefix() + "config", ''))
+            help_string  = 'Generic bot configuration (including server and guild)\n{0}\n'.format(
+                preformatted_block(self.get_prefix() + "config", '') + preformatted_block('Administrator only command', 'css'))
             help_string += 'Display related configuration\n{0}\n'.format(
                 preformatted_block(self.get_prefix() + "display", ''))
         embed.add_field("Administration", help_string, False)
