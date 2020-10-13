@@ -10,6 +10,12 @@ def get_bot_links():
     donate = "[Donate](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=Z6UK2VPSZS2J6)"
     return invite + " | " + support_server + " | " + donate + " | " + build_info.VERSION
 
+def get_bot_color():
+    return 10204605
+
+def get_config_color():
+    return 16553987
+
 def get_class_color(class_name=None):
     if not class_name:
         return 10204605
