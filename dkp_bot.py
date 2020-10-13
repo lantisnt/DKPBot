@@ -628,7 +628,7 @@ class DKPBot:
                     "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM. "
                     "Request will be removed by the bot afterwards.".format(self.__prefix), None, 16553987, None)
         # Basic
-        help_string += '{0:10} :: Display this help. You can also get it by @mentioning the bot.\n'.format("help")
+        help_string  = '{0:10} :: Display this help. You can also get it by @mentioning the bot.\n'.format("help")
         help_string += '{0:10} :: Get basic informations about the bot.'.format("info")
         embed.add_field("General", preformatted_block(help_string, 'asciidoc'), False)
         # DKP
@@ -639,18 +639,18 @@ class DKPBot:
         help_string += 'Supported aliases: .all tanks healers dps casters physical ranged melee. Example: dkp janedoe someguy healers mage.'
         embed.add_field("DKP", preformatted_block(help_string, 'asciidoc'), False)
         # History
-        help_string = '{0:10} Display DKP history for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n\n'.format("dkphistory")
+        help_string  = '{0:10} Display DKP history for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n\n'.format("dkphistory")
         help_string += '{0:10} Display DKP history  for specified `player`.\n\n'.format("dkphistory player")
         help_string += '{0:10} Display latest loot for the requester.\nUses nickname if set. Takes Discord user name otherwise.\n\n'.format("loot")
         help_string += '{0:10} Display latest loot  for specified `player`.\n\n'.format("loot player")
         embed.add_field("History", help_string, False)
         # Items - Supporter only
-        help_string += '{0:10} Display latest 30 loot entries from raids.\n\n'.format("raidloot" + 'Supporter only command', 'css')
+        help_string  = '{0:10} Display latest 30 loot entries from raids.\n\n'.format("raidloot" + 'Supporter only command', 'css')
         help_string += '{0:10} Find loot entries matching `name`. Supports partial match.\n\n'.format("item name" + 'Supporter only command', 'css')
         embed.add_field("Items", help_string, False)
         # Administration
         if request_info['is_privileged']:
-            help_string = 'Administrator only options.'
+            help_string  = 'Administrator only options.'
             help_string += '{0:10} Generic bot config\n\n'.format("config")
             help_string += '{0:10} Display related config'.format("display")
         embed.add_field("Administration", help_string, False)
