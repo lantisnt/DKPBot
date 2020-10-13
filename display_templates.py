@@ -4,9 +4,9 @@ from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp
 import build_info
 
-INVITE = "[Invite Bot]wowdkpbot.com/invite)"
-SUPPORT_SERVER = "[Support Server]({0})".format(build_info.SUPPORT_SERVER)
-DONATE = "[Donate](wowdkpbot.com/donate)"
+INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
+SUPPORT_SERVER = "[Support Server](http://{0})".format(build_info.SUPPORT_SERVER)
+DONATE = "[Donate](http://wowdkpbot.com/donate)"
 def get_bot_links():
     return INVITE + " | " + SUPPORT_SERVER + " | " + DONATE
 
