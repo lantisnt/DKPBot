@@ -12,7 +12,7 @@ import dkp_bot
 import bot_factory
 import bot_memory_manager
 from bot_config import BotConfig
-from display_templates import BasicSuccess
+from display_templates import BasicSuccess, BasicError
 from loop_activity import LoopActivity
 import footprint
 
@@ -145,7 +145,7 @@ async def discord_build_file(data):
     return discord.File(data)
 
 
-async def discord_respond(channel, responses):
+async def discord_respond(channel, responses, self_call=False):
     try:
         if not responses:
             return
@@ -172,9 +172,12 @@ async def discord_respond(channel, responses):
                     elif isinstance(extra, io.IOBase):
                         await channel.send(message, file=await discord_build_file(extra))
     except discord.HTTPException as exception:
-        exception = str(exception)
-        print(exception)
-
+        exception = str(exception).lower()
+        if (exception.find("size exceeds maximum") != -1) or (exception.find("or fewer in length") != -1) and not self_call:
+            embed = BasicError("Response data exceeded Discord limits. Please limit the response in display configuration.")
+            await discord_respond(channel, embed.get(), True)
+        else:
+            pass # log here
 
 async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message, normalized_author: str, announce: bool):
     if len(message.attachments) > 0:
