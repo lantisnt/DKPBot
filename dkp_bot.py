@@ -679,8 +679,9 @@ class DKPBot:
                 help_string += 'Display related configuration\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "display", ''))
             #embed.add_field("Administration", help_string, False)
-            # Pseudo-Footer: Discord link
-            embed.add_field("\u200b", get_bot_links(), False)
+        
+        # Pseudo-Footer: Discord link
+        embed.add_field("\u200b", get_bot_links(), False)
         return Response(ResponseStatus.SUCCESS, embed.get())
 
     def call_config(self, param, request_info):

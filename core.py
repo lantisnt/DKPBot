@@ -296,7 +296,7 @@ async def on_message(message):
 
         if client.user in message.mentions:
             # Handle bot mention
-            response = bot.call_help(None, request_info)
+            response = bot.call_help("", request_info)
         else:
             # Handle command
             response = bot.handle(message.content, request_info)
