@@ -645,7 +645,8 @@ class DKPBot:
             # General
             if 'general' in params:
                 help_string  = 'Display this help. You can also get it by @mentioning the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "help", ''))
-                help_string += 'Get basic informations about the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "info", ''))
+                help_string += 'Get basic information about the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "info", ''))
+                help_string += 'Want to become supporter? Get more info here.\n{0}\n'.format(preformatted_block(self.get_prefix() + "support", ''))
                 embed.add_field("General", help_string, False)
             # DKP
             if 'dkp' in params:
