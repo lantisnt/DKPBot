@@ -45,9 +45,9 @@ class ScriptControl():
 script_control = ScriptControl()
 client = discord.Client()
 bots = {}
-activity = discord.Activity(
-#    type=discord.ActivityType.listening,
-    state="{0}".format(build_info.VERSION),
+activity = discord.Game("WoW DKP Bot",#Activity(
+    type=discord.ActivityType.listening,
+#    state="{0}".format(build_info.VERSION),
     details="@mention me to get help",
 #    assets={
 #        'large_image' : 'dkpbot-logo',
@@ -236,10 +236,10 @@ async def on_ready():
         if script_control.is_initialized():
             return
 
-        await discord_update_activity()
-
         for guild in client.guilds:
             await spawn_bot(guild)
+
+        await discord_update_activity()
 
     except (SystemExit, Exception):
         handle_exception("on_ready()")
