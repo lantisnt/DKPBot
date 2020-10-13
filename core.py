@@ -154,7 +154,7 @@ async def discord_respond(channel, responses):
         response_list.append(responses)
     else:
         response_list = responses
-    print(response_list)
+
     for response in response_list:
         if isinstance(response, str):
             await channel.send(response)

@@ -628,17 +628,17 @@ class DKPBot:
         if num_params == 0:
             embed.build(None, "Help", "WoW DKP Bot allows players access their DKP information.\n"
                     "All commands and values are case insensitive.\n\n"
-                    "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM. "
-                    "Request will be removed by the bot afterwards.\n"
+                    "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM.\n"
+                    "Request will be removed by the bot afterwards.\n\n"
                     "To get more information on supported commands type"
                     "```{0}help group```"
                     "Supported command groups:".format(self.__prefix), None, 16553987, None)
-            embed.add_field("General", "{0} commands".format(3), True)
-            embed.add_field("DKP", "{0} commands".format(4), True)
-            embed.add_field("History", "{0} commands".format(4), True)
-            embed.add_field("Item", "{0} commands".format(2), True)
+            embed.add_field(":information_source: General", "{0} commands".format(3), True)
+            embed.add_field(":crossed_swords: DKP", "{0} commands".format(4), True)
+            embed.add_field(":scroll: History", "{0} commands".format(4), True)
+            embed.add_field(":mag: Item", "{0} commands".format(2), True)
             if request_info['is_privileged']:
-                embed.add_field("Administration", "{0} commands".format(2), True)
+                embed.add_field(":a:  Administration", "{0} commands".format(2), True)
         else:
             embed.build(None, "Commands", None, None, 16553987, None)
             # General
