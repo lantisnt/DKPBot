@@ -7,6 +7,7 @@ class BotLogger():
             self.file_handler = logging.FileHandler('{0}/bot.log'.format(path), encoding='utf-8')
             self.formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
             self.file_handler.setFormatter(self.formatter)
+            self.logger.addHandler(self.file_handler)
             self.logger.setLevel(logging.INFO)
 
         def get(self):
