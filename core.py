@@ -214,8 +214,7 @@ async def spawn_bot(guild):
             bot_memory_manager.Manager().Handle(guild.id, True)
             print("Bot for server {0} total footprint: {1} B".format(
                         guild.name.encode('ascii', 'ignore').decode(), footprint.total_size(bot)))
-            # Update activity
-            await discord_update_activity()
+
     except (SystemExit, Exception):
         handle_exception("spawn_bot()")
 
@@ -226,7 +225,7 @@ async def spawn_bot(guild):
 async def on_guild_join(guild):
     try:
         await spawn_bot(guild)
-        await client.change_presence(activity=activity)
+        await discord_update_activity()
     except (SystemExit, Exception):
         handle_exception("on_guild_join()")
 
@@ -237,7 +236,7 @@ async def on_ready():
         if script_control.is_initialized():
             return
 
-        await client.change_presence(activity=activity)
+        await discord_update_activity()
 
         for guild in client.guilds:
             await spawn_bot(guild)
