@@ -2,6 +2,19 @@ from datetime import datetime
 import pytz
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp
+import build_info
+
+INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
+SUPPORT_SERVER = "[Support Server](http://{0})".format(build_info.SUPPORT_SERVER)
+DONATE = "[Donate](http://wowdkpbot.com/donate)"
+def get_bot_links():
+    return INVITE + " | " + SUPPORT_SERVER + " | " + DONATE
+
+def get_bot_color():
+    return 10204605
+
+def get_config_color():
+    return 16553987
 
 def get_class_color(class_name=None):
     if not class_name:
@@ -32,6 +45,9 @@ def get_class_color(class_name=None):
 
     if class_name == 'mage':
         return 4245483
+
+    if class_name == 'shaman':
+        return 159965
 
     return 10204605
 
@@ -75,32 +91,38 @@ def get_thumbnail(class_name):
         return None
 
     class_name = class_name.lower()
-        # host the images
+
     if class_name == 'rogue':
-        return "https://media.discordapp.net/attachments/747858424540430457/750760643593765037/rogue.png"
+        return "https://cdn.discordapp.com/attachments/765089790295015425/765091109558550608/rogue.png"
 
     if class_name == 'warrior':
-        return "https://media.discordapp.net/attachments/747858424540430457/750760648031600720/warrior.png"
+        return "https://cdn.discordapp.com/attachments/765089790295015425/765091114561568798/warrior.png"
 
     if class_name == 'hunter':
-        return "https://media.discordapp.net/attachments/747858424540430457/750760636753117325/hunter.png"
+        return "https://cdn.discordapp.com/attachments/765089790295015425/765091099626307614/hunter.png"
 
     if class_name == 'druid':
-        return "https://media.discordapp.net/attachments/747858424540430457/750760633729024030/druid.png"
+        return "https://cdn.discordapp.com/attachments/765089790295015425/765091097680019496/druid.png"
 
     if class_name == 'priest':
-        return "https://media.discordapp.net/attachments/747858424540430457/750760641740013741/priest.png"
+        return "https://cdn.discordapp.com/attachments/765089790295015425/765091107477782548/priest.png"
 
     if class_name == 'paladin':
-        return "https://media.discordapp.net/attachments/747858424540430457/750760640167280640/paladin.png"
+        return "https://cdn.discordapp.com/attachments/765089790295015425/765091105670430750/paladin.png"
 
     if class_name == 'warlock':
-        return "https://media.discordapp.net/attachments/747858424540430457/750760645770739893/warlock.png"
+        return "https://cdn.discordapp.com/attachments/765089790295015425/765091111822950430/warlock.png"
 
     if class_name == 'mage':
-        return "https://media.discordapp.net/attachments/747858424540430457/750760638699143288/mage.png"
+        return "https://cdn.discordapp.com/attachments/765089790295015425/765091102545412096/mage.pngx`"
+
+    if class_name == 'shaman':
+        return "https://cdn.discordapp.com/attachments/765089790295015425/765241408449019914/shaman.png"
 
     return None
+
+def preformatted_block(string: str, language='swift'):
+    return "```" + language + "\n" + string + "```"
 
 def generate_dkp_history_entry(history_entry, format_string=None):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):
@@ -199,6 +221,45 @@ class RawEmbed:
     def get(self):
         return self._d.copy()
 
+    def __call__(self):
+        return self.get()
+
+class BasicError(RawEmbed):
+
+    def __init__(self, message):
+        self.build(
+            None,
+            "Error",
+            message,
+            "https://cdn.discordapp.com/attachments/765089790295015425/765089825283244040/exclamation_mark.png",
+            16765994,
+            None)
+        self.add_field("\u200b", get_bot_links(), False)
+
+
+class BasicSuccess(RawEmbed):
+
+    def __init__(self, message):
+        self.build(
+            None,
+            "Success",
+            message,
+            "https://cdn.discordapp.com/attachments/765089790295015425/765113827414245407/check_mark_2.png",
+            966400,
+            None)
+        self.add_field("\u200b", get_bot_links(), False)
+
+class BasicAnnouncement(RawEmbed):
+
+    def __init__(self, message):
+        self.build(
+            None,
+            "Announcement",
+            message,
+            None,
+            get_class_color(),
+            None)
+        self.add_field("\u200b", get_bot_links(), False)
 
 class BaseResponse:
     _embed = None
@@ -297,7 +358,7 @@ class MultipleResponse(BaseResponse):
                 self.__response_limit = response_limit
 
         self.__multiple_columns = bool(multiple_columns)
-        #print("MR: {0} | {1} | {2} | {3}".format(self.__field_limit, self.__entry_limit, self.__response_limit, self.__multiple_columns))
+
     def _prepare(self, data_list): # pylint: disable=unused-argument
         pass
 

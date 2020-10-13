@@ -134,3 +134,4 @@ dmypy.json
 .vscode
 *.cfg
 simple_test.py
+sample_plots.py
