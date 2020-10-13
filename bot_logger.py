@@ -4,7 +4,7 @@ class BotLogger():
     class __BotLogger: #pylint: disable=invalid-name, attribute-defined-outside-init
         def initialize(self, path):
             self.logger = logging.getLogger('wowdkpbot-{0}'.format(path))
-            self.file_handler = logging.FileHandler('{0}/bot.log', encoding='utf-8')
+            self.file_handler = logging.FileHandler('{0}/bot.log'.format(path), encoding='utf-8')
             self.formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
             self.file_handler.setFormatter(self.formatter)
             self.logger.setLevel(logging.INFO)
