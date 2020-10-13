@@ -66,8 +66,8 @@ def main(control: ScriptControl):
 
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
 
-    async def discord_update_activity(client):
-        await client.change_presence(activity=activity.next())
+    async def discord_update_activity(discord_client):
+        await discord_client.change_presence(activity=activity.next())
         await asyncio.sleep(60)
 
     client.loop.create_task(discord_update_activity(client))
