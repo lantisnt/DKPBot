@@ -45,7 +45,7 @@ class ScriptControl():
 script_control = ScriptControl()
 client = discord.Client()
 bots = {}
-activity = discord.Game("WoW DKP Bot",#Activity(
+activity = discord.Game("{0}".format(build_info.VERSION),#Activity(
     type=discord.ActivityType.listening,
 #    state="{0}".format(build_info.VERSION),
     details="@mention me to get help",
@@ -190,7 +190,8 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
 
 async def discord_update_activity():
     num_guilds = len(client.guilds)
-    activity.state = "{0} servers | {1}".format(num_guilds, build_info.VERSION)
+    #activity.state = "{0} servers | {1}".format(num_guilds, build_info.VERSION)
+    activity.name = "{0} servers | {1}".format(num_guilds, build_info.VERSION)
     await client.change_presence(activity=activity)
 
 async def spawn_bot(guild):
