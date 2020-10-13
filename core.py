@@ -216,7 +216,7 @@ def main(control: ScriptControl):
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
 
     client.loop.create_task(discord_update_activity())
-    client.run(control.token, activity=activity)
+    client.run(control.token)
 
 # Discord API
 
