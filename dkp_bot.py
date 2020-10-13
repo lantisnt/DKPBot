@@ -636,20 +636,20 @@ class DKPBot:
                     "To get more information on supported commands type"
                     "```{0}help group```"
                     "Supported command groups:".format(self.__prefix), None, get_bot_color(), None)
-            commands  = "`{0}help`\n".format(self.__prefix)
-            commands += "`{0}info`\n".format(self.__prefix)
+            commands  = "```{0}help```\n".format(self.__prefix)
+            commands += "```{0}info```\n".format(self.__prefix)
             embed.add_field(":information_source: General", commands, True)
-            commands  = "`{0}dkp [player class alias]`\n".format(self.__prefix)
+            commands  = "```{0}dkp [player class alias]```\n".format(self.__prefix)
             embed.add_field(":crossed_swords: DKP", commands, True)
-            commands  = "`{0}dkphistory [player class or alias]`\n".format(self.__prefix)
-            commands += "`{0}lott [player class or alias]`\n".format(self.__prefix)
+            commands  = "```{0}dkphistory [player class alias]```\n".format(self.__prefix)
+            commands += "```{0}loot [player class alias]```\n".format(self.__prefix)
             embed.add_field(":scroll: History", commands, True)
-            commands  = "`{0}raidloot`\n".format(self.__prefix)
-            commands += "`{0}item`\n".format(self.__prefix)
+            commands  = "```{0}raidloot```\n".format(self.__prefix)
+            commands += "```{0}item```\n".format(self.__prefix)
             embed.add_field(":mag: Items", commands, True)
             if request_info['is_privileged']:
-                commands  = "`{0}config`\n".format(self.__prefix)
-                commands += "`{0}display`\n".format(self.__prefix)
+                commands  = "```{0}config```\n".format(self.__prefix)
+                commands += "```{0}display```\n".format(self.__prefix)
                 embed.add_field(":a:  Administration", commands, False)
                 
         else:
