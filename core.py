@@ -146,33 +146,34 @@ async def discord_build_file(data):
 
 
 async def discord_respond(channel, responses):
-    if not responses:
-        return
+    try:
+        if not responses:
+            return
 
-    if not isinstance(responses, list):
-        response_list = []
-        response_list.append(responses)
-    else:
-        response_list = responses
+        if not isinstance(responses, list):
+            response_list = []
+            response_list.append(responses)
+        else:
+            response_list = responses
 
-    for response in response_list:
-        if isinstance(response, str):
-            await channel.send(response)
-        elif isinstance(response, dict):
-            await channel.send(embed=await discord_build_embed(response))
-        elif isinstance(response, io.IOBase):
-            await channel.send(file=await discord_build_file(response))
-        elif isinstance(response, tuple):
-            message = response[0]
-            extra = response[1]
-            if isinstance(message, str):
-                if isinstance(extra, dict):
-                    await channel.send(message, embed=await discord_build_embed(extra))
-                elif isinstance(extra, io.IOBase):
-                    await channel.send(message, file=await discord_build_file(extra))
-
-
-
+        for response in response_list:
+            if isinstance(response, str):
+                await channel.send(response)
+            elif isinstance(response, dict):
+                await channel.send(embed=await discord_build_embed(response))
+            elif isinstance(response, io.IOBase):
+                await channel.send(file=await discord_build_file(response))
+            elif isinstance(response, tuple):
+                message = response[0]
+                extra = response[1]
+                if isinstance(message, str):
+                    if isinstance(extra, dict):
+                        await channel.send(message, embed=await discord_build_embed(extra))
+                    elif isinstance(extra, io.IOBase):
+                        await channel.send(message, file=await discord_build_file(extra))
+    except discord.HTTPException as exception:
+        exception = str(exception)
+        print(exception)
 
 
 async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message, normalized_author: str, announce: bool):
