@@ -15,6 +15,7 @@ class LoopActivity(Game):
         if isinstance(activities, dict):
             for key, value in activities.items():
                 self.__activities[key] = value
+            self.__num_activities = len(self.__activities)
 
     def next(self):
         if self.__num_activities > 0:
