@@ -8,7 +8,7 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 import bot_memory_manager
-from display_templates import get_bot_links, preformatted_block, RawEmbed, BasicError, BasicSuccess, BasicAnnouncement
+from display_templates import get_config_color, get_bot_color, get_bot_links, preformatted_block, RawEmbed, BasicError, BasicSuccess, BasicAnnouncement
 
 
 class ResponseStatus(Enum):
@@ -622,7 +622,7 @@ class DKPBot:
     ### Command callbacks ###
 
     def call_help(self, param, request_info):  # pylint: disable=unused-argument
-        help_string = "WoW DKP Bot allows players access their DKP information.\n" + "All commands and values are case insensitive.\n" + "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM. ".format(self.__prefix) + "Request will be removed by the bot afterwards."
+        help_string = "WoW DKP Bot allows players access their DKP information.\n" + "All commands and values are case insensitive.\n" + "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM. ".format(self.__prefix) + "Request will be removed by the bot afterwards." + "\n"
         # Basic
         help_string_block  = '{0:22} :: Display this help. You can also get it by @mentioning the bot.\n'.format("help")
         help_string_block += '{0:22} :: Get basic informations about the bot.'.format("info")
@@ -656,11 +656,11 @@ class DKPBot:
             help_string_block = "=== Administrator only commands ===\n"
             help_string_block += '{0:22} :: Generic bot (including guild and server) configuration\n'.format("config")
             help_string_block += '{0:22} :: Display related configuration'.format("display")
-            help_string += preformatted_block(help_string_block, 'asciidoc') + "\n\n"
+            help_string += preformatted_block(help_string_block, 'asciidoc') + "\n"
 
         # Pseudo-Footer: Discord link
         embed = RawEmbed()
-        embed.build(None, None, None, None, 16553987, None)
+        embed.build(None, None, None, None, get_bot_color(), None)
         embed.add_field("Find out more:", get_bot_links(), False)
 
         return Response(ResponseStatus.SUCCESS, (help_string, embed.get()))
@@ -684,7 +684,7 @@ class DKPBot:
             # string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
             # string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
             embed = RawEmbed()
-            embed.build(None, "Available configurations", "All commands and values are case insensitive.", None, 16553987, None)
+            embed.build(None, "Available configurations", "All commands and values are case insensitive.", None, get_config_color(), None)
             # bot-type
             string = "Set bot type to handle specified addon\n"
             string += preformatted_block("Usage:     {0}config bot-type Type\n".format(self.__prefix))
@@ -769,7 +769,7 @@ class DKPBot:
             display_info = self.__config.get_configs_data()
             embed = RawEmbed()
             embed.build(None, "Available display settings",
-                        "Configure number of data displayed in single request. All commands and values are case insensitive.", None, 16553987, None)
+                        "Configure number of data displayed in single request. All commands and values are case insensitive.", None, get_config_color(), None)
 
             for category, data in display_info.items():
                 string = ""
