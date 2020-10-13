@@ -46,16 +46,16 @@ script_control = ScriptControl()
 client = discord.Client()
 bots = {}
 activity = discord.Activity(
-    application_id=759088047328460820,
-    type=discord.ActivityType.listening,
+#    type=discord.ActivityType.listening,
     state="{0}".format(build_info.VERSION),
     details="@mention me to get help",
-    assets={
-        'large_image' : 'dkpbot-logo',
-        'large_text' : '@mention me to get help',
-        'small_image' : 'dkpbot-logo',
-        'small_text' : '@mention me to get help'
-    })
+#    assets={
+#        'large_image' : 'dkpbot-logo',
+#        'large_text' : '@mention me to get help',
+#        'small_image' : 'dkpbot-logo',
+#        'small_text' : '@mention me to get help'
+#    }
+)
 
 
 # Main
