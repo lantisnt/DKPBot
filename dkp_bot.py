@@ -69,17 +69,7 @@ class DKPBot:
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
         self.__channel_team_map = {}
         self.__db_loaded = False
-        self.__db = {
-            # Database for all global data indexed by player name. Unsorted.
-            'global': {},
-            'group': {},   # Database for all grouped data. Indexed by group name. Sorted by DKP value descending
-            'time': 0,
-            'info': {
-                'comment': '',
-                'date': '',
-                'author': ''
-            }
-        }
+        self.__init_db_structure()
 
     def _configure(self):
         self.__input_file_name = self.__config.guild_info.filename
@@ -350,6 +340,20 @@ class DKPBot:
             return None
         return team_data['history'].get(player.lower())
 
+    def __init_db_structure(self):
+        self.__db.clear()
+        self.__db = {
+            # Database for all global data indexed by player name. Unsorted.
+            'global': {},
+            'group': {},   # Database for all grouped data. Indexed by group name. Sorted by DKP value descending
+            'time': 0,
+            'info': {
+                'comment': '',
+                'date': '',
+                'author': ''
+            }
+        }
+
     def __init_team_structure(self, team):
         self.__db['global'][team] = {}
         self.__db['global'][team]['dkp'] = {}
@@ -560,6 +564,8 @@ class DKPBot:
 
         if not isinstance(saved_variable, dict):
             return Response(ResponseStatus.ERROR, "No SavedVariables found in .lua file.")
+
+        self.__init_db_structure()
 
         self.__db['info']['comment'] = info.get('comment')
         self.__db['info']['date'] = info.get('date')
