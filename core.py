@@ -57,9 +57,10 @@ activity.update({
 # Main
 
 async def discord_update_activity():
+    print("discord_update_activity")
     await client.wait_until_ready()
     await client.change_presence(activity=activity.next())
-    await asyncio.sleep(60)
+    await asyncio.sleep(2)
 
 def main(control: ScriptControl):
     if len(sys.argv) > 3:
