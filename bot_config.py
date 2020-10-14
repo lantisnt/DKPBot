@@ -1,8 +1,7 @@
 import os
+from enum import Enum
 from configparser import ConfigParser
 from bot_logger import BotLogger
-
-from enum import Enum
 
 from bot_utility import public_to_dict
 

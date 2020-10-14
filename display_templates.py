@@ -1,5 +1,3 @@
-from datetime import datetime
-import pytz
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp
 import build_info
@@ -244,7 +242,7 @@ class BasicSuccess(RawEmbed):
             None,
             "Success",
             message,
-            "https://cdn.discordapp.com/attachments/765089790295015425/765113827414245407/check_mark_2.png",
+            "https://cdn.discordapp.com/attachments/765089790295015425/765888821426389002/check_mark_3.png",
             966400,
             None)
         self.add_field("\u200b", get_bot_links(), False)

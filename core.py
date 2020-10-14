@@ -1,5 +1,4 @@
 import sys
-import traceback
 import io
 import pickle
 import asyncio

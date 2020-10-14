@@ -9,8 +9,8 @@ from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 from bot_logger import BotLogger
 import bot_memory_manager
-from display_templates import SUPPORT_SERVER, DONATE
-from display_templates import get_config_color, get_bot_color, get_bot_links, preformatted_block
+from display_templates import SUPPORT_SERVER
+from display_templates import get_bot_color, get_bot_links, preformatted_block
 from display_templates import RawEmbed, BasicError, BasicSuccess, BasicAnnouncement
 
 
@@ -651,8 +651,8 @@ class DKPBot:
             embed.add_field(":information_source: General", commands, True)
             commands  = "```{0}dkp [param]```".format(self.__prefix)
             embed.add_field(":crossed_swords: DKP", commands, True)
-            commands  = "```{0}dkphistory [param]```".format(self.__prefix)
-            commands += "```{0}loot [param]```".format(self.__prefix)
+            commands  = "```{0}dkphistory [player]```".format(self.__prefix)
+            commands += "```{0}loot [player]```".format(self.__prefix)
             embed.add_field(":scroll: History", commands, True)
             commands  = "```{0}raidloot```".format(self.__prefix)
             commands += "```{0}item```".format(self.__prefix)
@@ -661,7 +661,7 @@ class DKPBot:
                 commands  = "```{0}config```".format(self.__prefix)
                 commands += "```{0}display```".format(self.__prefix)
                 embed.add_field(":a:  Administration", commands, False)
-                
+
         else:
             embed.build(None, "Commands", None, None, get_bot_color(), None)
             # General
@@ -679,7 +679,7 @@ class DKPBot:
                     preformatted_block(self.get_prefix() + "dkp all", ''))
                 help_string += 'Display current DKP for multiple players, classes or aliases mixed together.\n{0}'.format(
                     preformatted_block(self.get_prefix() + "dkp class alias player", ''))
-                help_string += preformatted_block('Supported aliases:\n* all\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee', '')
+                help_string += preformatted_block('Supported aliases:\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee', '')
                 help_string += preformatted_block('Supporter only command', 'css')
                 embed.add_field("DKP", help_string, False)
             # History
@@ -713,7 +713,7 @@ class DKPBot:
         embed.add_field("\u200b", get_bot_links(), False)
         return Response(ResponseStatus.SUCCESS, embed.get())
 
-    def call_info(self, param, request_info):
+    def call_info(self, param, request_info): #pylint: disable=unused-argument
         embed = RawEmbed()
         embed.build(None, "Info", None, None, get_bot_color(), None)
         info_string  = "WoW DKP Bot allows querying DKP standings, history and loot data directly through the discord."
@@ -869,7 +869,7 @@ class DKPBot:
 
     ### Config handlers ###
 
-    def config_call_bot_type(self, params, num_params, request_info):
+    def config_call_bot_type(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params == 2:
             value = params[1]
             if value in ['community', 'monolith', 'essential']:
@@ -891,7 +891,7 @@ class DKPBot:
         else:
             return Response(ResponseStatus.SUCCESS, BasicSuccess("Invalid number of parameters").get())
 
-    def config_call_prefix(self, params, num_params, request_info):
+    def config_call_prefix(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params == 2:
             value = params[1]
             if value in self.get_supported_prefixes():
@@ -907,27 +907,27 @@ class DKPBot:
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
-    def config_call_default(self, params, num_params, request_info):
+    def config_call_default(self, params, num_params, request_info): #pylint: disable=unused-argument
         self.__config.default()
         return Response(ResponseStatus.REQUEST, Request.RESPAWN)
 
-    def config_call_reload(self, params, num_params, request_info):
+    def config_call_reload(self, params, num_params, request_info): #pylint: disable=unused-argument
         return Response(ResponseStatus.REQUEST, Request.RESPAWN)
 
-    def config_call_register(self, params, num_params, request_info):
+    def config_call_register(self, params, num_params, request_info): #pylint: disable=unused-argument
         self.__register_file_upload_channel(request_info['channel'])
         return Response(ResponseStatus.SUCCESS,
                         BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel'])).get())
 
-    def config_call_announcement(self, params, num_params, request_info):
+    def config_call_announcement(self, params, num_params, request_info): #pylint: disable=unused-argument
         self.__register_announcement_channel(request_info['channel'])
         return Response(ResponseStatus.SUCCESS,
                         BasicSuccess('Registered channel <#{0}> to announce updated DKP standings'.format(request_info['channel'])).get())
 
-    def config_call_server_side(self, params, num_params, request_info):
-        if num_params == 3:
-            server = params[1]
-            side = params[2]
+    def config_call_server_side(self, params, num_params, request_info): #pylint: disable=unused-argument
+        if num_params >= 3:
+            server = ' '.join(params[1:-1])
+            side = str(params[-1])
             value = "{0}-{1}".format(server, side).lower()
             if len(value) > 50:
                 return Response(ResponseStatus.SUCCESS, BasicError('Data is too long.').get())
@@ -942,7 +942,7 @@ class DKPBot:
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
-    def config_call_guild_name(self, params, num_params, request_info):
+    def config_call_guild_name(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params >= 2:
             value = ' '.join(params[1:])
             if len(value) > 50:
@@ -958,7 +958,7 @@ class DKPBot:
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
-    def config_call_team(self, params, num_params, request_info):
+    def config_call_team(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params == 2:
             success = self._set_channel_team_mapping(request_info['channel'], params[1])
             if success:
