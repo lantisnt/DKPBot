@@ -48,10 +48,8 @@ client = discord.Client()
 bots = {}
 activity = LoopActivity("")
 activity.update({
-    "version"   : "{0}".format(build_info.VERSION),
-    "discord"   : "{0}".format(build_info.SUPPORT_SERVER),
-    "servers"   : "{0} servers".format(0)
-    })
+    'booting'   : 'booting...'
+})
 
 async def discord_update_activity():
     await client.wait_until_ready()
@@ -70,6 +68,14 @@ def main(control: ScriptControl):
     client.run(control.token)
 
 # Utility
+def initialize_activity_data():
+    activity.remove('booting')
+    activity.update({
+        "version"   : "{0}".format(build_info.VERSION),
+        "discord"    : "{0}".format(build_info.SUPPORT_SERVER),
+        "servers"   : "{0} servers".format(0)
+    })
+
 def update_activity_data():
     activity.update({"servers" : "{0} servers".format(len(client.guilds))})
 
@@ -247,7 +253,7 @@ async def on_ready():
         for guild in client.guilds:
             await spawn_bot(guild)
 
-        update_activity_data()
+        initialize_activity_data()
 
     except (SystemExit, Exception) as exception:
         handle_exception("on_ready()", exception)
