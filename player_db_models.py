@@ -41,6 +41,9 @@ class PlayerInfo:
     def set_inactive(self):
         self.__active = False
 
+    def set_active(self):
+        self.__active = True
+
     def is_active(self):
         return self.__active
 
