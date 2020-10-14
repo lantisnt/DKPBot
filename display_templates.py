@@ -280,7 +280,7 @@ class BaseResponse:
         return self._isBuilt
 
     def set_database_info(self, info):
-        print("Setting database info"):
+        print("Setting database info")
         print(info)
         self._date = info.get('date')
         self._author = info.get('author')
