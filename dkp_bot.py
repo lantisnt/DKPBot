@@ -926,9 +926,12 @@ class DKPBot:
 
     def config_call_server_side(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params >= 3:
-            server = ' '.join(params[1:-1])
-            side = str(params[-1])
-            value = "{0}-{1}".format(server, side).lower()
+            server = ' '.join(params[1:-1]).lower()
+            side = str(params[-1]).lower()
+            if side not in ['alliance', 'horde']:
+                return Response(ResponseStatus.SUCCESS, BasicError("Last parameter must be either `Alliance` or `Horde`").get())
+
+            value = "{0}-{1}".format(server, side)
             if len(value) > 50:
                 return Response(ResponseStatus.SUCCESS, BasicError('Data is too long.').get())
 
@@ -944,7 +947,7 @@ class DKPBot:
 
     def config_call_guild_name(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params >= 2:
-            value = ' '.join(params[1:])
+            value = ' '.join(params[1:]).lower()
             if len(value) > 50:
                 return Response(ResponseStatus.ERROR, BasicError('Data is too long.').get())
 
