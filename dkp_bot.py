@@ -552,6 +552,8 @@ class DKPBot:
                             if abs(now - history_entry.timestamp()) > inactive_time:
                                 dkp.set_inactive()
                             break
+                else:
+                    dkp.set_inactive()
 
     def build_database(self, input_string, info):
         BotLogger().get().info('Building database for server {0}'.format(self.__guild_id))
