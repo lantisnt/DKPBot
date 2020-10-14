@@ -126,7 +126,8 @@ class DKPBot:
 
     def get_announcement(self):
         announcement = "DKP standings have just been updated by {0}!\n".format(self.__db['info']['author'])
-        announcement += "```{0}```".format(self.__db['info']['comment'])
+        if len(self.__db['info']['comment']) > 0:
+            announcement += "```{0}```".format(self.__db['info']['comment'])
 
         return BasicAnnouncement(announcement).get()
 
@@ -670,7 +671,7 @@ class DKPBot:
                 embed.add_field("General", help_string, False)
             # DKP
             if 'dkp' in params:
-                help_string  = 'Display summary information for the requester.\nUses nickname if set. Takes Discord username otherwise.\n{0}\n'.format(
+                help_string  = 'Display summary information for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkp", ''))
                 help_string += 'Display summary information for specified `player`.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkp player", ''))
@@ -683,11 +684,11 @@ class DKPBot:
                 embed.add_field("DKP", help_string, False)
             # History
             if 'history' in params:
-                help_string = 'Display DKP history for the requester.\nUses nickname if set. Takes Discord username otherwise.\n{0}\n'.format(
+                help_string = 'Display DKP history for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkphistory", ''))
                 help_string += 'Display DKP history  for specified `player`.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkphistory player", ''))
-                help_string += 'Display latest loot for the requester.\nUses nickname if set. Takes Discord username otherwise.\n{0}\n'.format(
+                help_string += 'Display latest loot for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "loot", ''))
                 help_string += 'Display latest loot  for specified `player`.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "loot player", ''))
@@ -841,8 +842,8 @@ class DKPBot:
                 string += "```"
                 embed.add_field(data['title'], string, False)
 
-            string = "```swift\nUsage:\n\n.config Category Config Value```"
-            string += "```swift\nExample:\n\n.config loot-history multiple-columns True```"
+            string = "```swift\nUsage:\n\n{0}config Category Config Value```".format(self.__prefix)
+            string += "```swift\nExample:\n\n{0}config loot-history multiple-columns True```".format(self.__prefix)
             embed.add_field("\u200b", string, False)
 
             # Pseudo-Footer: Discord link

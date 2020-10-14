@@ -476,5 +476,11 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
+    def config_call_server_side(self, params, num_params, request_info):
+        return Response(ResponseStatus.SUCCESS, BasicError("Server and Side setting is not required.").get())
+
+    def config_call_guild_name(self, params, num_params, request_info):
+        return Response(ResponseStatus.SUCCESS, BasicError("Guild Name setting is not required.").get())
+
     def config_call_team(self, params, num_params, request_info):
         return Response(ResponseStatus.SUCCESS, BasicError("Multiple teams are not supported.").get())
