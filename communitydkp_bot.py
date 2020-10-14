@@ -103,5 +103,11 @@ class CommunityDKPBot(EssentialDKPBot):
         self._sort_history()
         self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
 
+    def config_call_server_side(self, params, num_params, request_info):
+        return DKPBot.config_call_server_side(self, params, num_params, request_info)
+
+    def config_call_guild_name(self, params, num_params, request_info):
+        return DKPBot.config_call_guild_name(self, params, num_params, request_info)
+
     def config_call_team(self, params, num_params, request_info):
         return DKPBot.config_call_team(self, params, num_params, request_info)
