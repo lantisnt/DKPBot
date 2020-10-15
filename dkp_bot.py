@@ -281,21 +281,16 @@ class DKPBot:
             return Response(ResponseStatus.IGNORE)
 
     def handle(self, message, request_info):
-        args = self.__parse_command(message)
-        if args:
-            if args.command:
-                if not args.param:
-                    if not request_info or not request_info.get('name'):
-                        return Response(ResponseStatus.ERROR, "No param and no author. How?")
-                    args.param = [request_info.get('name')]
-                args.param = " ".join(args.param)
-                return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
-            else:
-                # Empty message, attachement only probably
-                return Response(ResponseStatus.IGNORE)
-        else:
-            # Empty message, attachement only probably
-            return Response(ResponseStatus.IGNORE)
+        if len(message) > 0 and message[0] == self.__prefix:
+            args = self.__parse_command(message)
+            if args:
+                if args.command:
+                    if not args.param:
+                        args.param = [request_info.get('name')]
+                    args.param = " ".join(args.param)
+                    return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
+        # Empty message, attachement only probably
+        return Response(ResponseStatus.IGNORE)
 
     ### File handling and parsing ###
 
