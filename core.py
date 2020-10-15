@@ -182,7 +182,7 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
             if bot.check_attachment_name(attachment.filename) and attachment.size < MAX_ATTACHMENT_BYTES:
                 attachment_bytes = await attachment.read()
                 info = {
-                    'comment': message.content[:50],
+                    'comment': discord.utils.escape_markdown(message.clean_content)[:50],
                     'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
                     'author': normalized_author
                 }
