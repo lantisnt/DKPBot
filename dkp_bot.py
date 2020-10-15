@@ -812,6 +812,10 @@ class DKPBot:
             string += preformatted_block("Current:   {0}\n".format(self.__prefix))
             string += preformatted_block("Supported: {0}\n".format(' '.join(self.get_supported_prefixes())))
             embed.add_field("prefix", string, False)
+            # reload
+            string = "Reload the bot. This is required to apply some configuration changes. Afterwards bot reparses database with new `server-side` and `guild-name` configuration.\n"
+            string += preformatted_block("Usage:     {0}config reload".format(self.__prefix))
+            embed.add_field("reload", string, False)
             # default
             string = "Instantly reset bot configuration to default - this also resets `prefix` and `bot type`\n"
             string += preformatted_block("Usage:     {0}config default".format(self.__prefix))
