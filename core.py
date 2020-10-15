@@ -72,8 +72,7 @@ def initialize_activity_data():
     activity.remove('booting')
     activity.update({
         "version"   : "{0}".format(build_info.VERSION),
-        "discord"    : "{0}".format(build_info.SUPPORT_SERVER),
-        "servers"   : "{0} servers".format(0)
+        "discord"   : "{0}".format(build_info.SUPPORT_SERVER)
     })
 
 def update_activity_data():
@@ -254,6 +253,7 @@ async def on_ready():
             await spawn_bot(guild)
 
         initialize_activity_data()
+        update_activity_data()
 
     except (SystemExit, Exception) as exception:
         handle_exception("on_ready()", exception)
