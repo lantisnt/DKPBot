@@ -1,6 +1,24 @@
 import re
-from slpp import slpp as lua
+import six
+from slpp import SLPP
 from bot_logger import BotLogger
+
+class WowLuaParser(SLPP):
+
+    def decode(self, text):
+        if not text or not isinstance(text, six.string_types):
+            return
+        # Remove only wow saved variable comments
+        reg = re.compile('-{2,}\s+\[\d*\].*$', re.M) # pylint: disable=anomalous-backslash-in-string
+        text = reg.sub('', text)
+        self.text = text
+        self.at, self.ch, self.depth = 0, '', 0
+        self.len = len(text)
+        self.next_chr()
+        result = self.value()
+        return result
+
+wlp = WowLuaParser()
 
 class SavedVariablesParser:
     def parse_string(self, input_string):
@@ -16,7 +34,7 @@ class SavedVariablesParser:
             string += "}"
             out = pattern.match(string)
             saved_variables[out.group().replace(" = ", "").strip()
-                           ] = lua.decode(pattern.sub("", string, 1))
+                           ] = wlp.decode(pattern.sub("", string, 1))
         return saved_variables
 
     def parse_file(self, filepath):

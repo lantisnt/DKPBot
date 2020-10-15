@@ -572,7 +572,11 @@ class DKPBot:
         self.__db['info']['comment'] = info.get('comment')
         self.__db['info']['date'] = info.get('date')
         self.__db['info']['author'] = info.get('author')
-
+        BotLogger().get().info("DB Info: {0} {1} {2}".format(
+            self.__db['info']['comment'],
+            self.__db['info']['date'],
+            self.__db['info']['author']
+        ))
         self._build_dkp_database(saved_variable)
         self._build_loot_database(saved_variable)
         self._build_history_database(saved_variable)
