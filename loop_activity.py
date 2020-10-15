@@ -17,6 +17,10 @@ class LoopActivity(Game):
                 self.__activities[key] = value
             self.__num_activities = len(self.__activities)
 
+    def remove(self, activity_key):
+        if activity_key in self.__activities.keys():
+            del self.__activities[activity_key]
+
     def next(self):
         if self.__num_activities > 0:
             activity = self.__activities.popitem(False)

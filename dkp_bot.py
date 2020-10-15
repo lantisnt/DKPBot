@@ -281,21 +281,16 @@ class DKPBot:
             return Response(ResponseStatus.IGNORE)
 
     def handle(self, message, request_info):
-        args = self.__parse_command(message)
-        if args:
-            if args.command:
-                if not args.param:
-                    if not request_info or not request_info.get('name'):
-                        return Response(ResponseStatus.ERROR, "No param and no author. How?")
-                    args.param = [request_info.get('name')]
-                args.param = " ".join(args.param)
-                return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
-            else:
-                # Empty message, attachement only probably
-                return Response(ResponseStatus.IGNORE)
-        else:
-            # Empty message, attachement only probably
-            return Response(ResponseStatus.IGNORE)
+        if len(message) > 0 and message[0] == self.__prefix:
+            args = self.__parse_command(message)
+            if args:
+                if args.command:
+                    if not args.param:
+                        args.param = [request_info.get('name')]
+                    args.param = " ".join(args.param)
+                    return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
+        # Empty message, attachement only probably
+        return Response(ResponseStatus.IGNORE)
 
     ### File handling and parsing ###
 
@@ -545,16 +540,15 @@ class DKPBot:
         now = int(datetime.now(tz=timezone.utc).timestamp())
         for team, team_data in self.__db['global'].items():
             for dkp in team_data['dkp'].values():
+                dkp.set_inactive()
                 history = self._get_history(dkp.name(), team)
                 if history and isinstance(history, list):
                     for history_entry in history:
                         if history_entry.dkp() > 0:
                             dkp.set_latest_history_entry(history_entry)
-                            if abs(now - history_entry.timestamp()) > inactive_time:
-                                dkp.set_inactive()
+                            if abs(now - history_entry.timestamp()) <= inactive_time:
+                                dkp.set_active()
                             break
-                else:
-                    dkp.set_inactive()
 
     def build_database(self, input_string, info):
         BotLogger().get().info('Building database for server {0}'.format(self.__guild_id))
@@ -638,7 +632,7 @@ class DKPBot:
         num_params = len(params)
         embed = RawEmbed()
         supported_groups = ['general', 'dkp', 'history', 'items', 'administration']
-        if num_params == 0 or ((num_params == 1) and (params[0] not in supported_groups)):
+        if num_params == 0 or ((num_params == 1) and ((params[0] not in supported_groups) or (params[0] == 'administration' and not request_info['is_privileged']))):
             embed.build(None, "Help", "WoW DKP Bot allows querying DKP standings, history and loot data directly through the discord.\n"
                     "All commands and values are case insensitive.\n\n"
                     "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM.\n"
@@ -809,6 +803,10 @@ class DKPBot:
             string += preformatted_block("Current:   {0}\n".format(self.__prefix))
             string += preformatted_block("Supported: {0}\n".format(' '.join(self.get_supported_prefixes())))
             embed.add_field("prefix", string, False)
+            # reload
+            string = "Reload the bot. This is required to apply some configuration changes. Afterwards bot reparses database with new `server-side` and `guild-name` configuration.\n"
+            string += preformatted_block("Usage:     {0}config reload".format(self.__prefix))
+            embed.add_field("reload", string, False)
             # default
             string = "Instantly reset bot configuration to default - this also resets `prefix` and `bot type`\n"
             string += preformatted_block("Usage:     {0}config default".format(self.__prefix))

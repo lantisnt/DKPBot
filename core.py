@@ -48,10 +48,8 @@ client = discord.Client()
 bots = {}
 activity = LoopActivity("")
 activity.update({
-    "version"   : "{0}".format(build_info.VERSION),
-    "discord"   : "{0}".format(build_info.SUPPORT_SERVER),
-    "servers"   : "{0} servers".format(0)
-    })
+    'booting'   : 'booting...'
+})
 
 async def discord_update_activity():
     await client.wait_until_ready()
@@ -70,6 +68,13 @@ def main(control: ScriptControl):
     client.run(control.token)
 
 # Utility
+def initialize_activity_data():
+    activity.remove('booting')
+    activity.update({
+        "version"   : "{0}".format(build_info.VERSION),
+        "discord"   : "{0}".format(build_info.SUPPORT_SERVER)
+    })
+
 def update_activity_data():
     activity.update({"servers" : "{0} servers".format(len(client.guilds))})
 
@@ -177,7 +182,7 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
             if bot.check_attachment_name(attachment.filename) and attachment.size < MAX_ATTACHMENT_BYTES:
                 attachment_bytes = await attachment.read()
                 info = {
-                    'comment': message.content[:50],
+                    'comment': discord.utils.escape_markdown(message.clean_content)[:50],
                     'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
                     'author': normalized_author
                 }
@@ -247,6 +252,7 @@ async def on_ready():
         for guild in client.guilds:
             await spawn_bot(guild)
 
+        initialize_activity_data()
         update_activity_data()
 
     except (SystemExit, Exception) as exception:
@@ -295,7 +301,7 @@ async def on_message(message):
             response = bot.call_help("", request_info)
         else:
             # Handle command
-            response = bot.handle(message.content, request_info)
+            response = bot.handle(discord.utils.escape_markdown(message.clean_content), request_info)
 
         if response and isinstance(response, dkp_bot.Response):
             if response.status == dkp_bot.ResponseStatus.SUCCESS:

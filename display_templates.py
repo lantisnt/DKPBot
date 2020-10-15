@@ -221,6 +221,20 @@ class RawEmbed:
 
     def __call__(self):
         return self.get()
+#DB4006
+
+class BasicCritical(RawEmbed):
+
+    def __init__(self, message):
+        self.build(
+            None,
+            "Critical Error",
+            message,
+            "https://cdn.discordapp.com/attachments/765089790295015425/766300558289666048/dkpbot-alert-error.png",
+            14368774,
+            None)
+        self.add_field("\u200b", get_bot_links(), False)
+
 
 class BasicError(RawEmbed):
 
@@ -229,8 +243,8 @@ class BasicError(RawEmbed):
             None,
             "Error",
             message,
-            "https://cdn.discordapp.com/attachments/765089790295015425/765089825283244040/exclamation_mark.png",
-            16765994,
+            "https://cdn.discordapp.com/attachments/765089790295015425/766300547589865472/dkpbot-alert-warning.png",
+            15116570,
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
@@ -242,8 +256,20 @@ class BasicSuccess(RawEmbed):
             None,
             "Success",
             message,
-            "https://cdn.discordapp.com/attachments/765089790295015425/765888821426389002/check_mark_3.png",
-            966400,
+            "https://cdn.discordapp.com/attachments/765089790295015425/766300574685593631/dkpbot-alert-success.png",
+            2601546,
+            None)
+        self.add_field("\u200b", get_bot_links(), False)
+
+class BasicInfo(RawEmbed):
+
+    def __init__(self, message):
+        self.build(
+            None,
+            "Info",
+            message,
+            "https://cdn.discordapp.com/attachments/765089790295015425/766304397508345856/dkpbot-alert-info.png",
+            1735398,
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
@@ -254,8 +280,8 @@ class BasicAnnouncement(RawEmbed):
             None,
             "Announcement",
             message,
-            None,
-            get_class_color(),
+            "https://cdn.discordapp.com/attachments/765089790295015425/766304397508345856/dkpbot-alert-info.png",
+            1735398,
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
