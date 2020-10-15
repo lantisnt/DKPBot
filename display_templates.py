@@ -282,6 +282,7 @@ class BaseResponse:
     def set_database_info(self, info):
         print("Setting database info")
         print(info)
+        import traceback
         traceback.print_stack()
         self._date = info.get('date')
         self._author = info.get('author')
