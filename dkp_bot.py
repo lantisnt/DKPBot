@@ -572,11 +572,7 @@ class DKPBot:
         self.__db['info']['comment'] = info.get('comment')
         self.__db['info']['date'] = info.get('date')
         self.__db['info']['author'] = info.get('author')
-        BotLogger().get().info("DB Info: {0} {1} {2}".format(
-            self.__db['info']['comment'],
-            self.__db['info']['date'],
-            self.__db['info']['author']
-        ))
+
         self._build_dkp_database(saved_variable)
         self._build_loot_database(saved_variable)
         self._build_history_database(saved_variable)
@@ -641,7 +637,7 @@ class DKPBot:
         num_params = len(params)
         embed = RawEmbed()
         supported_groups = ['general', 'dkp', 'history', 'items', 'administration']
-        if num_params == 0 or ((num_params == 1) and (params[0] not in supported_groups)):
+        if num_params == 0 or ((num_params == 1) and ((params[0] not in supported_groups) or (params[0] == 'administration' and not request_info['is_privileged']))):
             embed.build(None, "Help", "WoW DKP Bot allows querying DKP standings, history and loot data directly through the discord.\n"
                     "All commands and values are case insensitive.\n\n"
                     "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM.\n"
