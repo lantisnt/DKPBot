@@ -934,8 +934,8 @@ class DKPBot:
     def config_call_announcement(self, params, num_params, request_info): #pylint: disable=unused-argument
         role = 0
         role_response = "No mentionable role provided."
-        if len(request_info['mentions']['role']) > 0:
-            role = request_info['mentions']['role'][0]
+        if len(request_info['mentions']['roles']) > 0:
+            role = request_info['mentions']['roles'][0]
             role_response = "<@&{0}> will be mentioned in the announcement.".format(role)
 
         self.__register_announcement(request_info['channel'], role)
