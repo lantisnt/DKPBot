@@ -663,7 +663,8 @@ class DKPBot:
             embed.add_field(":scroll: History", commands, True)
             commands  = "```{0}raidloot```".format(self.__prefix)
             commands += "```{0}item```".format(self.__prefix)
-            embed.add_field(":mag: Items " + preformatted_block('Supporter only commands', 'css'), commands, True)
+            commands += preformatted_block('Supporter only commands', 'css')
+            embed.add_field(":mag: Items", commands, True)
             if request_info['is_privileged']:
                 commands  = "```{0}config```".format(self.__prefix)
                 commands += "```{0}display```".format(self.__prefix)
@@ -933,8 +934,8 @@ class DKPBot:
     def config_call_announcement(self, params, num_params, request_info): #pylint: disable=unused-argument
         role = 0
         role_response = "No mentionable role provided."
-        if len(request_info) > 0:
-            role = request_info[0]
+        if len(request_info['mentions']['role']) > 0:
+            role = request_info['mentions']['role'][0]
             role_response = "<@&{0}> will be mentioned in the announcement.".format(role)
 
         self.__register_announcement(request_info['channel'], role)
