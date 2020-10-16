@@ -840,8 +840,8 @@ class DKPBot:
                 string += "```"
                 embed.add_field(data['title'], string, False)
 
-            string = "```swift\nUsage:\n\n{0}config Category Config Value```".format(self.__prefix)
-            string += "```swift\nExample:\n\n{0}config loot-history multiple-columns True```".format(self.__prefix)
+            string = "```swift\nUsage:\n\n{0}display Category Config Value```".format(self.__prefix)
+            string += "```swift\nExample:\n\n{0}display loot-history multiple-columns True```".format(self.__prefix)
             embed.add_field("\u200b", string, False)
 
             # Pseudo-Footer: Discord link
