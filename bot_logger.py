@@ -2,6 +2,7 @@ import logging
 
 class BotLogger():
     class __BotLogger: #pylint: disable=invalid-name, attribute-defined-outside-init
+
         def initialize(self, path):
             self.logger = logging.getLogger('wowdkpbot-{0}'.format(path))
             self.file_handler = logging.FileHandler('{0}/bot.log'.format(path), encoding='utf-8')

@@ -16,10 +16,6 @@ from display_templates import BasicSuccess, BasicError
 from loop_activity import LoopActivity
 import footprint
 
-# PERFORMANCE_TEST_ENABLED = False
-# PERFORMANCE_TEST_BOTS = 45
-# PERFORMANCE_TEST_DONE = False
-
 MAX_ATTACHMENT_BYTES = 3145728 # 3MB
 
 class ScriptControl():
@@ -55,7 +51,7 @@ async def discord_update_activity():
     await client.wait_until_ready()
     while True:
         await client.change_presence(activity=activity.next())
-        await asyncio.sleep(60)
+        await asyncio.sleep(30)
 
 
 # Main
@@ -72,7 +68,8 @@ def initialize_activity_data():
     activity.remove('booting')
     activity.update({
         "version"   : "{0}".format(build_info.VERSION),
-        "discord"   : "{0}".format(build_info.SUPPORT_SERVER)
+        "discord"   : "{0}".format(build_info.SUPPORT_SERVER),
+        "help"      : "@mention me for help"
     })
 
 def update_activity_data():
@@ -116,6 +113,29 @@ def normalize_author(author):
     normalized = normalized.split("\\")[0].strip()
 
     return normalized
+
+def get_request_info(message: discord.Message):
+    # Normalize author
+    author = normalize_author(message.author)
+
+    # Check if user is privileged user (administrator)
+    is_privileged = False
+    if isinstance(message.author, discord.Member):
+        is_privileged = message.author.permissions_in(message.channel).administrator
+
+    request_info = {
+        'author': author,
+        'channel': message.channel.id,
+        'is_privileged': is_privileged,
+        'mentions' : {
+            'roles'    : []
+        }
+    }
+
+    for role_mention in message.role_mentions:
+        request_info['mentions']['roles'].extend(role_mention.id)
+
+    return request_info
 
 async def discord_get_response_channel(message, direct_message: bool):
     response_channel = message.channel
@@ -255,11 +275,11 @@ async def on_ready():
         initialize_activity_data()
         update_activity_data()
 
+        script_control.set_initialized()
+        BotLogger().get().info("Ready!")
+
     except (SystemExit, Exception) as exception:
         handle_exception("on_ready()", exception)
-
-    script_control.set_initialized()
-    BotLogger().get().info("Ready!")
 
 
 @client.event
@@ -281,20 +301,12 @@ async def on_message(message):
         if not isinstance(bot, dkp_bot.DKPBot):
             return
 
-        # Normalize author
-        author = normalize_author(message.author)
-
-        # Check if user is privileged user (administrator)
-        is_privileged = False
-        if isinstance(message.author, discord.Member):
-            is_privileged = message.author.permissions_in(
-                message.channel).administrator
-
-        request_info = {
-            'name': author,
-            'channel': message.channel.id,
-            'is_privileged': is_privileged
-        }
+        request_info = get_request_info(message)
+        # request_info = {
+        #     'author': author,
+        #     'channel': message.channel.id,
+        #     'is_privileged': is_privileged
+        # }
 
         if client.user in message.mentions:
             # Handle bot mention

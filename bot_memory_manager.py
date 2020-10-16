@@ -1,4 +1,5 @@
 import collections
+from bot_logger import BotLogger
 
 class Manager(object):
     class __Manager: #pylint: disable=invalid-name, attribute-defined-outside-init
@@ -40,6 +41,7 @@ class Manager(object):
         # Save bot database
         def __save(self, server_id: int):
             # handle the data and save it through the api
+            BotLogger().get().info("Storing {0}".format(server_id))
             data = self.__bots[server_id].database_get()
             self.__save_fn(server_id, data)
             self.__bots[server_id].database_free()

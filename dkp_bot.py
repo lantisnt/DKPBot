@@ -65,6 +65,7 @@ class DKPBot:
         self.__guild_id = int(guild_id)
         self.__channel = 0
         self.__announcement_channel = 0
+        self.__announcement_mention_role = 0
         self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
         self.__channel_team_map = {}
@@ -75,6 +76,7 @@ class DKPBot:
         self.__input_file_name = self.__config.guild_info.filename
         self.__channel = int(self.__config.guild_info.file_upload_channel)
         self.__announcement_channel = int(self.__config.guild_info.announcement_channel)
+        self.__announcement_mention_role = int(self.__config.guild_info.announcement_mention_role)
         self.__prefix = str(self.__config.guild_info.prefix)
         self.__premium = bool(self.__config.guild_info.premium)
         self.__server_side = self.__config.guild_info.server_side
@@ -140,9 +142,12 @@ class DKPBot:
         self.__config.guild_info.file_upload_channel = channel
         self._reconfigure()
 
-    def __register_announcement_channel(self, channel):
+    def __register_announcement(self, channel, roles_list):
         self.__announcement_channel = channel
         self.__config.guild_info.announcement_channel = channel
+        if roles_list is not None and len(roles_list) > 0:
+            self.__announcement_mention_role = roles_list[0]
+            self.__config.guild_info.announcement_mention_role = roles_list[0]
         self._reconfigure()
 
     # Direct access for pickling
@@ -271,7 +276,7 @@ class DKPBot:
 
         callback = getattr(self, method, None)
         if callback and callable(callback):
-            bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
+            #bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
             response = callback(param, request_info)  # pylint: disable=not-callable
 
             response.direct_message = direct_message
@@ -281,12 +286,19 @@ class DKPBot:
             return Response(ResponseStatus.IGNORE)
 
     def handle(self, message, request_info):
+        print(message)
+        print(len(message))
+        print(message[0])
+        print(self.__prefix)
+        print(message[0] == self.__prefix)
         if len(message) > 0 and message[0] == self.__prefix:
+            print("--- INSIDE ---")
             args = self.__parse_command(message)
+            print(args)
             if args:
                 if args.command:
                     if not args.param:
-                        args.param = [request_info.get('name')]
+                        args.param = [request_info.get('author')]
                     args.param = " ".join(args.param)
                     return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
         # Empty message, attachement only probably
@@ -918,7 +930,7 @@ class DKPBot:
                         BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel'])).get())
 
     def config_call_announcement(self, params, num_params, request_info): #pylint: disable=unused-argument
-        self.__register_announcement_channel(request_info['channel'])
+        self.__register_announcement(request_info['channel'], request_info['mentions']['roles'])
         return Response(ResponseStatus.SUCCESS,
                         BasicSuccess('Registered channel <#{0}> to announce updated DKP standings'.format(request_info['channel'])).get())
 
