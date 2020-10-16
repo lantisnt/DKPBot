@@ -108,6 +108,12 @@ class DKPBot:
     def get_announcement_channel(self):
         return self.__announcement_channel
 
+    def is_announcement_mention_role_set(self):
+        return self.__announcement_mention_role != 0
+
+    def get_announcement_mention_role(self):
+        return self.__announcement_mention_role
+
     def check_attachment_name(self, filename):
         return self.__input_file_name == filename
 
@@ -131,7 +137,10 @@ class DKPBot:
         if len(self.__db['info']['comment']) > 0:
             announcement += "```{0}```".format(self.__db['info']['comment'])
 
-        return BasicAnnouncement(announcement).get()
+        if self.is_announcement_mention_role_set():
+            return ("<@&{0}>".format(self.__announcement_mention_role), BasicAnnouncement(announcement).get())
+        else:
+            return BasicAnnouncement(announcement).get()
 
     # Config
     def _get_config(self):
@@ -142,12 +151,11 @@ class DKPBot:
         self.__config.guild_info.file_upload_channel = channel
         self._reconfigure()
 
-    def __register_announcement(self, channel, roles_list):
+    def __register_announcement(self, channel, role):
         self.__announcement_channel = channel
         self.__config.guild_info.announcement_channel = channel
-        if roles_list is not None and len(roles_list) > 0:
-            self.__announcement_mention_role = roles_list[0]
-            self.__config.guild_info.announcement_mention_role = roles_list[0]
+        self.__announcement_mention_role = role
+        self.__config.guild_info.announcement_mention_role = role
         self._reconfigure()
 
     # Direct access for pickling
@@ -655,7 +663,7 @@ class DKPBot:
             embed.add_field(":scroll: History", commands, True)
             commands  = "```{0}raidloot```".format(self.__prefix)
             commands += "```{0}item```".format(self.__prefix)
-            embed.add_field(":mag: Items", commands, True)
+            embed.add_field(":mag: Items " + preformatted_block('Supporter only commands', 'css'), commands, True)
             if request_info['is_privileged']:
                 commands  = "```{0}config```".format(self.__prefix)
                 commands += "```{0}display```".format(self.__prefix)
@@ -923,9 +931,16 @@ class DKPBot:
                         BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel'])).get())
 
     def config_call_announcement(self, params, num_params, request_info): #pylint: disable=unused-argument
-        self.__register_announcement(request_info['channel'], request_info['mentions']['roles'])
-        return Response(ResponseStatus.SUCCESS,
-                        BasicSuccess('Registered channel <#{0}> to announce updated DKP standings'.format(request_info['channel'])).get())
+        role = 0
+        role_response = "No mentionable role provided."
+        if len(request_info) > 0:
+            role = request_info[0]
+            role_response = "<@&{0}> will be mentioned in the announcement.".format(role)
+
+        self.__register_announcement(request_info['channel'], role)
+        response  = 'Registered channel <#{0}> to announce updated DKP standings.\n'.format(request_info['channel'])
+        response += role_response
+        return Response(ResponseStatus.SUCCESS, BasicSuccess(response).get())
 
     def config_call_server_side(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params >= 3:

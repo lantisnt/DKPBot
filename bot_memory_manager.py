@@ -48,6 +48,7 @@ class Manager(object):
 
         # Restore bot database
         def __restore(self, server_id: int):
+            BotLogger().get().info("Loading {0}".format(server_id))
             data = self.__restore_fn(server_id)
             self.__bots[server_id].database_set(data)
             # restore the data it through the api and handle it

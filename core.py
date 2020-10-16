@@ -133,7 +133,8 @@ def get_request_info(message: discord.Message):
     }
 
     for role_mention in message.role_mentions:
-        request_info['mentions']['roles'].extend(role_mention.id)
+        if role_mention.mentionable:
+            request_info['mentions']['roles'].extend(role_mention.id)
 
     return request_info
 
