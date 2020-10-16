@@ -382,7 +382,7 @@ class EssentialDKPBot(DKPBot):
             data = self.__build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
             output_result_list.sort(key=lambda info: info.dkp(), reverse=True)
-            data = self.__build_dkp_output_multiple(output_result_list, request_info.get('name'))
+            data = self.__build_dkp_output_multiple(output_result_list, request_info.get('author'))
         else:
             data = BasicError("{0}'s DKP was not found in database.".format(
                 param.capitalize())).get()
