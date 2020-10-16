@@ -281,8 +281,15 @@ class DKPBot:
             return Response(ResponseStatus.IGNORE)
 
     def handle(self, message, request_info):
+        print(message)
+        print(len(message))
+        print(message[0])
+        print(self.__prefix)
+        print(message[0] == self.__prefix)
         if len(message) > 0 and message[0] == self.__prefix:
+            print("--- INSIDE ---")
             args = self.__parse_command(message)
+            print(args)
             if args:
                 if args.command:
                     if not args.param:
