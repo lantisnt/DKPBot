@@ -313,7 +313,7 @@ async def on_message(message):
             response = bot.call_help("", request_info)
         else:
             # Handle command
-            response = bot.handle(discord.utils.escape_markdown(message.clean_content), request_info)
+            response = bot.handle(message.clean_content, request_info)
 
         if response and isinstance(response, dkp_bot.Response):
             if response.status == dkp_bot.ResponseStatus.SUCCESS:
