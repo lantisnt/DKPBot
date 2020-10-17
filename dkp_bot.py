@@ -927,19 +927,25 @@ class DKPBot:
         return Response(ResponseStatus.REQUEST, Request.RESPAWN)
 
     def config_call_register(self, params, num_params, request_info): #pylint: disable=unused-argument
-        self.__register_file_upload_channel(request_info['channel'])
+        channel = request_info['channel']
+        if request_info['mentions']['channels'] > 0:
+            channel = request_info['mentions']['channels'][0]
+        self.__register_file_upload_channel(channel)
         return Response(ResponseStatus.SUCCESS,
-                        BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel'])).get())
+                        BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(channel)).get())
 
     def config_call_announcement(self, params, num_params, request_info): #pylint: disable=unused-argument
+        channel = request_info['channel']
+        if request_info['mentions']['channels'] > 0:
+            channel = request_info['mentions']['channels'][0]
         role = 0
         role_response = "No mentionable role provided."
         if len(request_info['mentions']['roles']) > 0:
             role = request_info['mentions']['roles'][0]
             role_response = "<@&{0}> will be mentioned in the announcement.".format(role)
 
-        self.__register_announcement(request_info['channel'], role)
-        response  = 'Registered channel <#{0}> to announce updated DKP standings.\n'.format(request_info['channel'])
+        self.__register_announcement(channel, role)
+        response  = 'Registered channel <#{0}> to announce updated DKP standings.\n'.format(channel)
         response += role_response
         return Response(ResponseStatus.SUCCESS, BasicSuccess(response).get())
 
@@ -981,10 +987,13 @@ class DKPBot:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_team(self, params, num_params, request_info): #pylint: disable=unused-argument
-        if num_params == 2:
-            success = self._set_channel_team_mapping(request_info['channel'], params[1])
+        channel = request_info['channel']
+        if request_info['mentions']['channels'] > 0:
+            channel = request_info['mentions']['channels'][0]
+        if num_params >= 2:
+            success = self._set_channel_team_mapping(channel, params[1])
             if success:
-                return Response(ResponseStatus.SUCCESS, BasicSuccess('Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[1])).get())
+                return Response(ResponseStatus.SUCCESS, BasicSuccess('Registered channel <#{0}> to handle team {1}'.format(channel, params[1])).get())
             else:
                 return Response(ResponseStatus.SUCCESS, BasicError('Exceeded maximum number of channels. Please reuse existing one.').get())
         else:

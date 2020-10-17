@@ -128,13 +128,20 @@ def get_request_info(message: discord.Message):
         'channel': message.channel.id,
         'is_privileged': is_privileged,
         'mentions' : {
-            'roles'    : []
+            'roles'    : [],
+            'channels' : []
         }
     }
 
     for role_mention in message.role_mentions:
         if role_mention.mentionable:
             request_info['mentions']['roles'].append(role_mention.id)
+
+    for channel_mention in message.channel_mentions:
+        if isinstance(channel_mention, discord.TextChannel):
+            bot_permissions =  channel_mention.permissions_for(client.user)
+            if bot_permissions.read_messages and bot_permissions.send_messages:
+                request_info['mentions']['channels'].append(channel_mention.id)
 
     return request_info
 
