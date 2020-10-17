@@ -139,7 +139,7 @@ def get_request_info(message: discord.Message):
 
     for channel_mention in message.channel_mentions:
         if isinstance(channel_mention, discord.TextChannel):
-            bot_permissions =  channel_mention.permissions_for(client.user)
+            bot_permissions =  channel_mention.permissions_in(client.user)
             if bot_permissions.read_messages and bot_permissions.send_messages:
                 request_info['mentions']['channels'].append(channel_mention.id)
 
