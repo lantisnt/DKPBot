@@ -928,7 +928,7 @@ class DKPBot:
 
     def config_call_register(self, params, num_params, request_info): #pylint: disable=unused-argument
         channel = request_info['channel']
-        if request_info['mentions']['channels'] > 0:
+        if len(request_info['mentions']['channels']) > 0:
             channel = request_info['mentions']['channels'][0]
         self.__register_file_upload_channel(channel)
         return Response(ResponseStatus.SUCCESS,
@@ -936,7 +936,7 @@ class DKPBot:
 
     def config_call_announcement(self, params, num_params, request_info): #pylint: disable=unused-argument
         channel = request_info['channel']
-        if request_info['mentions']['channels'] > 0:
+        if len(request_info['mentions']['channels']) > 0:
             channel = request_info['mentions']['channels'][0]
         role = 0
         role_response = "No mentionable role provided."
@@ -988,7 +988,7 @@ class DKPBot:
 
     def config_call_team(self, params, num_params, request_info): #pylint: disable=unused-argument
         channel = request_info['channel']
-        if request_info['mentions']['channels'] > 0:
+        if len(request_info['mentions']['channels']) > 0:
             channel = request_info['mentions']['channels'][0]
         if num_params >= 2:
             success = self._set_channel_team_mapping(channel, params[1])
