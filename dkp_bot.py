@@ -656,10 +656,10 @@ class DKPBot:
             commands  = "```{0}help```".format(self.__prefix)
             commands += "```{0}info```".format(self.__prefix)
             embed.add_field(":information_source: General", commands, True)
-            commands  = "```{0}dkp [param]```".format(self.__prefix)
+            commands  = "```{0}dkp param```".format(self.__prefix)
             embed.add_field(":crossed_swords: DKP", commands, True)
-            commands  = "```{0}dkphistory [player]```".format(self.__prefix)
-            commands += "```{0}loot [player]```".format(self.__prefix)
+            commands  = "```{0}dkphistory player```".format(self.__prefix)
+            commands += "```{0}loot player```".format(self.__prefix)
             embed.add_field(":scroll: History", commands, True)
             commands  = "```{0}raidloot```".format(self.__prefix)
             commands += "```{0}item```".format(self.__prefix)
@@ -764,7 +764,7 @@ class DKPBot:
             embed.add_field("bot-type", string, False)
             # server-side
             string = "Set ingame server and side data required by some addons\n"
-            string += preformatted_block("Usage:     {0}config server-side ServerName Side\n".format(self.__prefix))
+            string += preformatted_block("Usage:     {0}config server-side Server Name Side\n".format(self.__prefix))
             data = self.__config.guild_info.server_side.split("-")
             if len(data) == 2:
                 string2 = "Current:   {0}".format(' '.join(data).lower())
@@ -783,8 +783,8 @@ class DKPBot:
             string += preformatted_block(string2)
             embed.add_field("guild-name", string, False)
             # team
-            string = "Register current channel to handle specified team number\n"
-            string += preformatted_block("Usage:     {0}config team Id".format(self.__prefix))
+            string = "Register channel to handle specified team number (starting from 0). If no #channel is mentioned then the current one will be used. Bot must have access to the channel.\n"
+            string += preformatted_block("Usage:     {0}config team Id #channel".format(self.__prefix))
             num_teams = len(self.__channel_team_map)
             if num_teams > 0:
                 string += preformatted_block("Current:") + "\n"
@@ -794,8 +794,8 @@ class DKPBot:
                 string += preformatted_block("Current:   none") + "\n"
             embed.add_field("team", string, False)
             # register
-            string = "Register current channel as the only one on which lua saved variable upload will be accepted\n"
-            string += preformatted_block("Usage:     {0}config register".format(self.__prefix))
+            string = "Register channel as the only one on which lua saved variable upload will be accepted. If no #channel is mentioned then the current one will be used. Bot must have access to the channel.\n"
+            string += preformatted_block("Usage:     {0}config register #channel".format(self.__prefix))
             if self.__config.guild_info.file_upload_channel == 0:
                 string += preformatted_block("Current:   any")
             else:
@@ -803,8 +803,8 @@ class DKPBot:
                 string += "<#{0}>".format(self.__config.guild_info.file_upload_channel)
             embed.add_field("register", string, False)
             # announcement
-            string = "Register current channel as announcement channel on which bot will post message on new DKP standings upload\n"
-            string += preformatted_block("Usage:     {0}config announcement".format(self.__prefix))
+            string = "Register channel as announcement channel on which bot will post message on new DKP standings upload. If no #channel is mentioned then the current one will be used. You can also @mention a role which will be mentioned during the announcement. Bot must have access to the channel.\n"
+            string += preformatted_block("Usage:     {0}config announcement #channel @role".format(self.__prefix))
             if self.__config.guild_info.announcement_channel == 0:
                 string += preformatted_block("Current:   none")
             else:
