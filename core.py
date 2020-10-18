@@ -128,13 +128,20 @@ def get_request_info(message: discord.Message):
         'channel': message.channel.id,
         'is_privileged': is_privileged,
         'mentions' : {
-            'roles'    : []
+            'roles'    : [],
+            'channels' : []
         }
     }
 
     for role_mention in message.role_mentions:
         if role_mention.mentionable:
             request_info['mentions']['roles'].append(role_mention.id)
+
+    for channel_mention in message.channel_mentions:
+        if isinstance(channel_mention, discord.TextChannel):
+            #bot_permissions =  client.user.permissions_in(channel_mention)
+            #if bot_permissions.read_messages and bot_permissions.send_messages:
+            request_info['mentions']['channels'].append(channel_mention.id)
 
     return request_info
 
@@ -197,6 +204,15 @@ async def discord_respond(channel, responses, self_call=False):
         else:
             pass # log here
 
+async def discord_announce(bot: dkp_bot.DKPBot, channels):
+    announcement_channel = None
+    for channel in channels:
+        if channel.id == bot.get_announcement_channel():
+            announcement_channel = channel
+            break
+    if announcement_channel is not None:
+        await discord_respond(announcement_channel, bot.get_announcement())
+
 async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message, normalized_author: str, announce: bool):
     if len(message.attachments) > 0:
         for attachment in message.attachments:
@@ -211,17 +227,8 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
                 response = bot.build_database(attachment_bytes.decode('utf-8', errors='replace'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     if announce and bot.is_announcement_channel_registered(): # announce
-                        announcement_channel = None
-                        for channel in message.guild.channels:
-                            if channel.id == bot.get_announcement_channel():
-                                announcement_channel = channel
-                                break
-                        if announcement_channel is not None:
-                            await discord_respond(announcement_channel, bot.get_announcement())
-                        else: # some misshap, handle default way
-                            await discord_respond(message.channel, response.data)
-                    else: # otherwise write standard message to upload channel
-                        await discord_respond(message.channel, response.data)
+                        await discord_announce(bot, message.guild.channels)
+                    await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
                     BotLogger().get().error(response.data)
                 return response.status

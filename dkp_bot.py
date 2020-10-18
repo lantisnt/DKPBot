@@ -1,6 +1,7 @@
 import argparse
 import re
 import json
+import collections
 
 from datetime import datetime, timezone
 from enum import Enum
@@ -68,7 +69,7 @@ class DKPBot:
         self.__announcement_mention_role = 0
         self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
-        self.__channel_team_map = {}
+        self.__channel_team_map = collections.OrderedDict()
         self.__db_loaded = False
         self.__init_db_structure()
 
@@ -81,7 +82,9 @@ class DKPBot:
         self.__premium = bool(self.__config.guild_info.premium)
         self.__server_side = self.__config.guild_info.server_side
         self.__guild_name = self.__config.guild_info.guild_name
-        self.__channel_team_map = json.loads(self.__config.guild_info.channel_team_map)
+        channel_mapping = json.loads(self.__config.guild_info.channel_team_map)
+        for channel, team in channel_mapping.items():
+            self.__channel_team_map[channel] = team
 
     def _reconfigure(self):
         self.__config.store()
@@ -228,15 +231,17 @@ class DKPBot:
 
     def _set_channel_team_mapping(self, channel_id, team):
         # String due to how it is used in some lua files
-        # Limit to 10
-        if (len(self.__channel_team_map) == 10) and (str(channel_id) not in self.__channel_team_map):
-            return False
+        # Limit to 8
+        in_limit = True
+        if (len(self.__channel_team_map) == 8) and (str(channel_id) not in self.__channel_team_map):
+            self.__channel_team_map.popitem(False)
+            in_limit = False
 
         self.__channel_team_map[str(channel_id)] = str(team)
         self.__config.guild_info.channel_team_map = json.dumps(self.__channel_team_map)
         self._reconfigure()
 
-        return True
+        return in_limit
 
     ### Command handling and parsing ###
 
@@ -656,10 +661,10 @@ class DKPBot:
             commands  = "```{0}help```".format(self.__prefix)
             commands += "```{0}info```".format(self.__prefix)
             embed.add_field(":information_source: General", commands, True)
-            commands  = "```{0}dkp [param]```".format(self.__prefix)
+            commands  = "```{0}dkp param```".format(self.__prefix)
             embed.add_field(":crossed_swords: DKP", commands, True)
-            commands  = "```{0}dkphistory [player]```".format(self.__prefix)
-            commands += "```{0}loot [player]```".format(self.__prefix)
+            commands  = "```{0}dkphistory player```".format(self.__prefix)
+            commands += "```{0}loot player```".format(self.__prefix)
             embed.add_field(":scroll: History", commands, True)
             commands  = "```{0}raidloot```".format(self.__prefix)
             commands += "```{0}item```".format(self.__prefix)
@@ -764,7 +769,7 @@ class DKPBot:
             embed.add_field("bot-type", string, False)
             # server-side
             string = "Set ingame server and side data required by some addons\n"
-            string += preformatted_block("Usage:     {0}config server-side ServerName Side\n".format(self.__prefix))
+            string += preformatted_block("Usage:     {0}config server-side Server Name Side\n".format(self.__prefix))
             data = self.__config.guild_info.server_side.split("-")
             if len(data) == 2:
                 string2 = "Current:   {0}".format(' '.join(data).lower())
@@ -783,8 +788,8 @@ class DKPBot:
             string += preformatted_block(string2)
             embed.add_field("guild-name", string, False)
             # team
-            string = "Register current channel to handle specified team number\n"
-            string += preformatted_block("Usage:     {0}config team Id".format(self.__prefix))
+            string = "Register channel to handle specified team number (starting from 0). Limited to 8 channels. If no #channel is mentioned then the current one will be used. Bot must have access to the channel.\n"
+            string += preformatted_block("Usage:     {0}config team Id #channel".format(self.__prefix))
             num_teams = len(self.__channel_team_map)
             if num_teams > 0:
                 string += preformatted_block("Current:") + "\n"
@@ -794,8 +799,8 @@ class DKPBot:
                 string += preformatted_block("Current:   none") + "\n"
             embed.add_field("team", string, False)
             # register
-            string = "Register current channel as the only one on which lua saved variable upload will be accepted\n"
-            string += preformatted_block("Usage:     {0}config register".format(self.__prefix))
+            string = "Register channel as the only one on which lua saved variable upload will be accepted. If no #channel is mentioned then the current one will be used. Bot must have access to the channel.\n"
+            string += preformatted_block("Usage:     {0}config register #channel".format(self.__prefix))
             if self.__config.guild_info.file_upload_channel == 0:
                 string += preformatted_block("Current:   any")
             else:
@@ -803,13 +808,15 @@ class DKPBot:
                 string += "<#{0}>".format(self.__config.guild_info.file_upload_channel)
             embed.add_field("register", string, False)
             # announcement
-            string = "Register current channel as announcement channel on which bot will post message on new DKP standings upload\n"
-            string += preformatted_block("Usage:     {0}config announcement".format(self.__prefix))
+            string = "Register channel as announcement channel on which bot will post message on new DKP standings upload. If no #channel is mentioned then the current one will be used. You can also @mention a role which will be mentioned during the announcement. Bot must have access to the channel.\n"
+            string += preformatted_block("Usage:     {0}config announcement #channel @role".format(self.__prefix))
             if self.__config.guild_info.announcement_channel == 0:
                 string += preformatted_block("Current:   none")
             else:
                 string += preformatted_block("Current:") + "\n"
                 string += "<#{0}>".format(self.__config.guild_info.announcement_channel)
+                if self.__config.guild_info.announcement_mention_role != 0:
+                    string += " <@&{0}>".format(self.__config.guild_info.announcement_mention_role)
             embed.add_field("announcement", string, False)
             # prefix
             string = "Change bot prefix\n"
@@ -927,19 +934,25 @@ class DKPBot:
         return Response(ResponseStatus.REQUEST, Request.RESPAWN)
 
     def config_call_register(self, params, num_params, request_info): #pylint: disable=unused-argument
-        self.__register_file_upload_channel(request_info['channel'])
+        channel = request_info['channel']
+        if len(request_info['mentions']['channels']) > 0:
+            channel = request_info['mentions']['channels'][0]
+        self.__register_file_upload_channel(channel)
         return Response(ResponseStatus.SUCCESS,
-                        BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(request_info['channel'])).get())
+                        BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(channel)).get())
 
     def config_call_announcement(self, params, num_params, request_info): #pylint: disable=unused-argument
+        channel = request_info['channel']
+        if len(request_info['mentions']['channels']) > 0:
+            channel = request_info['mentions']['channels'][0]
         role = 0
         role_response = "No mentionable role provided."
         if len(request_info['mentions']['roles']) > 0:
             role = request_info['mentions']['roles'][0]
             role_response = "<@&{0}> will be mentioned in the announcement.".format(role)
 
-        self.__register_announcement(request_info['channel'], role)
-        response  = 'Registered channel <#{0}> to announce updated DKP standings.\n'.format(request_info['channel'])
+        self.__register_announcement(channel, role)
+        response  = 'Registered channel <#{0}> to announce updated DKP standings.\n'.format(channel)
         response += role_response
         return Response(ResponseStatus.SUCCESS, BasicSuccess(response).get())
 
@@ -981,11 +994,14 @@ class DKPBot:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_team(self, params, num_params, request_info): #pylint: disable=unused-argument
-        if num_params == 2:
-            success = self._set_channel_team_mapping(request_info['channel'], params[1])
-            if success:
-                return Response(ResponseStatus.SUCCESS, BasicSuccess('Registered channel <#{0}> to handle team {1}'.format(request_info['channel'], params[1])).get())
+        channel = request_info['channel']
+        if len(request_info['mentions']['channels']) > 0:
+            channel = request_info['mentions']['channels'][0]
+        if num_params >= 2:
+            if self._set_channel_team_mapping(channel, params[1]):
+                error_text = ""
             else:
-                return Response(ResponseStatus.SUCCESS, BasicError('Exceeded maximum number of channels. Please reuse existing one.').get())
+                error_text = "Exceeded maximum number of channels. Removing oldest assignment."
+            return Response(ResponseStatus.SUCCESS, BasicSuccess('Registered channel <#{0}> to handle team {1}. {2}'.format(channel, params[1], error_text)).get())
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
