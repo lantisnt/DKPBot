@@ -1,6 +1,7 @@
 import argparse
 import re
 import json
+import collections
 
 from datetime import datetime, timezone
 from enum import Enum
@@ -68,7 +69,7 @@ class DKPBot:
         self.__announcement_mention_role = 0
         self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
-        self.__channel_team_map = {}
+        self.__channel_team_map = collections.OrderedDict()
         self.__db_loaded = False
         self.__init_db_structure()
 
@@ -81,7 +82,9 @@ class DKPBot:
         self.__premium = bool(self.__config.guild_info.premium)
         self.__server_side = self.__config.guild_info.server_side
         self.__guild_name = self.__config.guild_info.guild_name
-        self.__channel_team_map = json.loads(self.__config.guild_info.channel_team_map)
+        channel_mapping = json.loads(self.__config.guild_info.channel_team_map)
+        for channel, team in channel_mapping.items():
+            self.__channel_team_map[channel] = team
 
     def _reconfigure(self):
         self.__config.store()
@@ -228,15 +231,17 @@ class DKPBot:
 
     def _set_channel_team_mapping(self, channel_id, team):
         # String due to how it is used in some lua files
-        # Limit to 10
-        if (len(self.__channel_team_map) == 10) and (str(channel_id) not in self.__channel_team_map):
-            return False
+        # Limit to 8
+        in_limit = True
+        if (len(self.__channel_team_map) == 8) and (str(channel_id) not in self.__channel_team_map):
+            self.__channel_team_map.popitem(False)
+            in_limit = False
 
         self.__channel_team_map[str(channel_id)] = str(team)
         self.__config.guild_info.channel_team_map = json.dumps(self.__channel_team_map)
         self._reconfigure()
 
-        return True
+        return in_limit
 
     ### Command handling and parsing ###
 
@@ -991,10 +996,10 @@ class DKPBot:
         if len(request_info['mentions']['channels']) > 0:
             channel = request_info['mentions']['channels'][0]
         if num_params >= 2:
-            success = self._set_channel_team_mapping(channel, params[1])
-            if success:
-                return Response(ResponseStatus.SUCCESS, BasicSuccess('Registered channel <#{0}> to handle team {1}'.format(channel, params[1])).get())
+            if self._set_channel_team_mapping(channel, params[1]):
+                error_text = ""
             else:
-                return Response(ResponseStatus.SUCCESS, BasicError('Exceeded maximum number of channels. Please reuse existing one.').get())
+                error_text = "Exceeded maximum number of channels. Removing oldest assignment."
+            return Response(ResponseStatus.SUCCESS, BasicSuccess('Registered channel <#{0}> to handle team {1}. {2}'.format(channel, params[1], error_text)).get())
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
