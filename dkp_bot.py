@@ -788,7 +788,7 @@ class DKPBot:
             string += preformatted_block(string2)
             embed.add_field("guild-name", string, False)
             # team
-            string = "Register channel to handle specified team number (starting from 0). If no #channel is mentioned then the current one will be used. Bot must have access to the channel.\n"
+            string = "Register channel to handle specified team number (starting from 0). Limited to 8 channels. If no #channel is mentioned then the current one will be used. Bot must have access to the channel.\n"
             string += preformatted_block("Usage:     {0}config team Id #channel".format(self.__prefix))
             num_teams = len(self.__channel_team_map)
             if num_teams > 0:
@@ -815,6 +815,8 @@ class DKPBot:
             else:
                 string += preformatted_block("Current:") + "\n"
                 string += "<#{0}>".format(self.__config.guild_info.announcement_channel)
+                if self.__config.guild_info.announcement_mention_role != 0:
+                    string += " <@&{0}>".format(self.__config.guild_info.announcement_channel)
             embed.add_field("announcement", string, False)
             # prefix
             string = "Change bot prefix\n"
