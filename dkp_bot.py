@@ -816,7 +816,7 @@ class DKPBot:
                 string += preformatted_block("Current:") + "\n"
                 string += "<#{0}>".format(self.__config.guild_info.announcement_channel)
                 if self.__config.guild_info.announcement_mention_role != 0:
-                    string += " <@&{0}>".format(self.__config.guild_info.announcement_channel)
+                    string += " <@&{0}>".format(self.__config.guild_info.announcannouncement_mention_roleement_channel)
             embed.add_field("announcement", string, False)
             # prefix
             string = "Change bot prefix\n"
