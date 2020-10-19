@@ -223,11 +223,7 @@ class DKPBot:
 
     # Team related
     def _get_channel_team_mapping(self, channel_id):
-        team = self.__channel_team_map.get(str(channel_id))
-        if team is None:
-            return DKPBot.DEFAULT_TEAM
-
-        return team
+        return DKPBot.DEFAULT_TEAM
 
     def _set_channel_team_mapping(self, channel_id, team):
         # String due to how it is used in some lua files

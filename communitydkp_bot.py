@@ -103,6 +103,13 @@ class CommunityDKPBot(EssentialDKPBot):
         self._sort_history()
         self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
 
+    def _get_channel_team_mapping(self, channel_id):
+        team = self.__channel_team_map.get(str(channel_id))
+        if team is None:
+            return DKPBot.DEFAULT_TEAM
+
+        return team
+
     def config_call_server_side(self, params, num_params, request_info):
         return DKPBot.config_call_server_side(self, params, num_params, request_info)
 
