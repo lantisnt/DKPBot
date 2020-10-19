@@ -395,7 +395,7 @@ class DKPBot:
             statistics += "DKP     {0}\n".format(num_dkp_entries_per_team[team])
             statistics += "History {0}\n".format(num_history_entries_per_team[team])
             statistics += "Loot    {0}\n\n".format(num_loot_entries_per_team[team])
-        BotLogger().info(statistics)
+        BotLogger().get().info(statistics)
 
     def _set_dkp(self, player, entry, team):
         team_data = self.__db['global'].get(team)
