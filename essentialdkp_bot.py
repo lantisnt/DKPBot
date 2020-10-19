@@ -358,30 +358,30 @@ class EssentialDKPBot(DKPBot):
     def call_dkp(self, param, request_info):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
-        print("dkp param  {0}".format(param))
+        BotLogger().get().warning("dkp param  {0}".format(param))
         targets = self._parse_param(param)
-        print("dkp targets {0}".format(targets))
+        BotLogger().get().warning("dkp targets {0}".format(targets))
         output_result_list = []
         if len(targets) > 0:
             team = self._get_channel_team_mapping(request_info['channel'])
             for target in targets:
                 # Single player
                 info = self._get_dkp(target, team)
-                print(info)
-                print(type(info))
+                priBotLogger().get().warningnt(info)
+                BotLogger().get().warning(type(info))
                 if isinstance(info, PlayerInfo):
                     output_result_list.append(info)
                 else:
                     # Group request
                     group_info = self._get_group_dkp(target, team)
-                    print(group_info)
+                    BotLogger().get().warning(group_info)
                     if group_info and len(group_info) > 0:
                         for info in group_info:
                             if info and isinstance(info, PlayerInfo):
                                 output_result_list.append(info)
         else:
             return Response(ResponseStatus.ERROR, BasicError("Unable to find data for {0}.".format(param)).get())
-        print(output_result_list)
+        BotLogger().get().warning(output_result_list)
         if len(output_result_list) == 1:
             data = self.__build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
