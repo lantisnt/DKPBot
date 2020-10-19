@@ -368,7 +368,8 @@ class EssentialDKPBot(DKPBot):
                 # Single player
                 info = self._get_dkp(target, team)
                 print(info)
-                if info and isinstance(info, PlayerInfo):
+                print(type(info))
+                if isinstance(info, PlayerInfo):
                     output_result_list.append(info)
                 else:
                     # Group request
