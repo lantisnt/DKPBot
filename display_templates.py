@@ -412,14 +412,15 @@ class MultipleResponse(BaseResponse):
         for data in data_list_unfiltered:
             if self._display_filter(data):
                 data_list.append(data)
-        print(len(data_list_unfiltered))
-        print(len(data_list))
+
         requester = requester.strip().capitalize()
 
         num_entries = len(data_list)
 
+        # Cover very outdated database
         if num_entries == 0:
-            return BasicError("No data to display.")
+            data_list = data_list_unfiltered
+            num_entries = len(data_list_unfiltered)
 
         response_count = int(
             num_entries / (self.__field_limit * self.__entry_limit)) + 1
@@ -502,7 +503,6 @@ class DKPMultipleResponse(MultipleResponse):
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
     def _display_filter(self, data):
-        print(type(data))
         if data and isinstance(data, PlayerInfo):
             return data.is_active()
 

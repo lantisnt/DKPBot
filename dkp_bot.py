@@ -300,7 +300,7 @@ class DKPBot:
             if args:
                 if args.command:
                     if not args.param:
-                        args.param = [request_info.get('author')]
+                        args.param = [request_info['author']]
                     args.param = " ".join(args.param)
                     return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
         # Empty message, attachement only probably
@@ -771,7 +771,7 @@ class DKPBot:
         return Response(ResponseStatus.SUCCESS, embed.get())
 
     def call_config(self, param, request_info):
-        if not request_info.get('is_privileged'):
+        if not request_info['is_privileged']:
             return Response(ResponseStatus.IGNORE)
 
         params = self._parse_param(param, False)
@@ -869,7 +869,7 @@ class DKPBot:
         return Response(ResponseStatus.IGNORE)
 
     def call_display(self, param, request_info):
-        if not request_info.get('is_privileged'):
+        if not request_info['is_privileged']:
             return Response(ResponseStatus.IGNORE)
 
         param = self._parse_param(param, False)
