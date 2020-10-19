@@ -222,7 +222,7 @@ class DKPBot:
         return new_groups
 
     # Team related
-    def _get_channel_team_mapping(self, channel_id):
+    def _get_channel_team_mapping(self, channel_id): #pylint: disable=unused-argument
         return DKPBot.DEFAULT_TEAM
 
     def _set_channel_team_mapping(self, channel_id, team):
