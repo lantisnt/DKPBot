@@ -412,7 +412,8 @@ class MultipleResponse(BaseResponse):
         for data in data_list_unfiltered:
             if self._display_filter(data):
                 data_list.append(data)
-
+        print(len(data_list_unfiltered))
+        print(len(data_list))
         requester = requester.strip().capitalize()
 
         num_entries = len(data_list)
