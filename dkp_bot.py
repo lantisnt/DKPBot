@@ -389,12 +389,17 @@ class DKPBot:
             num_history_entries_per_team[team] = len(data['history'])
             num_loot_entries_per_team[team] = len(data['loot'])
 
-        statistics  = "Teams Global / Group: {0} / {1}\n".format(num_global_teams, num_group_teams)
+        statistics  = "\n"
+        statistics += "Teams Global / Group: {0} / {1}\n".format(num_global_teams, num_group_teams)
         for team in teams:
             statistics += "Team {0}:\n".format(team)
             statistics += "DKP     {0}\n".format(num_dkp_entries_per_team[team])
             statistics += "History {0}\n".format(num_history_entries_per_team[team])
-            statistics += "Loot    {0}\n\n".format(num_loot_entries_per_team[team])
+            statistics += "Loot    {0}\n".format(num_loot_entries_per_team[team])
+        
+        for team in teams:
+            statistics += "Team {0}:\n".format(team)
+            statistics += "Groups: {0}".format(self.__db['group'][team])
         BotLogger().get().info(statistics)
 
     def _set_dkp(self, player, entry, team):
