@@ -358,8 +358,9 @@ class EssentialDKPBot(DKPBot):
     def call_dkp(self, param, request_info):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
-
+        print("dkp param  {0}".format(param))
         targets = self._parse_param(param)
+        print("dkp targets {0}".format(targets))
         output_result_list = []
         if len(targets) > 0:
             team = self._get_channel_team_mapping(request_info['channel'])
