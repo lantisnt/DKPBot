@@ -548,7 +548,7 @@ class DKPBot:
             if team_data is None:
                 self.__init_team_structure(team)
 
-            if not group in team_data:
+            if not group in team_data.keys():
                 team_data[group] = []
             team_data[group].append(entry)
             if sort:
