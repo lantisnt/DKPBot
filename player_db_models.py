@@ -42,6 +42,7 @@ class PlayerInfo:
         self.__active = False
 
     def set_active(self):
+        print
         self.__active = True
 
     def is_active(self):
