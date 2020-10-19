@@ -367,7 +367,7 @@ class EssentialDKPBot(DKPBot):
             for target in targets:
                 # Single player
                 info = self._get_dkp(target, team)
-                priBotLogger().get().warningnt(info)
+                BotLogger().get().warningnt(info)
                 BotLogger().get().warning(type(info))
                 if isinstance(info, PlayerInfo):
                     output_result_list.append(info)
