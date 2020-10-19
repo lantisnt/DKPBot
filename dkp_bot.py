@@ -376,6 +376,27 @@ class DKPBot:
         self.__db['global'][team]['history'] = {}
         self.__db['group'][team] = {}
 
+    def __log_database_statistics(self):
+        num_global_teams = len(self.__db['global'])
+        num_group_teams = len(self.__db['group'])
+        num_dkp_entries_per_team = {}
+        num_history_entries_per_team = {}
+        num_loot_entries_per_team = {}
+        teams = []
+        for team, data in self.__db['global'].items():
+            teams.append(team)
+            num_dkp_entries_per_team[team] = len(data['dkp'])
+            num_history_entries_per_team[team] = len(data['history'])
+            num_loot_entries_per_team[team] = len(data['loot'])
+
+        statistics  = "Teams Global / Group: {0} / {1}\n".format(num_global_teams, num_group_teams)
+        for team in teams:
+            statistics += "Team {0}:\n".format(team)
+            statistics += "DKP     {0}\n".format(num_dkp_entries_per_team[team])
+            statistics += "History {0}\n".format(num_history_entries_per_team[team])
+            statistics += "Loot    {0}\n\n".format(num_loot_entries_per_team[team])
+        BotLogger().info(statistics)
+
     def _set_dkp(self, player, entry, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
@@ -594,6 +615,8 @@ class DKPBot:
 
         BotLogger().get().info('Building complete in {:04.2f} seconds'.format(
             datetime.now(tz=timezone.utc).timestamp() - start))
+
+        self.__log_database_statistics()
 
         for team in self.__db['global']:
             for table in team:
