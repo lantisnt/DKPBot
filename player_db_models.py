@@ -62,7 +62,7 @@ class PlayerInfo:
         return self.__latest_history_entry
 
     def __str__(self):
-        return "{0} ({1}) {2} ({3}/{4}) DKP".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent())
+        return "{0} ({1}) {2} ({3}/{4}) DKP | Active: {5}\n".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent(), self.__active)
 
     def __repr__(self):
         return self.__str__()

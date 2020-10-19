@@ -591,7 +591,7 @@ class DKPBot:
                             dkp.set_latest_history_entry(history_entry)
                             if abs(now - history_entry.timestamp()) <= inactive_time:
                                 dkp.set_active()
-                            break
+                                break
 
     def build_database(self, input_string, info):
         BotLogger().get().info('Building database for server {0}'.format(self.__guild_id))
