@@ -588,7 +588,7 @@ class DKPBot:
                 if history and isinstance(history, list):
                     print("history len {0} \n".format(len(history)))
                     for history_entry in history:
-                        print("dkp: {0} | now: {1} | timestamp: {2} | diff {3} | {4}({5}) \n".format(history_entry.dkp(), now, history_entry.timestamp(), abs(now - history_entry.timestamp()), inactive_time))
+                        print("dkp: {0} | now: {1} | timestamp: {2} | diff {3} ({4}) \n".format(history_entry.dkp(), now, history_entry.timestamp(), abs(now - history_entry.timestamp()), inactive_time))
                         if history_entry.dkp() > 0:
                             dkp.set_latest_history_entry(history_entry)
                             if abs(now - history_entry.timestamp()) <= inactive_time:
