@@ -418,6 +418,9 @@ class MultipleResponse(BaseResponse):
 
         num_entries = len(data_list)
 
+        if num_entries == 0:
+            return BasicError("No data to display.")
+
         response_count = int(
             num_entries / (self.__field_limit * self.__entry_limit)) + 1
 

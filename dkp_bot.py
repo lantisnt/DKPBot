@@ -585,6 +585,7 @@ class DKPBot:
                 dkp.set_inactive()
                 history = self._get_history(dkp.name(), team)
                 if history and isinstance(history, list):
+                    print("history len {0} for {1}".format(len(history), dkp.name()))
                     for history_entry in history:
                         if history_entry.dkp() > 0:
                             dkp.set_latest_history_entry(history_entry)
