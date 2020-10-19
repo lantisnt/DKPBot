@@ -374,7 +374,7 @@ class EssentialDKPBot(DKPBot):
                 else:
                     # Group request
                     group_info = self._get_group_dkp(target, team)
-                    BotLogger().get().warning(group_info)
+                    BotLogger().get().warning(group_info.keys())
                     if group_info and len(group_info) > 0:
                         for info in group_info:
                             if info and isinstance(info, PlayerInfo):
@@ -382,6 +382,7 @@ class EssentialDKPBot(DKPBot):
         else:
             return Response(ResponseStatus.ERROR, BasicError("Unable to find data for {0}.".format(param)).get())
         BotLogger().get().warning(output_result_list)
+        BotLogger().get().warning("LEN CHECK AFTER")
         if len(output_result_list) == 1:
             data = self.__build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
