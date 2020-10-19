@@ -502,6 +502,7 @@ class DKPMultipleResponse(MultipleResponse):
         self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
 
     def _display_filter(self, data):
+        print(type(data))
         if data and isinstance(data, PlayerInfo):
             return data.is_active()
 
