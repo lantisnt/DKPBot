@@ -378,7 +378,7 @@ class EssentialDKPBot(DKPBot):
                                 output_result_list.append(info)
         else:
             return Response(ResponseStatus.ERROR, BasicError("Unable to find data for {0}.".format(param)).get())
-
+        print(output_result_list)
         if len(output_result_list) == 1:
             data = self.__build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:

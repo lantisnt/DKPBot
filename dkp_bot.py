@@ -400,7 +400,7 @@ class DKPBot:
         for team in teams:
             statistics += "Team {0}: Groups:\n".format(team)
             for group in self.__db['group'][team].keys():
-                statistics += "{0} : {1}".format(group, len(self.__db['group'][team][group]))
+                statistics += "{0} : {1}\n".format(group, len(self.__db['group'][team][group]))
 
         BotLogger().get().info(statistics)
 
