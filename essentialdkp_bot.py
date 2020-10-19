@@ -374,7 +374,7 @@ class EssentialDKPBot(DKPBot):
                 else:
                     # Group request
                     group_info = self._get_group_dkp(target, team)
-                    BotLogger().get().warning(group_info.keys())
+                    BotLogger().get().warning(len(group_info))
                     if group_info and len(group_info) > 0:
                         for info in group_info:
                             if info and isinstance(info, PlayerInfo):
