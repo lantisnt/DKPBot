@@ -581,19 +581,19 @@ class DKPBot:
     def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000):
         now = int(datetime.now(tz=timezone.utc).timestamp())
         for team, team_data in self.__db['global'].items():
-            print(team)
+            BotLogger().get().warning(team)
             for dkp in team_data['dkp'].values():
                 dkp.set_inactive()
                 history = self._get_history(dkp.name(), team)
                 if history and isinstance(history, list):
-                    print("history len {0} \n".format(len(history)))
+                    BotLogger().get().warning("history len {0} \n".format(len(history)))
                     for history_entry in history:
-                        print("dkp: {0} | now: {1} | timestamp: {2} | diff {3} ({4}) \n".format(history_entry.dkp(), now, history_entry.timestamp(), abs(now - history_entry.timestamp()), inactive_time))
+                        BotLogger().get().warning("dkp: {0} | now: {1} | timestamp: {2} | diff {3} ({4}) | {5} \n".format(history_entry.dkp(), now, history_entry.timestamp(), abs(now - history_entry.timestamp()), inactive_time, abs(now - history_entry.timestamp()) <= inactive_time))
                         if history_entry.dkp() > 0:
                             dkp.set_latest_history_entry(history_entry)
                             if abs(now - history_entry.timestamp()) <= inactive_time:
                                 dkp.set_active()
-                                print(dkp)
+                                BotLogger().get().warning(dkp)
                             break
 
     def build_database(self, input_string, info):
