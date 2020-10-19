@@ -104,7 +104,7 @@ class CommunityDKPBot(EssentialDKPBot):
         self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
 
     def _get_channel_team_mapping(self, channel_id):
-        team = self.__channel_team_map.get(str(channel_id))
+        team = self._channel_team_map.get(str(channel_id))
         if team is None:
             return DKPBot.DEFAULT_TEAM
 

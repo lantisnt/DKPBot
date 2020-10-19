@@ -69,7 +69,7 @@ class DKPBot:
         self.__announcement_mention_role = 0
         self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
-        self.__channel_team_map = collections.OrderedDict()
+        self._channel_team_map = collections.OrderedDict()
         self.__db_loaded = False
         self.__init_db_structure()
 
@@ -84,7 +84,7 @@ class DKPBot:
         self.__guild_name = self.__config.guild_info.guild_name
         channel_mapping = json.loads(self.__config.guild_info.channel_team_map)
         for channel, team in channel_mapping.items():
-            self.__channel_team_map[channel] = team
+            self._channel_team_map[channel] = team
 
     def _reconfigure(self):
         self.__config.store()
@@ -229,12 +229,12 @@ class DKPBot:
         # String due to how it is used in some lua files
         # Limit to 8
         in_limit = True
-        if (len(self.__channel_team_map) == 8) and (str(channel_id) not in self.__channel_team_map):
-            self.__channel_team_map.popitem(False)
+        if (len(self._channel_team_map) == 8) and (str(channel_id) not in self._channel_team_map):
+            self._channel_team_map.popitem(False)
             in_limit = False
 
-        self.__channel_team_map[str(channel_id)] = str(team)
-        self.__config.guild_info.channel_team_map = json.dumps(self.__channel_team_map)
+        self._channel_team_map[str(channel_id)] = str(team)
+        self.__config.guild_info.channel_team_map = json.dumps(self._channel_team_map)
         self._reconfigure()
 
         return in_limit
@@ -816,10 +816,10 @@ class DKPBot:
             # team
             string = "Register channel to handle specified team number (starting from 0). Limited to 8 channels. If no #channel is mentioned then the current one will be used. Bot must have access to the channel.\n"
             string += preformatted_block("Usage:     {0}config team Id #channel".format(self.__prefix))
-            num_teams = len(self.__channel_team_map)
+            num_teams = len(self._channel_team_map)
             if num_teams > 0:
                 string += preformatted_block("Current:") + "\n"
-                for channel, team in self.__channel_team_map.items():
+                for channel, team in self._channel_team_map.items():
                     string += "`Team {1}` <#{0}>\n".format(channel, team)
             else:
                 string += preformatted_block("Current:   none") + "\n"
