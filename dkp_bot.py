@@ -43,7 +43,6 @@ class Response:
         self.direct_message = bool(direct_message)
 
 class Statistics():
-
     class Commands(dict):
         class Instrumentation:
             min = 0
@@ -76,6 +75,7 @@ class Statistics():
                 return string
 
         def __setitem__(self, key, item):
+            print("Update {0} : {1}".format(key, item))
             if key not in self.__dict__:
                 self.__dict__[key] = self.Instrumentation()
             self.__dict__[key].update(item)
@@ -101,7 +101,7 @@ class Statistics():
         string = "Database:\n"
         string += pprint.PrettyPrinter().pformat(self.database)
         string += "\nCommands:\n"
-        string += pprint.PrettyPrinter().pformat(self.commands)
+        string += str(self.commands)
         return string
 
 class DKPBot:
