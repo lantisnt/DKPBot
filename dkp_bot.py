@@ -67,6 +67,13 @@ class Statistics():
 
                 self.avg = tmp_sum * self.num
 
+            def __str__(self):
+                string  = ""
+                string += "Min: {0}\n".format(self.min)
+                string += "Max: {0}\n".format(self.max)
+                string += "Avg: {0}\n".format(self.avg)
+                string += "Num: {0}\n".format(self.num)
+
         def __setitem__(self, key, item):
             if key not in self.__dict__:
                 self.__dict__[key] = self.Instrumentation()
@@ -74,6 +81,14 @@ class Statistics():
 
     database = {}
     commands = Commands()
+
+    def __str__(self):
+        string  = "Database:\n"
+        string += str(self.database)
+        string += "\n"
+        string += "Commands:\n"
+        string += str(self.commands)
+        return string
 
 class DKPBot:
     DEFAULT_TEAM = "0"
