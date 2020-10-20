@@ -90,7 +90,7 @@ class Statistics():
         def __str__(self):
             string = ""
             for key, value in self.__dict__.items():
-                string += "{0}: \n".forma(key)
+                string += "{0}: \n".format(key)
                 string += str(value)
 
             return string
