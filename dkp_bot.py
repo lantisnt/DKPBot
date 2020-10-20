@@ -45,10 +45,16 @@ class Response:
 class Statistics():
     class Commands(dict):
         class Instrumentation:
-            min = 0
-            max = 0
-            avg = 0
-            num = 0
+            min = None
+            max = None
+            avg = None
+            num = None
+
+            def __init__(self, value):
+                self.min = value
+                self.max = value
+                self.avg = value
+                self.num = 1
 
             def update(self, value):
                 if not isinstance(value, (float, int)):
@@ -76,8 +82,9 @@ class Statistics():
 
         def __setitem__(self, key, item):
             if key not in self:
-                super().__setitem__(key, self.Instrumentation())
-            self[key].update(item)
+                super().__setitem__(key, self.Instrumentation(item))
+            else:
+                self[key].update(item)
             print("{0}: {1}".format(key, self[key]))
 
         def __repr__(self):
@@ -85,7 +92,7 @@ class Statistics():
 
         def __str__(self):
             string = ""
-            for cmd, stats in self.__dict__:
+            for cmd, stats in self:
                 string += "{0}:\n".format(cmd)
                 string += str(stats)
 
