@@ -87,7 +87,12 @@ class Statistics():
             return None
 
         def __str__(self):
-            return pprint.PrettyPrinter().pformat(self.__dict__)
+            string = ""
+            for cmd, stats in self.__dict__:
+                string += "{0}:\n".format(cmd)
+                string += str(stats)
+
+            return string
 
     database = {}
     commands = Commands()
