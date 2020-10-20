@@ -90,8 +90,6 @@ class Statistics():
                 self[key].update(item)
             print("{0}: {1}".format(key, self[key]))
 
-            return string
-
     database = {}
     commands = Commands()
 
@@ -100,7 +98,7 @@ class Statistics():
         string += pprint.PrettyPrinter().pformat(self.database)
         string += "\nCommands:\n"
         for command in self.commands:
-            string += "{0}\n{1}\n".format(self.commands[command])
+            string += "{0}\n{1}\n".format(command, self.commands[command])
         return string
 
 class DKPBot:

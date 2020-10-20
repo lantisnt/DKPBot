@@ -119,6 +119,7 @@ class EssentialDKPBot(DKPBot):
             for player in players:
                 player_info = self._get_dkp(player, team)
                 if player_info is None:
+                    dkp.pop(0) # fix for Doler issue
                     continue
                 self._add_history(player, PlayerDKPHistory(
                     player_info, float(dkp.pop(0)), timestamp, reason, index), team)
