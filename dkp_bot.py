@@ -52,6 +52,7 @@ class Statistics():
             num = 0
 
             def update(self, value):
+                print("UPDATE")
                 if not isinstance(value, (float, int)):
                     return
 
@@ -75,14 +76,21 @@ class Statistics():
                 string += "Num: {0}\n".format(self.num)
 
         def __setitem__(self, key, item):
+            print("SETITEM {0} {1}".format(key, item))
             if key not in self.__dict__:
                 self.__dict__[key] = self.Instrumentation()
             self.__dict__[key].update(item)
 
+        def __getitem__(self, key):
+            if key in self.__dict__:
+                return self.__dict__[key]
+            
+            return None
+
         def __str__(self):
             string = ""
             for key, value in self.__dict__.items():
-                string += "{0}: \n"
+                string += "{0}: \n".forma(key)
                 string += str(value)
 
             return string
