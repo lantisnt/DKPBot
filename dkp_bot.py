@@ -96,7 +96,7 @@ class Statistics():
     def __str__(self): 
         string = "Database:\n"
         string += pprint.PrettyPrinter().pformat(self.database)
-        string += "\Commands:\n"
+        string += "\nCommands:\n"
         string += pprint.PrettyPrinter().pformat(self.commands)
         return string
 
