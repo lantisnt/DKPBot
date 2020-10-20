@@ -88,18 +88,17 @@ class Statistics():
             return None
 
         def __str__(self):
-            string = ""
-            for key, value in self.__dict__.items():
-                string += "{0}: \n".format(key)
-                string += str(value)
-
-            return string
+            return pprint.PrettyPrinter().pformat(self.__dict__)
 
     database = {}
     commands = Commands()
 
-    def __str__(self):
-        return pprint.PrettyPrinter().pformat(self)
+    def __str__(self): 
+        string = "Database:\n"
+        string += pprint.PrettyPrinter().pformat(self.database)
+        string += "\Commands:\n"
+        string += pprint.PrettyPrinter().pformat(self.commands)
+        return string
 
 class DKPBot:
     DEFAULT_TEAM = "0"
