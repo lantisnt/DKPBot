@@ -80,7 +80,12 @@ class Statistics():
             self.__dict__[key].update(item)
 
         def __str__(self):
-            return str(self.__dict__)
+            string = ""
+            for key, value in self.__dict__.items():
+                string += "{0}: \n"
+                string += str(value)
+
+            return string
 
     database = {}
     commands = Commands()
