@@ -72,6 +72,9 @@ class Statistics():
 
                 self.avg = tmp_sum * self.num
 
+            def __repr__(self):
+                return str(self)
+
             def __str__(self):
                 string  = ""
                 string += "Min: {0}\n".format(self.min)
@@ -87,15 +90,6 @@ class Statistics():
                 self[key].update(item)
             print("{0}: {1}".format(key, self[key]))
 
-        def __repr__(self):
-            return str(self)
-
-        def __str__(self):
-            string = ""
-            for cmd, stats in self:
-                string += "{0}:\n".format(cmd)
-                string += str(stats)
-
             return string
 
     database = {}
@@ -105,7 +99,8 @@ class Statistics():
         string = "Database:\n"
         string += pprint.PrettyPrinter().pformat(self.database)
         string += "\nCommands:\n"
-        string += str(self.commands)
+        for command in self.commands:
+            string += "{0}\n{1}\n".format(self.commands[command])
         return string
 
 class DKPBot:
