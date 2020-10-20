@@ -79,6 +79,9 @@ class Statistics():
                 self.__dict__[key] = self.Instrumentation()
             self.__dict__[key].update(item)
 
+        def __str__(self):
+            return str(self.__dict__)
+
     database = {}
     commands = Commands()
 
