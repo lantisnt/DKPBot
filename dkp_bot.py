@@ -3,12 +3,12 @@ import re
 import json
 import collections
 
-from datetime import datetime, timezone
 from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 from bot_logger import BotLogger
+from bot_utility import timestamp_now
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
 from display_templates import get_bot_color, get_bot_links, preformatted_block
@@ -42,10 +42,42 @@ class Response:
         self.data = data
         self.direct_message = bool(direct_message)
 
+class Statistics():
+
+    class Commands(dict):
+        class Instrumentation:
+            min = 0
+            max = 0
+            avg = 0
+            num = 0
+
+            def update(self, value):
+                if not isinstance(value, (float, int)):
+                    return
+
+                if value < self.min:
+                    self.min = value
+
+                if value > self.max:
+                    self.max = value
+
+                tmp_sum = (self.avg * self.num) + value
+
+                self.num =  self.num + 1
+
+                self.avg = tmp_sum * self.num
+
+        def __setitem__(self, key, item):
+            if key not in self.__dict__:
+                self.__dict__[key] = self.Instrumentation()
+            self.__dict__[key].update(item)
+
+    database = {}
+    commands = Commands()
 
 class DKPBot:
     DEFAULT_TEAM = "0"
-
+    statistics = None
     __config = None
     __guild_id = 0
     __input_file_name = ""
@@ -72,6 +104,7 @@ class DKPBot:
         self._channel_team_map = collections.OrderedDict()
         self.__db_loaded = False
         self.__init_db_structure()
+        self.statistics = Statistics()
 
     def _configure(self):
         self.__input_file_name = self.__config.guild_info.filename
@@ -272,22 +305,24 @@ class DKPBot:
 
     def __handle_command(self, command, param, request_info):
         method = ''
+        sanitized_command = ''
         direct_message = False
         if command[0] == self.__prefix:
-            method = 'call_'
             if len(command) > 1 and command[1] == self.__prefix:
                 direct_message = True  # direct message
-                method += command[2:]  # remove second ! also
+                sanitized_command = command[2:]  # remove second ! also
             else:
-                method += command[1:]
+                sanitized_command = command[1:]
+            method = 'call_' + sanitized_command
         else:
             return Response(ResponseStatus.IGNORE)
 
         callback = getattr(self, method, None)
         if callback and callable(callback):
             bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
+            start = timestamp_now()
             response = callback(param, request_info)  # pylint: disable=not-callable
-
+            self.statistics.commands[sanitized_command] = (timestamp_now() - start)
             response.direct_message = direct_message
 
             return response
@@ -373,32 +408,26 @@ class DKPBot:
         self.__db['group'][team] = {}
 
     def __log_database_statistics(self):
-        num_global_teams = len(self.__db['global'])
-        num_group_teams = len(self.__db['group'])
-        num_dkp_entries_per_team = {}
-        num_history_entries_per_team = {}
-        num_loot_entries_per_team = {}
-        teams = []
+        self.statistics.database['teams'] = {
+            'global' : len(self.__db['global']),
+            'group'  : len(self.__db['group']),
+            'list'   : []
+        }
+        self.statistics.database['entries'] = {}
+        self.statistics.database['teams']['list'] = []
         for team, data in self.__db['global'].items():
-            teams.append(team)
-            num_dkp_entries_per_team[team] = len(data['dkp'])
-            num_history_entries_per_team[team] = len(data['history'])
-            num_loot_entries_per_team[team] = len(data['loot'])
+            self.statistics.database['entries'][team] = {}
+            self.statistics.database['teams']['list'].append(team)
+            self.statistics.database['entries'][team]['dkp'] = len(data['dkp'])
+            self.statistics.database['entries'][team]['history']= len(data['history'])
+            self.statistics.database['entries'][team]['loot'] = len(data['loot'])
 
-        statistics  = "\n"
-        statistics += "Teams Global / Group: {0} / {1}\n".format(num_global_teams, num_group_teams)
-        for team in teams:
-            statistics += "Team {0}:\n".format(team)
-            statistics += "DKP     {0}\n".format(num_dkp_entries_per_team[team])
-            statistics += "History {0}\n".format(num_history_entries_per_team[team])
-            statistics += "Loot    {0}\n".format(num_loot_entries_per_team[team])
+        for team, data in self.__db['group'].items():
+            self.statistics.database['group'][team] = []
+            for group in data:
+                self.statistics.database['group'][team].append(group)
 
-        for team in teams:
-            statistics += "Team {0}: Groups:\n".format(team)
-            for group in self.__db['group'][team].keys():
-                statistics += "{0} : {1}\n".format(group, len(self.__db['group'][team][group]))
-
-        BotLogger().get().info(statistics)
+        BotLogger().get().info(self.statistics)
 
     def _set_dkp(self, player, entry, team):
         team_data = self.__db['global'].get(team)
@@ -579,7 +608,7 @@ class DKPBot:
                     dkp.set_latest_history_entry(history[0])
 
     def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000):
-        now = int(datetime.now(tz=timezone.utc).timestamp())
+        now = timestamp_now(True)
         for team, team_data in self.__db['global'].items():
             BotLogger().get().debug(team)
             for dkp in team_data['dkp'].values():
@@ -598,7 +627,7 @@ class DKPBot:
     def build_database(self, input_string, info):
         BotLogger().get().info('Building database for server {0}'.format(self.__guild_id))
 
-        start = datetime.now(tz=timezone.utc).timestamp()
+        start = timestamp_now()
 
         saved_variable = self.__get_saved_variables(input_string)
         if saved_variable is None:
@@ -620,7 +649,7 @@ class DKPBot:
         self._finalize_database()
 
         BotLogger().get().info('Building complete in {:04.2f} seconds'.format(
-            datetime.now(tz=timezone.utc).timestamp() - start))
+            timestamp_now() - start))
 
         self.__log_database_statistics()
 
@@ -673,6 +702,9 @@ class DKPBot:
         return string.rstrip(", ")
 
     ### Command callbacks ###
+
+    def call_stats(self, param, request_info): # pylint: disable=unused-argument
+        return Response(ResponseStatus.SUCCESS, str(self.statistics))
 
     def call_help(self, param, request_info):  # pylint: disable=unused-argument
         params = self._parse_param(param, False)
