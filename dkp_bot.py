@@ -52,7 +52,6 @@ class Statistics():
             num = 0
 
             def update(self, value):
-                print("UPDATE")
                 if not isinstance(value, (float, int)):
                     return
 
@@ -74,9 +73,9 @@ class Statistics():
                 string += "Max: {0}\n".format(self.max)
                 string += "Avg: {0}\n".format(self.avg)
                 string += "Num: {0}\n".format(self.num)
+                return string
 
         def __setitem__(self, key, item):
-            print("SETITEM {0} {1}".format(key, item))
             if key not in self.__dict__:
                 self.__dict__[key] = self.Instrumentation()
             self.__dict__[key].update(item)
@@ -93,7 +92,7 @@ class Statistics():
     database = {}
     commands = Commands()
 
-    def __str__(self): 
+    def __str__(self):
         string = "Database:\n"
         string += pprint.PrettyPrinter().pformat(self.database)
         string += "\nCommands:\n"
