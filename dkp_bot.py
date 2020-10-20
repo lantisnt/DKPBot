@@ -78,6 +78,7 @@ class Statistics():
             if key not in self:
                 super().__setitem__(key, self.Instrumentation())
             self[key].update(item)
+            print("{0}: {1}".format(key, self[key]))
 
         def __repr__(self):
             return str(self)
