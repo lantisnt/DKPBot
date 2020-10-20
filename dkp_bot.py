@@ -422,6 +422,7 @@ class DKPBot:
             self.statistics.database['entries'][team]['history']= len(data['history'])
             self.statistics.database['entries'][team]['loot'] = len(data['loot'])
 
+        self.statistics.database['group'] = {}
         for team, data in self.__db['group'].items():
             self.statistics.database['group'][team] = []
             for group in data:
