@@ -75,16 +75,12 @@ class Statistics():
                 return string
 
         def __setitem__(self, key, item):
-            print("Update {0} : {1}".format(key, item))
-            if key not in self.__dict__:
-                self.__dict__[key] = self.Instrumentation()
-            self.__dict__[key].update(item)
+            if key not in self:
+                super().__setitem__(key, self.Instrumentation())
+            self[key].update(item)
 
-        def __getitem__(self, key):
-            if key in self.__dict__:
-                return self.__dict__[key]
-
-            return None
+        def __repr__(self):
+            return self.__str__
 
         def __str__(self):
             string = ""
