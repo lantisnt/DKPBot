@@ -84,7 +84,7 @@ class Statistics():
         def __getitem__(self, key):
             if key in self.__dict__:
                 return self.__dict__[key]
-            
+
             return None
 
         def __str__(self):
