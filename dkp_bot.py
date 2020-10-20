@@ -2,7 +2,7 @@ import argparse
 import re
 import json
 import collections
-
+import pprint
 from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
@@ -99,12 +99,7 @@ class Statistics():
     commands = Commands()
 
     def __str__(self):
-        string  = "Database:\n"
-        string += str(self.database)
-        string += "\n"
-        string += "Commands:\n"
-        string += str(self.commands)
-        return string
+        return pprint.PrettyPrinter().pformat(self)
 
 class DKPBot:
     DEFAULT_TEAM = "0"
