@@ -55,6 +55,7 @@ class Statistics():
             num = None
 
             def __init__(self, value):
+                value = value * 1000
                 self.min = value
                 self.max = value
                 self.avg = value
@@ -159,9 +160,14 @@ class Statistics():
     def __print_commands(self):
         string  = ""
         string += "```asciidoc\n=== Commands ===```"
-        string += "```c\n"
-        string += Statistics.format(self.commands.get(), -2)
-        string += "```"
+        if len(self.commands) > 0:
+            string += "```c\n"
+            string += Statistics.format(self.commands.get(), -2)
+            string += "```"
+        else:
+            string += "```asciidoc\n"
+            string += "[ none ]"
+            string += "```"
         return string
 
     def __str__(self):
