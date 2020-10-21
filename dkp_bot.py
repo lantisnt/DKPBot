@@ -730,6 +730,7 @@ class DKPBot:
                                 dkp.set_active()
                             break
 
+    # This method handles response differently. ERROR status is printed also
     def build_database(self, input_string, info):
         BotLogger().get().info('Building database for server {0}'.format(self.__guild_id))
 
@@ -737,10 +738,12 @@ class DKPBot:
 
         saved_variable = self.__get_saved_variables(input_string)
         if saved_variable is None:
-            return Response(ResponseStatus.ERROR, "Error Parsing .lua file.")
+            BotLogger().get().error("Error Parsing .lua file.")
+            return Response(ResponseStatus.ERROR, BasicCritical("Error Parsing .lua file.").get())
 
         if not isinstance(saved_variable, dict):
-            return Response(ResponseStatus.ERROR, "No SavedVariables found in .lua file.")
+            BotLogger().get().error("No SavedVariables found in .lua file.")
+            return Response(ResponseStatus.ERROR, BasicCritical("No SavedVariables found in .lua file.").get())
 
         self.__init_db_structure()
 
@@ -749,11 +752,14 @@ class DKPBot:
         self.__db['info']['author'] = info.get('author')
 
         if not self._build_dkp_database(saved_variable):
-            return Response(ResponseStatus.SUCCESS, BasicCritical("```DKP Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
+            BotLogger().get().error("DKP Database building failed.")
+            return Response(ResponseStatus.ERROR, BasicCritical("```DKP Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
         if not self._build_loot_database(saved_variable):
-            return Response(ResponseStatus.SUCCESS, BasicCritical("```Loot Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
+            BotLogger().get().error("Loot Database building failed.")
+            return Response(ResponseStatus.ERROR, BasicCritical("```Loot Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
         if not self._build_history_database(saved_variable):
-            return Response(ResponseStatus.SUCCESS, BasicCritical("```DKP History Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
+            BotLogger().get().error("DKP History Database building failed.")
+            return Response(ResponseStatus.ERROR, BasicCritical("```DKP History Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
 
         self._finalize_database()
 
@@ -765,11 +771,13 @@ class DKPBot:
         for team in self.__db['global']:
             for table in team:
                 if len(table) <= 0:
-                    return Response(ResponseStatus.SUCCESS, BasicError("Database building failed.").get())
+                    BotLogger().get().error("Global Database building failed.")
+                    return Response(ResponseStatus.ERROR, BasicError("Global Database building failed.").get())
 
         for team in self.__db['group']:
             if len(team) <= 0:
-                return Response(ResponseStatus.SUCCESS, BasicError("Database building failed.").get())
+                BotLogger().get().error("Group Database building failed.")
+                return Response(ResponseStatus.ERROR, BasicError("Group Database building failed.").get())
 
         self.__db_loaded = True
 

@@ -251,7 +251,7 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
                         await discord_announce(bot, message.guild.channels)
                     await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
-                    BotLogger().get().error(response.data)
+                    await discord_respond(message.channel, response.data)
                 return response.status
 
     return dkp_bot.ResponseStatus.IGNORE
