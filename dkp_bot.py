@@ -92,7 +92,17 @@ class Statistics():
                 super().__setitem__(key, self.Instrumentation(item))
             else:
                 self[key].update(item)
-            print("{0}: {1}".format(key, self[key]))
+
+        def get(self):
+            data = {}
+            for key in self:
+                data[key] = {
+                    'Min' : self[key].min,
+                    'Max' : self[key].max,
+                    'Avg' : self[key].avg,
+                    'Num' : self[key].num
+                }
+            return data
 
     database = {}
     commands = Commands()
@@ -145,11 +155,18 @@ class Statistics():
         string += "```"
         return string
 
+    def __print_commands(self):
+        string  = ""
+        string += "```asciidoc\n=== Commands ===```"
+        string += "```c\n"
+        string += Statistics.format(self.commands.get(), -2)
+        string += "```"
+        return string
+
     def __str__(self):
         string  = ""
         string += self.__print_database()
-#        string += "```asciidoc\n=== Commands ===```\n"
-#        string += self.__print_commands()
+        string += self.__print_commands()
         return string
 
 class DKPBot:
@@ -490,13 +507,13 @@ class DKPBot:
         self.statistics.database['teams'] = {
             'global' : len(self.__db['global']),
             'group'  : len(self.__db['group']),
-            'list'   : []
+            'ids'   : []
         }
 
         self.statistics.database['entries'] = {}
-        self.statistics.database['teams']['list'] = []
+        self.statistics.database['teams']['ids'] = []
         for team, data in self.__db['global'].items():
-            self.statistics.database['teams']['list'].append(team)
+            self.statistics.database['teams']['ids'].append(team)
             self.statistics.database['entries'][team] = {}
             self.statistics.database['entries'][team]['dkp'] = len(data['dkp'])
             self.statistics.database['entries'][team]['history'] = len(data['history'])
