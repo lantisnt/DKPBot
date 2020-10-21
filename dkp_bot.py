@@ -111,7 +111,8 @@ class Statistics():
         string = ""
         for key, value in data.items():
             string += (indent * " ") + "{0}:\n".format(key)
-            string += ((indent + Statistics.INDENT_OFFSET) * " ") + Statistics.format(value, indent + (2*Statistics.INDENT_OFFSET))
+            value_indent = (indent + Statistics.INDENT_OFFSET)
+            string += (value_indent * " ") + Statistics.format(value, value_indent + Statistics.INDENT_OFFSET)
             string += "\n"
         return string
 
@@ -126,11 +127,11 @@ class Statistics():
     @staticmethod
     def format(data, indent=0):
         if isinstance(data, list):
-            return Statistics.format_list(data, indent + Statistics.INDENT_OFFSET)
+            return Statistics.format_list(data, indent)
         elif isinstance(data, dict):
-            return Statistics.format_dict(data, indent + Statistics.INDENT_OFFSET)
+            return Statistics.format_dict(data, indent)
         elif isinstance(data, tuple):
-            return Statistics.format_tuple(data, indent + Statistics.INDENT_OFFSET)
+            return Statistics.format_tuple(data, indent)
         else:
             return str(data)
 
