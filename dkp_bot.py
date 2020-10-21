@@ -130,7 +130,7 @@ class Statistics():
         elif isinstance(data, tuple):
             return Statistics.format_tuple(data, indent + Statistics.INDENT_OFFSET)
         else:
-            return data
+            return str(data)
 
     def __print_database(self):
         string  = ""
