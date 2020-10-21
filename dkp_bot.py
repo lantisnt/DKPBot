@@ -102,8 +102,8 @@ class Statistics():
         string  = ""
         string += indent * " "
         for entry in data:
-            string += "{0}".format(Statistics.format(entry, indent + Statistics.INDENT_OFFSET)) + ", "
-        string.strip(", ")
+            string += Statistics.format(entry, indent + Statistics.INDENT_OFFSET) + ", "
+        string.strip(",")
         return string
 
     @staticmethod
@@ -132,7 +132,7 @@ class Statistics():
         elif isinstance(data, tuple):
             return Statistics.format_tuple(data, indent + Statistics.INDENT_OFFSET)
         else:
-            return str(data)
+            return (indent * " ") + str(data)
 
     def __print_database(self):
         string  = ""
