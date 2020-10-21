@@ -58,9 +58,16 @@ async def discord_update_activity():
 
 # Main
 def main(control: ScriptControl):
-    control.initialize(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
-    BotLogger().initialize(sys.argv[5])
-    super_user.initialize(int(sys.argv[6]), bots)
+    token = sys.argv[1]
+    config_dir = sys.argv[2]
+    storage_dir = sys.argv[3]
+    in_memory_objects_limit = sys.argv[4]
+    log_dir = sys.argv[5]
+    su_id = int(sys.argv[6])
+
+    control.initialize(token, config_dir, storage_dir, in_memory_objects_limit)
+    BotLogger().initialize(log_dir)
+    super_user.initialize(su_id, bots)
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
 
     client.loop.create_task(discord_update_activity())

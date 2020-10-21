@@ -44,6 +44,9 @@ class Response:
         self.direct_message = bool(direct_message)
 
 class Statistics():
+
+    INDENT_OFFSET = 2
+
     class Commands(dict):
         class Instrumentation:
             min = None
@@ -94,14 +97,54 @@ class Statistics():
     database = {}
     commands = Commands()
 
+    @staticmethod
+    def format_list(data, indent=0):
+        string  = ""
+        string += indent * " "
+        for entry in data:
+            string += "{0}".format(Statistics.format(entry, indent + Statistics.INDENT_OFFSET)) + ", "
+        string.strip(", ")
+        return string
+
+    @staticmethod
+    def format_dict(data, indent=0):
+        string = ""
+        for key, value in data.items():
+            string += (indent * " ") + "{0}:\n".format(key)
+            string += Statistics.format(value, indent + Statistics.INDENT_OFFSET)
+            string += "\n"
+
+    @staticmethod
+    def format_tuple(data, indent=0):
+        string = ""
+        string += (indent * " ")
+        string += "( " + Statistics.format(data[0], indent + Statistics.INDENT_OFFSET)
+        string += Statistics.format(data[1], indent + Statistics.INDENT_OFFSET) + " )"
+
+    @staticmethod
+    def format(data, indent=0):
+        if isinstance(data, list):
+            return Statistics.format_list(data, indent + Statistics.INDENT_OFFSET)
+        elif isinstance(data, dict):
+            return Statistics.format_dict(data, indent + Statistics.INDENT_OFFSET)
+        elif isinstance(data, tuple):
+            return Statistics.format_tuple(data, indent + Statistics.INDENT_OFFSET)
+        else:
+            return data
+
+    def __print_database(self):
+        string  = ""
+        string += "```asciidoc\n=== Database ===```\n"
+        string += "```c\n"
+        string += Statistics.format(self.database)
+        string += "```"
+        return string
+
     def __str__(self):
         string  = ""
-        string += "```css"
-        string += "Database:\n"
-        string += pprint.PrettyPrinter().pformat(self.database)
-        string += "\nCommands:\n"
-        for command in self.commands:
-            string += "{0}\n{1}\n".format(command, self.commands[command])
+        string += self.__print_database()
+#        string += "```asciidoc\n=== Commands ===```\n"
+#        string += self.__print_commands()
         return string
 
 class DKPBot:

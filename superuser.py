@@ -19,15 +19,15 @@ class Superuser:
     def is_init(self):
         return (self.__su_id != 0) and (self.__bots is not None) and (len(self.__bots) > 0)
 
-    def __unauthorized(self, command, params, request_info):
-        BotLogger().get().error("Unauthorized access by user {0} ({1}) from server {2} ({3}) on channel {4} ({5}) requesting {6} with params {7}".format(
+    def __unauthorized(self, command, param, request_info):
+        BotLogger().get().error("Unauthorized access by user {0} (`{1}`) from server {2} (`{3}`) on channel {4} (`{5}`) requesting `{6}` with params {7}".format(
             request_info['author']['raw'],
             request_info['author']['id'],
             request_info['server']['name'],
             request_info['server']['id'],
             request_info['channel']['name'],
             request_info['channel']['id'],
-            command, params))
+            command, param))
         return Response(ResponseStatus.IGNORE)
 
     def __is_authorized(self, request_info):
@@ -35,7 +35,7 @@ class Superuser:
 
     def handle(self, command, param, request_info):
         if not self.__is_authorized(request_info):
-            return self.__unauthorized(command, params, request_info)
+            return self.__unauthorized(command, param, request_info)
 
         callback = getattr(self, command, None)
         if callback and callable(callback):
@@ -56,5 +56,4 @@ class Superuser:
 
         else:
             return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())
-
 
