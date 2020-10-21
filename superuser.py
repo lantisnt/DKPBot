@@ -21,7 +21,7 @@ class Superuser:
 
     def __unauthorized(self, command, params, request_info):
         BotLogger().get().error("Unauthorized access by user {0} ({1}) from server {2} ({3}) on channel {4} ({5}) requesting {6} with params {7}".format(
-            request_info['author']['name'],
+            request_info['author']['raw'],
             request_info['author']['id'],
             request_info['server']['name'],
             request_info['server']['id'],

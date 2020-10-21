@@ -60,7 +60,7 @@ async def discord_update_activity():
 def main(control: ScriptControl):
     control.initialize(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
     BotLogger().initialize(sys.argv[5])
-    super_user.initialize(sys.argv[6], bots)
+    super_user.initialize(int(sys.argv[6]), bots)
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
 
     client.loop.create_task(discord_update_activity())
@@ -133,7 +133,8 @@ def get_request_info(message: discord.Message):
         },
         'author': {
             'name' : author,
-            'id'   : message.author.id
+            'id'   : message.author.id,
+            'raw'  : message.author.name
         },
         'channel' : {
             'name' : message.channel.name,
