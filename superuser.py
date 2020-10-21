@@ -56,3 +56,4 @@ class Superuser:
         else:
             return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())
 
+

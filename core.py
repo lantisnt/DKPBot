@@ -370,6 +370,6 @@ async def on_message(message):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 6:
+    if len(sys.argv) != 7:
         sys.exit(1)
     main(script_control)
