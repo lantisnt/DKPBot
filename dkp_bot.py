@@ -108,9 +108,13 @@ class Statistics():
     @staticmethod
     def format_dict(data, indent=0):
         string = ""
+        max_key_len = max(list(map(lambda x: len(x), data.keys())))
         for key, value in data.items():
+            if isinstance(value, (dict, tuple)):
+                value_indent = (indent + Statistics.INDENT_OFFSET)
+            else:
+                value_indent = max_key_len + 2
             string += "\n" + (indent * " ") + "{0}: ".format(key)
-            value_indent = (indent + Statistics.INDENT_OFFSET)
             string += (value_indent * " ") + Statistics.format(value, value_indent + Statistics.INDENT_OFFSET)
         return string
 
@@ -135,7 +139,7 @@ class Statistics():
 
     def __print_database(self):
         string  = ""
-        string += "```asciidoc\n=== Database ===```\n"
+        string += "```asciidoc\n=== Database ===```"
         string += "```c\n"
         string += Statistics.format(self.database, -2)
         string += "```"
