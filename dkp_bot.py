@@ -76,16 +76,16 @@ class Statistics():
 
                 self.avg = tmp_sum / self.num
 
-            def __repr__(self):
-                return str(self)
+            #def __repr__(self):
+            #    return str(self)
 
-            def __str__(self):
-                string  = ""
-                string += "Min: {0}\n".format(self.min)
-                string += "Max: {0}\n".format(self.max)
-                string += "Avg: {0}\n".format(self.avg)
-                string += "Num: {0}\n".format(self.num)
-                return string
+            #def __str__(self):
+            #    string  = ""
+            #    string += "Min: {0}\n".format(self.min)
+            #    string += "Max: {0}\n".format(self.max)
+            #    string += "Avg: {0}\n".format(self.avg)
+            #    string += "Num: {0}\n".format(self.num)
+            #    return string
 
         def __setitem__(self, key, item):
             if key not in self:
@@ -102,7 +102,7 @@ class Statistics():
                 #    'Avg' : self[key].avg,
                 #    'Num' : self[key].num
                 #}
-                data[key] = public_to_dict(self[key])
+                data[key] = public_to_dict(self[key], filter_callable=True)
             return data
 
     database = {}
