@@ -119,7 +119,7 @@ class EssentialDKPBot(DKPBot):
             for player in players:
                 player_info = self._get_dkp(player, team)
                 if player_info is None:
-                    dkp.pop(0) # fix for Doler issue
+                    dkp.pop(0)
                     continue
                 self._add_history(player, PlayerDKPHistory(
                     player_info, float(dkp.pop(0)), timestamp, reason, index), team)
@@ -362,7 +362,7 @@ class EssentialDKPBot(DKPBot):
         targets = self._parse_param(param)
         output_result_list = []
         if len(targets) > 0:
-            team = self._get_channel_team_mapping(request_info['channel'])
+            team = self._get_channel_team_mapping(request_info['channel']['id'])
             for target in targets:
                 # Single player
                 info = self._get_dkp(target, team)
@@ -382,7 +382,7 @@ class EssentialDKPBot(DKPBot):
             data = self.__build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
             output_result_list.sort(key=lambda info: info.dkp(), reverse=True)
-            data = self.__build_dkp_output_multiple(output_result_list, request_info['author'])
+            data = self.__build_dkp_output_multiple(output_result_list, request_info['author']['name'])
         else:
             data = BasicError("{0}'s DKP was not found in database.".format(
                 param.capitalize())).get()
@@ -397,7 +397,7 @@ class EssentialDKPBot(DKPBot):
         output_result_list = []
 
         if len(targets) > 0:
-            team = self._get_channel_team_mapping(request_info['channel'])
+            team = self._get_channel_team_mapping(request_info['channel']['id'])
             for target in targets:
                 # Single player
                 info = self._get_history(target, team)
@@ -423,7 +423,7 @@ class EssentialDKPBot(DKPBot):
         output_result_list = []
 
         if len(targets) > 0:
-            team = self._get_channel_team_mapping(request_info['channel'])
+            team = self._get_channel_team_mapping(request_info['channel']['id'])
             for target in targets:
                 # Single player
                 info = self._get_player_loot(target, team)
@@ -448,7 +448,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
-        output_result_list = self._get_loot(self._get_channel_team_mapping(request_info['channel']))
+        output_result_list = self._get_loot(self._get_channel_team_mapping(request_info['channel']['id']))
 
         if len(output_result_list) > 0:
             data = self.__build_loot_output_multiple(output_result_list)
@@ -467,7 +467,7 @@ class EssentialDKPBot(DKPBot):
         if len(param) < 3:
             return Response(ResponseStatus.SUCCESS, BasicError("Query too short. Please specify at least 3 letters.").get())
 
-        output_result_list = self._find_loot(param, self._get_channel_team_mapping(request_info['channel']))
+        output_result_list = self._find_loot(param, self._get_channel_team_mapping(request_info['channel']['id']))
 
         if len(output_result_list) > 0:
             data = self.__build_item_search_output_multiple(output_result_list)

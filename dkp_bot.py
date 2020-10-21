@@ -20,6 +20,7 @@ class ResponseStatus(Enum):
     ERROR = 1
     REQUEST = 2
     IGNORE = 3
+    DELEGATE = 4
 
 
 class Request(Enum):
@@ -70,7 +71,7 @@ class Statistics():
 
                 self.num =  self.num + 1
 
-                self.avg = tmp_sum * self.num
+                self.avg = tmp_sum / self.num
 
             def __repr__(self):
                 return str(self)
@@ -94,7 +95,9 @@ class Statistics():
     commands = Commands()
 
     def __str__(self):
-        string = "Database:\n"
+        string  = ""
+        string += "```css"
+        string += "Database:\n"
         string += pprint.PrettyPrinter().pformat(self.database)
         string += "\nCommands:\n"
         for command in self.commands:
@@ -352,6 +355,8 @@ class DKPBot:
             response.direct_message = direct_message
 
             return response
+        elif sanitized_command.startswith('su_'):
+            return Response(ResponseStatus.DELEGATE, (sanitized_command, param))
         else:
             return Response(ResponseStatus.IGNORE)
 
@@ -361,7 +366,7 @@ class DKPBot:
             if args:
                 if args.command:
                     if not args.param:
-                        args.param = [request_info['author']]
+                        args.param = [request_info['author']['name']]
                     args.param = " ".join(args.param)
                     return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
         # Empty message, attachement only probably
@@ -439,13 +444,14 @@ class DKPBot:
             'group'  : len(self.__db['group']),
             'list'   : []
         }
+
         self.statistics.database['entries'] = {}
         self.statistics.database['teams']['list'] = []
         for team, data in self.__db['global'].items():
-            self.statistics.database['entries'][team] = {}
             self.statistics.database['teams']['list'].append(team)
+            self.statistics.database['entries'][team] = {}
             self.statistics.database['entries'][team]['dkp'] = len(data['dkp'])
-            self.statistics.database['entries'][team]['history']= len(data['history'])
+            self.statistics.database['entries'][team]['history'] = len(data['history'])
             self.statistics.database['entries'][team]['loot'] = len(data['loot'])
 
         self.statistics.database['group'] = {}
@@ -453,8 +459,6 @@ class DKPBot:
             self.statistics.database['group'][team] = []
             for group in data:
                 self.statistics.database['group'][team].append(group)
-
-        BotLogger().get().info(self.statistics)
 
     def _set_dkp(self, player, entry, team):
         team_data = self.__db['global'].get(team)
@@ -729,9 +733,6 @@ class DKPBot:
         return string.rstrip(", ")
 
     ### Command callbacks ###
-
-    def call_stats(self, param, request_info): # pylint: disable=unused-argument
-        return Response(ResponseStatus.SUCCESS, str(self.statistics))
 
     def call_help(self, param, request_info):  # pylint: disable=unused-argument
         params = self._parse_param(param, False)
@@ -1022,7 +1023,7 @@ class DKPBot:
         return Response(ResponseStatus.REQUEST, Request.RESPAWN)
 
     def config_call_register(self, params, num_params, request_info): #pylint: disable=unused-argument
-        channel = request_info['channel']
+        channel = request_info['channel']['id']
         if len(request_info['mentions']['channels']) > 0:
             channel = request_info['mentions']['channels'][0]
         self.__register_file_upload_channel(channel)
@@ -1030,7 +1031,7 @@ class DKPBot:
                         BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(channel)).get())
 
     def config_call_announcement(self, params, num_params, request_info): #pylint: disable=unused-argument
-        channel = request_info['channel']
+        channel = request_info['channel']['id']
         if len(request_info['mentions']['channels']) > 0:
             channel = request_info['mentions']['channels'][0]
         role = 0
@@ -1082,7 +1083,7 @@ class DKPBot:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_team(self, params, num_params, request_info): #pylint: disable=unused-argument
-        channel = request_info['channel']
+        channel = request_info['channel']['id']
         if len(request_info['mentions']['channels']) > 0:
             channel = request_info['mentions']['channels'][0]
         if num_params >= 2:

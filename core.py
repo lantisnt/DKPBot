@@ -15,6 +15,7 @@ from bot_logger import BotLogger
 from display_templates import BasicSuccess, BasicError
 from loop_activity import LoopActivity
 import footprint
+import superuser
 
 MAX_ATTACHMENT_BYTES = 3145728 # 3MB
 
@@ -46,6 +47,7 @@ activity = LoopActivity("")
 activity.update({
     'booting'   : 'booting...'
 })
+super_user = superuser.Superuser()
 
 async def discord_update_activity():
     await client.wait_until_ready()
@@ -58,6 +60,7 @@ async def discord_update_activity():
 def main(control: ScriptControl):
     control.initialize(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
     BotLogger().initialize(sys.argv[5])
+    super_user.initialize(sys.argv[6], bots)
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
 
     client.loop.create_task(discord_update_activity())
@@ -124,8 +127,18 @@ def get_request_info(message: discord.Message):
         is_privileged = message.author.permissions_in(message.channel).administrator
 
     request_info = {
-        'author': author,
-        'channel': message.channel.id,
+        'server' : {
+            'name' : message.guild.name,
+            'id' : message.guild.id
+        },
+        'author': {
+            'name' : author,
+            'id'   : message.author.id
+        },
+        'channel' : {
+            'name' : message.channel.name,
+            'id' : message.channel.id
+        },
         'is_privileged': is_privileged,
         'mentions' : {
             'roles'    : [],
@@ -339,6 +352,13 @@ async def on_message(message):
                     await discord_respond(response_channel, BasicSuccess("Bot created successfuly").get())
                 else:
                     BotLogger().get().error("Requested but not respawn. This should not happen atm")
+            elif response.status == dkp_bot.ResponseStatus.DELEGATE:
+                response = super_user.handle(response.data[0], response.data[1], request_info)
+                if response and isinstance(response, dkp_bot.Response):
+                    if response.status == dkp_bot.ResponseStatus.SUCCESS:
+                        await discord_respond(message.channel, response.data)
+                    elif response.status == dkp_bot.ResponseStatus.ERROR:
+                        BotLogger().get().error(response.data)
 
         # No command response
         # Check if we have attachment on registered channel
