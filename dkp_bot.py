@@ -2,7 +2,6 @@ import argparse
 import re
 import json
 import collections
-import pprint
 from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
@@ -12,7 +11,7 @@ from bot_utility import timestamp_now, public_to_dict
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
 from display_templates import get_bot_color, get_bot_links, preformatted_block
-from display_templates import RawEmbed, BasicError, BasicSuccess, BasicAnnouncement
+from display_templates import RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement
 
 
 class ResponseStatus(Enum):
@@ -457,13 +456,13 @@ class DKPBot:
         return self.__db['info']
 
     def _build_dkp_database(self, saved_variable):  # pylint: disable=unused-argument
-        return
+        return False
 
     def _build_loot_database(self, saved_variable):  # pylint: disable=unused-argument
-        return
+        return False
 
     def _build_history_database(self, saved_variable):  # pylint: disable=unused-argument
-        return
+        return False
 
     def _finalize_database(self):
         return
@@ -749,9 +748,12 @@ class DKPBot:
         self.__db['info']['date'] = info.get('date')
         self.__db['info']['author'] = info.get('author')
 
-        self._build_dkp_database(saved_variable)
-        self._build_loot_database(saved_variable)
-        self._build_history_database(saved_variable)
+        if not self._build_dkp_database(saved_variable):
+            return Response(ResponseStatus.SUCCESS, BasicCritical("```DKP Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
+        if not self._build_loot_database(saved_variable):
+            return Response(ResponseStatus.SUCCESS, BasicCritical("```Loot Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
+        if not self._build_history_database(saved_variable):
+            return Response(ResponseStatus.SUCCESS, BasicCritical("```DKP History Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
 
         self._finalize_database()
 

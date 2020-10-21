@@ -58,7 +58,7 @@ class CommunityDKPBot(EssentialDKPBot):
         super()._build_dkp_database(None)
         teams = self.__get_configured_teams(saved_variable.get(self._DKP_SV))
         if teams is None:
-            return
+            return False
 
         for team, dkp_list in teams.items():
             for entry in dkp_list:
@@ -69,12 +69,14 @@ class CommunityDKPBot(EssentialDKPBot):
                 self._set_dkp(info.name(), info, team)
                 self._set_group_dkp(info.ingame_class(), info, team)
 
+        return True
+
     # Called 2nd
     def _build_loot_database(self, saved_variable):
         super()._build_loot_database(None)
         teams = self.__get_configured_teams(saved_variable.get(self._LOOT_SV))
         if teams is None:
-            return
+            return False
 
         for team, loot_list in teams.items():
             for entry in loot_list.values():
@@ -89,12 +91,14 @@ class CommunityDKPBot(EssentialDKPBot):
         self._sort_player_loot()
         self._set_player_latest_loot()
 
+        return True
+
     # Called 3rd
     def _build_history_database(self, saved_variable):
         super()._build_history_database(None)
         teams = self.__get_configured_teams(saved_variable.get(self._HISTORY_SV))
         if teams is None:
-            return
+            return False
 
         for team, history in teams.items():
             for entry in history.values():
@@ -102,6 +106,8 @@ class CommunityDKPBot(EssentialDKPBot):
 
         self._sort_history()
         self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
+
+        return True
 
     def _get_channel_team_mapping(self, channel_id):
         team = self._channel_team_map.get(str(channel_id))
