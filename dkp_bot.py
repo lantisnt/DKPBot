@@ -100,7 +100,6 @@ class Statistics():
     @staticmethod
     def format_list(data, indent=0):
         string  = ""
-        string += (indent * " ")
         for entry in data:
             string += Statistics.format(entry, indent + Statistics.INDENT_OFFSET) + ", "
         string.strip(",")

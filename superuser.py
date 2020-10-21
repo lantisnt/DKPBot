@@ -50,7 +50,7 @@ class Superuser:
             bot_id = int(params[0])
             if bot_id in self.__bots:
                 stats = self.__bots[bot_id].statistics
-                return Response(ResponseStatus.SUCCESS, BasicSuccess(str(stats)).get())
+                return Response(ResponseStatus.SUCCESS, str(stats))
             else:
                 return Response(ResponseStatus.SUCCESS, BasicCritical("Server id has no bot.").get())
 
