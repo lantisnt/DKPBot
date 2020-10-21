@@ -736,8 +736,12 @@ class DKPBot:
 
         start = timestamp_now()
 
-        saved_variable = self.__get_saved_variables(input_string)
-        if saved_variable is None:
+        saved_variable = None
+        try:
+            saved_variable = self.__get_saved_variables(input_string)
+            if saved_variable is None:
+                raise AttributeError
+        except AttributeError :
             BotLogger().get().error("Error Parsing .lua file.")
             return Response(ResponseStatus.ERROR, BasicCritical("Error Parsing .lua file.").get())
 
