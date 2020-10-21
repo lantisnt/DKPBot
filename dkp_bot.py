@@ -757,13 +757,13 @@ class DKPBot:
 
         if not self._build_dkp_database(saved_variable):
             BotLogger().get().error("DKP Database building failed.")
-            return Response(ResponseStatus.ERROR, BasicCritical("DKP Database building failed.").get())
+            return Response(ResponseStatus.ERROR, BasicError("DKP Database building failed. Please validate `server-side` and `guild-name` settings.").get())
         if not self._build_loot_database(saved_variable):
             BotLogger().get().error("Loot Database building failed.")
-            return Response(ResponseStatus.ERROR, BasicCritical("Loot Database building failed.").get())
+            return Response(ResponseStatus.ERROR, BasicError("Loot Database building failed. Please validate `server-side` and `guild-name` settings.").get())
         if not self._build_history_database(saved_variable):
             BotLogger().get().error("DKP History Database building failed.")
-            return Response(ResponseStatus.ERROR, BasicCritical("DKP History Database building failed.").get())
+            return Response(ResponseStatus.ERROR, BasicError("DKP History Database building failed. Please validate `server-side` and `guild-name` settings.").get())
 
         self._finalize_database()
 
