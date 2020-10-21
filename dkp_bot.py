@@ -106,8 +106,12 @@ class Statistics():
                 data[key] = public_to_dict(self[key], filter_callable=True)
             return data
 
-    database = {}
-    commands = Commands()
+    database = None
+    commands = None
+
+    def __init__(self):
+        self.database = {}
+        self.commands = Statistics.Commands()
 
     @staticmethod
     def format_list(data, indent=0):
