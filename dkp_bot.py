@@ -8,7 +8,7 @@ from enum import Enum
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 from bot_logger import BotLogger
-from bot_utility import timestamp_now
+from bot_utility import timestamp_now, public_to_dict
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
 from display_templates import get_bot_color, get_bot_links, preformatted_block
@@ -96,12 +96,13 @@ class Statistics():
         def get(self):
             data = {}
             for key in self:
-                data[key] = {
-                    'Min' : self[key].min,
-                    'Max' : self[key].max,
-                    'Avg' : self[key].avg,
-                    'Num' : self[key].num
-                }
+                #data[key] = {
+                #    'Min' : self[key].min,
+                #    'Max' : self[key].max,
+                #    'Avg' : self[key].avg,
+                #    'Num' : self[key].num
+                #}
+                data[key] = public_to_dict(self[key])
             return data
 
     database = {}
