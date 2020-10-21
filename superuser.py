@@ -47,6 +47,7 @@ class Superuser:
     def su_stats(self, params):
         if len(params) > 0:
             bot_id = int(params[0])
+            BotLogger().get().info(self.__bots.keys())
             if bot_id in self.__bots:
                 stats = self.__bots[bot_id].statistics
                 return Response(ResponseStatus.SUCCESS, BasicSuccess(str(stats)).get())
