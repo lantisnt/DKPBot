@@ -100,7 +100,7 @@ class Statistics():
     @staticmethod
     def format_list(data, indent=0):
         string  = ""
-        string += indent * " "
+        string += (indent * " ")
         for entry in data:
             string += Statistics.format(entry, indent + Statistics.INDENT_OFFSET) + ", "
         string.strip(",")
@@ -111,7 +111,7 @@ class Statistics():
         string = ""
         for key, value in data.items():
             string += (indent * " ") + "{0}:\n".format(key)
-            string += Statistics.format(value, indent + Statistics.INDENT_OFFSET)
+            string += (indent * " ") + Statistics.format(value, indent + Statistics.INDENT_OFFSET)
             string += "\n"
         return string
 
@@ -132,13 +132,13 @@ class Statistics():
         elif isinstance(data, tuple):
             return Statistics.format_tuple(data, indent + Statistics.INDENT_OFFSET)
         else:
-            return (indent * " ") + str(data)
+            return str(data)
 
     def __print_database(self):
         string  = ""
         string += "```asciidoc\n=== Database ===```\n"
         string += "```c\n"
-        string += Statistics.format(self.database)
+        string += Statistics.format(self.database, -2)
         string += "```"
         return string
 
