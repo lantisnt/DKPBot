@@ -111,7 +111,7 @@ class Statistics():
         string = ""
         for key, value in data.items():
             string += (indent * " ") + "{0}:\n".format(key)
-            string += (indent * " ") + Statistics.format(value, indent + Statistics.INDENT_OFFSET)
+            string += ((indent + Statistics.INDENT_OFFSET) * " ") + Statistics.format(value, indent + (2*Statistics.INDENT_OFFSET))
             string += "\n"
         return string
 
