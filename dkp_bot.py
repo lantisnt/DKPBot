@@ -743,11 +743,11 @@ class DKPBot:
                 raise AttributeError
         except AttributeError :
             BotLogger().get().error("Error Parsing .lua file.")
-            return Response(ResponseStatus.ERROR, BasicCritical("Error Parsing .lua file.").get())
+            return Response(ResponseStatus.ERROR, BasicCritical("Error Parsing .lua file. Check if you have provided proper savedvarible file.").get())
 
         if not isinstance(saved_variable, dict):
             BotLogger().get().error("No SavedVariables found in .lua file.")
-            return Response(ResponseStatus.ERROR, BasicCritical("No SavedVariables found in .lua file.").get())
+            return Response(ResponseStatus.ERROR, BasicCritical("No SavedVariables found in .lua file. Check if you have provided proper savedvarible file.").get())
 
         self.__init_db_structure()
 
@@ -757,13 +757,13 @@ class DKPBot:
 
         if not self._build_dkp_database(saved_variable):
             BotLogger().get().error("DKP Database building failed.")
-            return Response(ResponseStatus.ERROR, BasicCritical("```DKP Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
+            return Response(ResponseStatus.ERROR, BasicCritical("DKP Database building failed.").get())
         if not self._build_loot_database(saved_variable):
             BotLogger().get().error("Loot Database building failed.")
-            return Response(ResponseStatus.ERROR, BasicCritical("```Loot Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
+            return Response(ResponseStatus.ERROR, BasicCritical("Loot Database building failed.").get())
         if not self._build_history_database(saved_variable):
             BotLogger().get().error("DKP History Database building failed.")
-            return Response(ResponseStatus.ERROR, BasicCritical("```DKP History Database building failed.```\nCheck if you have provided proper savedvarible file.").get())
+            return Response(ResponseStatus.ERROR, BasicCritical("DKP History Database building failed.").get())
 
         self._finalize_database()
 

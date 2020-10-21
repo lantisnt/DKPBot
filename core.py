@@ -269,7 +269,7 @@ async def spawn_bot(guild):
                     if (bot.is_channel_registered() and bot.check_channel(channel.id)) or not bot.is_channel_registered():
                         async for message in channel.history(limit=50):
                             status = await discord_attachment_parse(bot, message, normalize_author(message.author), False)
-                            if status == dkp_bot.ResponseStatus.SUCCESS:
+                            if status in [dkp_bot.ResponseStatus.SUCCESS, dkp_bot.ResponseStatus.ERROR]:
                                 break
                 except discord.Forbidden:
                     continue
