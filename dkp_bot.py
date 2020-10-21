@@ -109,7 +109,7 @@ class Statistics():
     def format_dict(data, indent=0):
         string = ""
         for key, value in data.items():
-            string += (indent * " ") + "{0}:\n".format(key)
+            string += (indent * " ") + "{0}: ".format(key)
             value_indent = (indent + Statistics.INDENT_OFFSET)
             string += (value_indent * " ") + Statistics.format(value, value_indent + Statistics.INDENT_OFFSET)
             string += "\n"
