@@ -113,6 +113,7 @@ class Statistics():
             string += (indent * " ") + "{0}:\n".format(key)
             string += Statistics.format(value, indent + Statistics.INDENT_OFFSET)
             string += "\n"
+        return string
 
     @staticmethod
     def format_tuple(data, indent=0):
@@ -120,6 +121,7 @@ class Statistics():
         string += (indent * " ")
         string += "( " + Statistics.format(data[0], indent + Statistics.INDENT_OFFSET)
         string += Statistics.format(data[1], indent + Statistics.INDENT_OFFSET) + " )"
+        return string
 
     @staticmethod
     def format(data, indent=0):
