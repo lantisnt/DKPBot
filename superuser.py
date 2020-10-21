@@ -33,23 +33,21 @@ class Superuser:
     def __is_authorized(self, request_info):
         return self.is_init and request_info['author']['id'] == self.__su_id
 
-    def handle(self, command, params, request_info):
+    def handle(self, command, param, request_info):
         if not self.__is_authorized(request_info):
             return self.__unauthorized(command, params, request_info)
 
         callback = getattr(self, command, None)
         if callback and callable(callback):
-            response = callback(params)  # pylint: disable=not-callable
+            response = callback(param)  # pylint: disable=not-callable
             return response
         else:
             return Response(ResponseStatus.IGNORE)
 
-    def su_stats(self, params):
+    def su_stats(self, param):
+        params = param.split(" ")
         if len(params) > 0:
             bot_id = int(params[0])
-            print(params)
-            print(bot_id)
-            print(self.__bots.keys())
             if bot_id in self.__bots:
                 stats = self.__bots[bot_id].statistics
                 return Response(ResponseStatus.SUCCESS, BasicSuccess(str(stats)).get())
