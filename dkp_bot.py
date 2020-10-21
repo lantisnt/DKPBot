@@ -110,11 +110,11 @@ class Statistics():
         string = ""
         max_key_len = max(list(map(lambda x: len(x), data.keys())))
         for key, value in data.items():
+            string += "\n" + (indent * " ") + "{0}: ".format(key)
             if isinstance(value, (dict, tuple)):
                 value_indent = (indent + Statistics.INDENT_OFFSET)
             else:
-                value_indent = max_key_len + 2
-            string += "\n" + (indent * " ") + "{0}: ".format(key)
+                value_indent = max_key_len - len(key) + 2
             string += (value_indent * " ") + Statistics.format(value, value_indent + Statistics.INDENT_OFFSET)
         return string
 
