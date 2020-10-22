@@ -124,7 +124,7 @@ class Statistics():
                     if command in self:
                         commands[command].override(self[command])
                         if command in other:
-                            commands[command] += other[command]
+                            commands[command].override(commands[command] + other[command])
                     elif command in other:
                         commands[command].override(other[command])
                 return commands
