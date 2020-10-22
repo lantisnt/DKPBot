@@ -220,7 +220,7 @@ async def discord_respond(channel, responses, self_call=False):
     except discord.HTTPException as exception:
         exception = str(exception).lower()
         if (exception.find("size exceeds maximum") != -1) or (exception.find("or fewer in length") != -1) and not self_call:
-            embed = BasicError("Response data exceeded Discord limits. Please limit the response in display configuration.")
+            embed = BasicError("Response data exceeded Discord limits. Please limit the response in `display` configuration.")
             await discord_respond(channel, embed.get(), True)
         else:
             pass # log here

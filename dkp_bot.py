@@ -56,8 +56,8 @@ class Statistics():
 
             def __init__(self, value=None):
                 if not isinstance(value, (int, float)):
-                    self.min = 0
-                    self.max = float("inf")
+                    self.min = float("inf")
+                    self.max = 0
                     self.avg = 0
                     self.num = 0
                 else:
@@ -458,7 +458,7 @@ class DKPBot:
             bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
             start = timestamp_now()
             response = callback(param, request_info)  # pylint: disable=not-callable
-            self.statistics.commands[sanitized_command] = (timestamp_now() - start)
+            self.statistics.commands[sanitized_command] = (1000 * (timestamp_now() - start)) # miliseconds
             response.direct_message = direct_message
 
             return response
