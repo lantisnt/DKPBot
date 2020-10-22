@@ -1,6 +1,6 @@
 from dkp_bot import Response, ResponseStatus, Statistics
 from bot_logger import BotLogger
-from display_templates import BasicSuccess, BasicError, BasicCritical
+from display_templates import BasicError, BasicCritical
 
 class Superuser:
     __su_id = 0
@@ -98,7 +98,7 @@ class Superuser:
         else:
             return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())
 
-    def su_globalstats(self, param):
+    def su_globalstats(self, param): # pylint: disable=unused-argument
         global_command_stats = Statistics.Commands()
         for bot in self.__bots.values():
             global_command_stats += bot.statistics.commands

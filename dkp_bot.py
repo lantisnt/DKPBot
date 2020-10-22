@@ -2,7 +2,6 @@ import argparse
 import re
 import json
 import collections
-import copy
 from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
@@ -155,7 +154,7 @@ class Statistics():
     @staticmethod
     def format_dict(data, indent=0):
         string = ""
-        max_key_len = max(list(map(lambda x: len(x), data.keys())))
+        max_key_len = max(list(map(len, data.keys())))
         for key, value in data.items():
             string += "\n" + (indent * " ") + "{0}: ".format(key)
             if isinstance(value, (dict, tuple)):
