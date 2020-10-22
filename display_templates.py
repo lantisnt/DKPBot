@@ -417,6 +417,11 @@ class MultipleResponse(BaseResponse):
 
         num_entries = len(data_list)
 
+        # Cover very outdated database
+        if num_entries == 0:
+            data_list = data_list_unfiltered
+            num_entries = len(data_list_unfiltered)
+
         response_count = int(
             num_entries / (self.__field_limit * self.__entry_limit)) + 1
 

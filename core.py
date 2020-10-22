@@ -15,6 +15,7 @@ from bot_logger import BotLogger
 from display_templates import BasicSuccess, BasicError
 from loop_activity import LoopActivity
 import footprint
+import superuser
 
 MAX_ATTACHMENT_BYTES = 3145728 # 3MB
 
@@ -46,6 +47,7 @@ activity = LoopActivity("")
 activity.update({
     'booting'   : 'booting...'
 })
+super_user = superuser.Superuser()
 
 async def discord_update_activity():
     await client.wait_until_ready()
@@ -56,8 +58,16 @@ async def discord_update_activity():
 
 # Main
 def main(control: ScriptControl):
-    control.initialize(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
-    BotLogger().initialize(sys.argv[5])
+    token = sys.argv[1]
+    config_dir = sys.argv[2]
+    storage_dir = sys.argv[3]
+    in_memory_objects_limit = sys.argv[4]
+    log_dir = sys.argv[5]
+    su_id = int(sys.argv[6])
+
+    control.initialize(token, config_dir, storage_dir, in_memory_objects_limit)
+    BotLogger().initialize(log_dir)
+    super_user.initialize(su_id, bots)
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
 
     client.loop.create_task(discord_update_activity())
@@ -124,8 +134,19 @@ def get_request_info(message: discord.Message):
         is_privileged = message.author.permissions_in(message.channel).administrator
 
     request_info = {
-        'author': author,
-        'channel': message.channel.id,
+        'server' : {
+            'name' : message.guild.name,
+            'id' : message.guild.id
+        },
+        'author': {
+            'name' : author,
+            'id'   : message.author.id,
+            'raw'  : message.author.name
+        },
+        'channel' : {
+            'name' : message.channel.name,
+            'id' : message.channel.id
+        },
         'is_privileged': is_privileged,
         'mentions' : {
             'roles'    : [],
@@ -199,7 +220,7 @@ async def discord_respond(channel, responses, self_call=False):
     except discord.HTTPException as exception:
         exception = str(exception).lower()
         if (exception.find("size exceeds maximum") != -1) or (exception.find("or fewer in length") != -1) and not self_call:
-            embed = BasicError("Response data exceeded Discord limits. Please limit the response in display configuration.")
+            embed = BasicError("Response data exceeded Discord limits. Please limit the response in `display` configuration.")
             await discord_respond(channel, embed.get(), True)
         else:
             pass # log here
@@ -230,7 +251,7 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
                         await discord_announce(bot, message.guild.channels)
                     await discord_respond(message.channel, response.data)
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
-                    BotLogger().get().error(response.data)
+                    await discord_respond(message.channel, response.data)
                 return response.status
 
     return dkp_bot.ResponseStatus.IGNORE
@@ -248,7 +269,7 @@ async def spawn_bot(guild):
                     if (bot.is_channel_registered() and bot.check_channel(channel.id)) or not bot.is_channel_registered():
                         async for message in channel.history(limit=50):
                             status = await discord_attachment_parse(bot, message, normalize_author(message.author), False)
-                            if status == dkp_bot.ResponseStatus.SUCCESS:
+                            if status in [dkp_bot.ResponseStatus.SUCCESS, dkp_bot.ResponseStatus.ERROR]:
                                 break
                 except discord.Forbidden:
                     continue
@@ -339,6 +360,13 @@ async def on_message(message):
                     await discord_respond(response_channel, BasicSuccess("Bot created successfuly").get())
                 else:
                     BotLogger().get().error("Requested but not respawn. This should not happen atm")
+            elif response.status == dkp_bot.ResponseStatus.DELEGATE:
+                response = super_user.handle(response.data[0], response.data[1], request_info)
+                if response and isinstance(response, dkp_bot.Response):
+                    if response.status == dkp_bot.ResponseStatus.SUCCESS:
+                        await discord_respond(message.channel, response.data)
+                    elif response.status == dkp_bot.ResponseStatus.ERROR:
+                        BotLogger().get().error(response.data)
 
         # No command response
         # Check if we have attachment on registered channel
@@ -350,6 +378,6 @@ async def on_message(message):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 6:
+    if len(sys.argv) != 7:
         sys.exit(1)
     main(script_control)

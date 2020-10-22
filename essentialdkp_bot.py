@@ -119,6 +119,7 @@ class EssentialDKPBot(DKPBot):
             for player in players:
                 player_info = self._get_dkp(player, team)
                 if player_info is None:
+                    dkp.pop(0)
                     continue
                 self._add_history(player, PlayerDKPHistory(
                     player_info, float(dkp.pop(0)), timestamp, reason, index), team)
@@ -257,18 +258,18 @@ class EssentialDKPBot(DKPBot):
         super()._build_dkp_database(None)
 
         if saved_variable is None:
-            return
+            return False
 
         team = DKPBot.DEFAULT_TEAM
 
         dkp_list = saved_variable.get(self._DKP_SV)
         if not dkp_list:
-            return
+            return False
 
         if isinstance(dkp_list, dict): # dict because there may be ["seed"] field...
             dkp_list = dkp_list.values()
         elif not isinstance(dkp_list, list):
-            return
+            return False
 
         for entry in dkp_list:
             info = self._generate_player_info(entry)
@@ -278,24 +279,26 @@ class EssentialDKPBot(DKPBot):
             self._set_dkp(info.name(), info, team)
             self._set_group_dkp(info.ingame_class(), info, team)
 
+        return True
+
     # Called 2nd
     def _build_loot_database(self, saved_variable):
         super()._build_loot_database(None)
 
         if saved_variable is None:
-            return
+            return False
 
         team = DKPBot.DEFAULT_TEAM
 
         loot_list = saved_variable.get(self._LOOT_SV)
 
         if not loot_list:
-            return
+            return False
 
         if isinstance(loot_list, dict): # dict because there is ["seed"] field...
             loot_list = loot_list.values()
         elif not isinstance(loot_list, list):
-            return
+            return False
 
         for entry in loot_list:
             player_loot = self._generate_player_loot(entry, team)
@@ -309,30 +312,34 @@ class EssentialDKPBot(DKPBot):
         self._sort_player_loot()
         self._set_player_latest_loot()
 
+        return True
+
     # Called 3rd
     def _build_history_database(self, saved_variable):
         super()._build_history_database(None)
 
         if saved_variable is None:
-            return
+            return False
 
         team = DKPBot.DEFAULT_TEAM
 
         history = saved_variable.get(self._HISTORY_SV)
 
         if not history:
-            return
+            return False
 
         if isinstance(history, dict): # dict because there is ["seed"] field...
             history = history.values()
         elif not isinstance(history, list):
-            return
+            return False
 
         for entry in history:
             self._generate_player_history(entry, team)
 
         self._sort_history()
         self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
+
+        return True
 
     # Called after whole database is built
 
@@ -358,15 +365,14 @@ class EssentialDKPBot(DKPBot):
     def call_dkp(self, param, request_info):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
-
         targets = self._parse_param(param)
         output_result_list = []
         if len(targets) > 0:
-            team = self._get_channel_team_mapping(request_info['channel'])
+            team = self._get_channel_team_mapping(request_info['channel']['id'])
             for target in targets:
                 # Single player
                 info = self._get_dkp(target, team)
-                if info and isinstance(info, PlayerInfo):
+                if isinstance(info, PlayerInfo):
                     output_result_list.append(info)
                 else:
                     # Group request
@@ -382,7 +388,7 @@ class EssentialDKPBot(DKPBot):
             data = self.__build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
             output_result_list.sort(key=lambda info: info.dkp(), reverse=True)
-            data = self.__build_dkp_output_multiple(output_result_list, request_info.get('author'))
+            data = self.__build_dkp_output_multiple(output_result_list, request_info['author']['name'])
         else:
             data = BasicError("{0}'s DKP was not found in database.".format(
                 param.capitalize())).get()
@@ -397,7 +403,7 @@ class EssentialDKPBot(DKPBot):
         output_result_list = []
 
         if len(targets) > 0:
-            team = self._get_channel_team_mapping(request_info['channel'])
+            team = self._get_channel_team_mapping(request_info['channel']['id'])
             for target in targets:
                 # Single player
                 info = self._get_history(target, team)
@@ -423,7 +429,7 @@ class EssentialDKPBot(DKPBot):
         output_result_list = []
 
         if len(targets) > 0:
-            team = self._get_channel_team_mapping(request_info['channel'])
+            team = self._get_channel_team_mapping(request_info['channel']['id'])
             for target in targets:
                 # Single player
                 info = self._get_player_loot(target, team)
@@ -448,7 +454,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
-        output_result_list = self._get_loot(self._get_channel_team_mapping(request_info['channel']))
+        output_result_list = self._get_loot(self._get_channel_team_mapping(request_info['channel']['id']))
 
         if len(output_result_list) > 0:
             data = self.__build_loot_output_multiple(output_result_list)
@@ -467,7 +473,7 @@ class EssentialDKPBot(DKPBot):
         if len(param) < 3:
             return Response(ResponseStatus.SUCCESS, BasicError("Query too short. Please specify at least 3 letters.").get())
 
-        output_result_list = self._find_loot(param, self._get_channel_team_mapping(request_info['channel']))
+        output_result_list = self._find_loot(param, self._get_channel_team_mapping(request_info['channel']['id']))
 
         if len(output_result_list) > 0:
             data = self.__build_item_search_output_multiple(output_result_list)

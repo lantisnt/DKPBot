@@ -2,17 +2,16 @@ import argparse
 import re
 import json
 import collections
-
-from datetime import datetime, timezone
 from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 from bot_logger import BotLogger
+from bot_utility import timestamp_now, public_to_dict
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
 from display_templates import get_bot_color, get_bot_links, preformatted_block
-from display_templates import RawEmbed, BasicError, BasicSuccess, BasicAnnouncement
+from display_templates import RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement
 
 
 class ResponseStatus(Enum):
@@ -20,6 +19,7 @@ class ResponseStatus(Enum):
     ERROR = 1
     REQUEST = 2
     IGNORE = 3
+    DELEGATE = 4
 
 
 class Request(Enum):
@@ -42,10 +42,177 @@ class Response:
         self.data = data
         self.direct_message = bool(direct_message)
 
+class Statistics():
+
+    INDENT_OFFSET = 2
+
+    class Commands(dict):
+        class Instrumentation:
+            min = None
+            max = None
+            avg = None
+            num = None
+
+            def __init__(self, value=None):
+                if not isinstance(value, (int, float)):
+                    self.min = float("inf")
+                    self.max = 0
+                    self.avg = 0
+                    self.num = 0
+                else:
+                    self.min = value
+                    self.max = value
+                    self.avg = value
+                    self.num = 1
+
+            def update(self, value):
+                if not isinstance(value, (int, float)):
+                    raise TypeError
+
+                if value < self.min:
+                    self.min = value
+
+                if value > self.max:
+                    self.max = value
+
+                tmp_sum = (self.avg * self.num) + value
+
+                self.num =  self.num + 1
+
+                self.avg = tmp_sum / self.num
+
+            def override(self, other):
+                if isinstance(other, type(self)):
+                    self.min = other.min
+                    self.max = other.max
+                    self.avg = other.avg
+                    self.num = other.num
+                else:
+                    raise TypeError
+
+            def __add__(self, other):
+                if isinstance(other, type(self)):
+                    tmp = Statistics.Commands.Instrumentation()
+
+                    tmp.min = self.min if self.min < other.min else other.min
+                    tmp.min = self.max if self.max > other.max else other.max
+
+                    tmp.num = self.num + other.num
+
+                    total = (self.avg * self.num) + (other.avg * other.num)
+                    tmp.avg = total/tmp.num
+
+                    return tmp
+                else:
+                    raise TypeError
+
+        ### End Internal class Instrumentation
+
+        def __setitem__(self, key, item):
+            if key not in self:
+                super().__setitem__(key, self.Instrumentation(item))
+            else:
+                self[key].update(item)
+
+        def __add__(self, other):
+            if isinstance(self, type(other)):
+                command_list = list(dict.fromkeys(list(self.keys()) + list(other.keys())))
+                commands = Statistics.Commands()
+                for command in command_list:
+                    commands[command] = 0
+                    if command in self:
+                        commands[command].override(self[command])
+                        if command in other:
+                            commands[command].override(commands[command] + other[command])
+                    elif command in other:
+                        commands[command].override(other[command])
+                return commands
+            else:
+                raise TypeError
+
+        def get(self):
+            data = {}
+            for key in self:
+                data[key] = public_to_dict(self[key], filter_callable=True)
+            return data
+
+    database = None
+    commands = None
+
+    def __init__(self):
+        self.database = {}
+        self.commands = Statistics.Commands()
+
+    @staticmethod
+    def format_list(data, indent=0):
+        string  = ""
+        for entry in data:
+            string += Statistics.format(entry, indent + Statistics.INDENT_OFFSET) + ", "
+        string.strip(",")
+        return string
+
+    @staticmethod
+    def format_dict(data, indent=0):
+        string = ""
+        max_key_len = max(list(map(len, data.keys())))
+        for key, value in data.items():
+            string += "\n" + (indent * " ") + "{0}: ".format(key)
+            if isinstance(value, (dict, tuple)):
+                value_indent = (indent + Statistics.INDENT_OFFSET)
+            else:
+                value_indent = max_key_len - len(key) + 2
+            string += (value_indent * " ") + Statistics.format(value, value_indent + Statistics.INDENT_OFFSET)
+        return string
+
+    @staticmethod
+    def format_tuple(data, indent=0):
+        string = ""
+        string += (indent * " ")
+        string += "( " + Statistics.format(data[0], indent + Statistics.INDENT_OFFSET)
+        string += Statistics.format(data[1], indent + Statistics.INDENT_OFFSET) + " )"
+        return string
+
+    @staticmethod
+    def format(data, indent=0):
+        if isinstance(data, list):
+            return Statistics.format_list(data, indent)
+        elif isinstance(data, dict):
+            return Statistics.format_dict(data, indent)
+        elif isinstance(data, tuple):
+            return Statistics.format_tuple(data, indent)
+        else:
+            return str(data)
+
+    def print_database(self):
+        string  = ""
+        string += "```asciidoc\n=== Database ===```"
+        string += "```c\n"
+        string += Statistics.format(self.database, -2)
+        string += "```"
+        return string
+
+    def print_commands(self):
+        string  = ""
+        string += "```asciidoc\n=== Commands ===```"
+        if len(self.commands) > 0:
+            string += "```c\n"
+            string += Statistics.format(self.commands.get(), -2)
+            string += "```"
+        else:
+            string += "```asciidoc\n"
+            string += "[ none ]"
+            string += "```"
+        return string
+
+    def __str__(self):
+        string  = ""
+        string += self.print_database()
+        string += self.print_commands()
+        return string
 
 class DKPBot:
     DEFAULT_TEAM = "0"
-
+    statistics = None
     __config = None
     __guild_id = 0
     __input_file_name = ""
@@ -69,9 +236,10 @@ class DKPBot:
         self.__announcement_mention_role = 0
         self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
         self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
-        self.__channel_team_map = collections.OrderedDict()
+        self._channel_team_map = collections.OrderedDict()
         self.__db_loaded = False
         self.__init_db_structure()
+        self.statistics = Statistics()
 
     def _configure(self):
         self.__input_file_name = self.__config.guild_info.filename
@@ -84,7 +252,7 @@ class DKPBot:
         self.__guild_name = self.__config.guild_info.guild_name
         channel_mapping = json.loads(self.__config.guild_info.channel_team_map)
         for channel, team in channel_mapping.items():
-            self.__channel_team_map[channel] = team
+            self._channel_team_map[channel] = team
 
     def _reconfigure(self):
         self.__config.store()
@@ -222,23 +390,19 @@ class DKPBot:
         return new_groups
 
     # Team related
-    def _get_channel_team_mapping(self, channel_id):
-        team = self.__channel_team_map.get(str(channel_id))
-        if team is None:
-            return DKPBot.DEFAULT_TEAM
-
-        return team
+    def _get_channel_team_mapping(self, channel_id): #pylint: disable=unused-argument
+        return DKPBot.DEFAULT_TEAM
 
     def _set_channel_team_mapping(self, channel_id, team):
         # String due to how it is used in some lua files
         # Limit to 8
         in_limit = True
-        if (len(self.__channel_team_map) == 8) and (str(channel_id) not in self.__channel_team_map):
-            self.__channel_team_map.popitem(False)
+        if (len(self._channel_team_map) == 8) and (str(channel_id) not in self._channel_team_map):
+            self._channel_team_map.popitem(False)
             in_limit = False
 
-        self.__channel_team_map[str(channel_id)] = str(team)
-        self.__config.guild_info.channel_team_map = json.dumps(self.__channel_team_map)
+        self._channel_team_map[str(channel_id)] = str(team)
+        self.__config.guild_info.channel_team_map = json.dumps(self._channel_team_map)
         self._reconfigure()
 
         return in_limit
@@ -276,25 +440,29 @@ class DKPBot:
 
     def __handle_command(self, command, param, request_info):
         method = ''
+        sanitized_command = ''
         direct_message = False
         if command[0] == self.__prefix:
-            method = 'call_'
             if len(command) > 1 and command[1] == self.__prefix:
                 direct_message = True  # direct message
-                method += command[2:]  # remove second ! also
+                sanitized_command = command[2:]  # remove second ! also
             else:
-                method += command[1:]
+                sanitized_command = command[1:]
+            method = 'call_' + sanitized_command
         else:
             return Response(ResponseStatus.IGNORE)
 
         callback = getattr(self, method, None)
         if callback and callable(callback):
             bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
+            start = timestamp_now()
             response = callback(param, request_info)  # pylint: disable=not-callable
-
+            self.statistics.commands[sanitized_command] = (1000 * (timestamp_now() - start)) # miliseconds
             response.direct_message = direct_message
 
             return response
+        elif sanitized_command.startswith('su_'):
+            return Response(ResponseStatus.DELEGATE, (sanitized_command, param))
         else:
             return Response(ResponseStatus.IGNORE)
 
@@ -304,7 +472,7 @@ class DKPBot:
             if args:
                 if args.command:
                     if not args.param:
-                        args.param = [request_info.get('author')]
+                        args.param = [request_info['author']['name']]
                     args.param = " ".join(args.param)
                     return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
         # Empty message, attachement only probably
@@ -319,13 +487,13 @@ class DKPBot:
         return self.__db['info']
 
     def _build_dkp_database(self, saved_variable):  # pylint: disable=unused-argument
-        return
+        return False
 
     def _build_loot_database(self, saved_variable):  # pylint: disable=unused-argument
-        return
+        return False
 
     def _build_history_database(self, saved_variable):  # pylint: disable=unused-argument
-        return
+        return False
 
     def _finalize_database(self):
         return
@@ -375,6 +543,28 @@ class DKPBot:
         self.__db['global'][team]['player_loot'] = {}
         self.__db['global'][team]['history'] = {}
         self.__db['group'][team] = {}
+
+    def __log_database_statistics(self):
+        self.statistics.database['teams'] = {
+            'global' : len(self.__db['global']),
+            'group'  : len(self.__db['group']),
+            'ids'   : []
+        }
+
+        self.statistics.database['entries'] = {}
+        self.statistics.database['teams']['ids'] = []
+        for team, data in self.__db['global'].items():
+            self.statistics.database['teams']['ids'].append(team)
+            self.statistics.database['entries'][team] = {}
+            self.statistics.database['entries'][team]['dkp'] = len(data['dkp'])
+            self.statistics.database['entries'][team]['history'] = len(data['history'])
+            self.statistics.database['entries'][team]['loot'] = len(data['loot'])
+
+        self.statistics.database['group'] = {}
+        for team, data in self.__db['group'].items():
+            self.statistics.database['group'][team] = []
+            for group in data:
+                self.statistics.database['group'][team].append(group)
 
     def _set_dkp(self, player, entry, team):
         team_data = self.__db['global'].get(team)
@@ -524,7 +714,7 @@ class DKPBot:
             if team_data is None:
                 self.__init_team_structure(team)
 
-            if not group in team_data:
+            if not group in team_data.keys():
                 team_data[group] = []
             team_data[group].append(entry)
             if sort:
@@ -555,30 +745,40 @@ class DKPBot:
                     dkp.set_latest_history_entry(history[0])
 
     def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000):
-        now = int(datetime.now(tz=timezone.utc).timestamp())
+        now = timestamp_now(True)
         for team, team_data in self.__db['global'].items():
+            BotLogger().get().debug(team)
             for dkp in team_data['dkp'].values():
                 dkp.set_inactive()
                 history = self._get_history(dkp.name(), team)
                 if history and isinstance(history, list):
+                    BotLogger().get().debug("history len {0} \n".format(len(history)))
                     for history_entry in history:
+                        BotLogger().get().debug("dkp: {0} | now: {1} | timestamp: {2} | diff {3} ({4}) | {5} \n".format(history_entry.dkp(), now, history_entry.timestamp(), abs(now - history_entry.timestamp()), inactive_time, abs(now - history_entry.timestamp()) <= inactive_time))
                         if history_entry.dkp() > 0:
                             dkp.set_latest_history_entry(history_entry)
                             if abs(now - history_entry.timestamp()) <= inactive_time:
                                 dkp.set_active()
                             break
 
+    # This method handles response differently. ERROR status is printed also
     def build_database(self, input_string, info):
         BotLogger().get().info('Building database for server {0}'.format(self.__guild_id))
 
-        start = datetime.now(tz=timezone.utc).timestamp()
+        start = timestamp_now()
 
-        saved_variable = self.__get_saved_variables(input_string)
-        if saved_variable is None:
-            return Response(ResponseStatus.ERROR, "Error Parsing .lua file.")
+        saved_variable = None
+        try:
+            saved_variable = self.__get_saved_variables(input_string)
+            if saved_variable is None:
+                raise AttributeError
+        except AttributeError :
+            BotLogger().get().error("Error Parsing .lua file.")
+            return Response(ResponseStatus.ERROR, BasicCritical("Error Parsing .lua file. Check if you have provided proper savedvariable file.").get())
 
         if not isinstance(saved_variable, dict):
-            return Response(ResponseStatus.ERROR, "No SavedVariables found in .lua file.")
+            BotLogger().get().error("No SavedVariables found in .lua file.")
+            return Response(ResponseStatus.ERROR, BasicCritical("No SavedVariables found in .lua file. Check if you have provided proper savedvariable file.").get())
 
         self.__init_db_structure()
 
@@ -586,23 +786,33 @@ class DKPBot:
         self.__db['info']['date'] = info.get('date')
         self.__db['info']['author'] = info.get('author')
 
-        self._build_dkp_database(saved_variable)
-        self._build_loot_database(saved_variable)
-        self._build_history_database(saved_variable)
+        if not self._build_dkp_database(saved_variable):
+            BotLogger().get().error("DKP Database building failed.")
+            return Response(ResponseStatus.ERROR, BasicError("DKP Database building failed. Please validate `server-side` and `guild-name` settings.").get())
+        if not self._build_loot_database(saved_variable):
+            BotLogger().get().error("Loot Database building failed.")
+            return Response(ResponseStatus.ERROR, BasicError("Loot Database building failed. Please validate `server-side` and `guild-name` settings.").get())
+        if not self._build_history_database(saved_variable):
+            BotLogger().get().error("DKP History Database building failed.")
+            return Response(ResponseStatus.ERROR, BasicError("DKP History Database building failed. Please validate `server-side` and `guild-name` settings.").get())
 
         self._finalize_database()
 
         BotLogger().get().info('Building complete in {:04.2f} seconds'.format(
-            datetime.now(tz=timezone.utc).timestamp() - start))
+            timestamp_now() - start))
+
+        self.__log_database_statistics()
 
         for team in self.__db['global']:
             for table in team:
                 if len(table) <= 0:
-                    return Response(ResponseStatus.SUCCESS, BasicError("Database building failed.").get())
+                    BotLogger().get().error("Global Database building failed.")
+                    return Response(ResponseStatus.ERROR, BasicError("Global Database building failed.").get())
 
         for team in self.__db['group']:
             if len(team) <= 0:
-                return Response(ResponseStatus.SUCCESS, BasicError("Database building failed.").get())
+                BotLogger().get().error("Group Database building failed.")
+                return Response(ResponseStatus.ERROR, BasicError("Group Database building failed.").get())
 
         self.__db_loaded = True
 
@@ -742,7 +952,7 @@ class DKPBot:
         return Response(ResponseStatus.SUCCESS, embed.get())
 
     def call_config(self, param, request_info):
-        if not request_info.get('is_privileged'):
+        if not request_info['is_privileged']:
             return Response(ResponseStatus.IGNORE)
 
         params = self._parse_param(param, False)
@@ -790,10 +1000,10 @@ class DKPBot:
             # team
             string = "Register channel to handle specified team number (starting from 0). Limited to 8 channels. If no #channel is mentioned then the current one will be used. Bot must have access to the channel.\n"
             string += preformatted_block("Usage:     {0}config team Id #channel".format(self.__prefix))
-            num_teams = len(self.__channel_team_map)
+            num_teams = len(self._channel_team_map)
             if num_teams > 0:
                 string += preformatted_block("Current:") + "\n"
-                for channel, team in self.__channel_team_map.items():
+                for channel, team in self._channel_team_map.items():
                     string += "`Team {1}` <#{0}>\n".format(channel, team)
             else:
                 string += preformatted_block("Current:   none") + "\n"
@@ -840,7 +1050,7 @@ class DKPBot:
         return Response(ResponseStatus.IGNORE)
 
     def call_display(self, param, request_info):
-        if not request_info.get('is_privileged'):
+        if not request_info['is_privileged']:
             return Response(ResponseStatus.IGNORE)
 
         param = self._parse_param(param, False)
@@ -934,7 +1144,7 @@ class DKPBot:
         return Response(ResponseStatus.REQUEST, Request.RESPAWN)
 
     def config_call_register(self, params, num_params, request_info): #pylint: disable=unused-argument
-        channel = request_info['channel']
+        channel = request_info['channel']['id']
         if len(request_info['mentions']['channels']) > 0:
             channel = request_info['mentions']['channels'][0]
         self.__register_file_upload_channel(channel)
@@ -942,7 +1152,7 @@ class DKPBot:
                         BasicSuccess('Registered to expect Saved Variable lua file on channel <#{0}>'.format(channel)).get())
 
     def config_call_announcement(self, params, num_params, request_info): #pylint: disable=unused-argument
-        channel = request_info['channel']
+        channel = request_info['channel']['id']
         if len(request_info['mentions']['channels']) > 0:
             channel = request_info['mentions']['channels'][0]
         role = 0
@@ -994,7 +1204,7 @@ class DKPBot:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_team(self, params, num_params, request_info): #pylint: disable=unused-argument
-        channel = request_info['channel']
+        channel = request_info['channel']['id']
         if len(request_info['mentions']['channels']) > 0:
             channel = request_info['mentions']['channels'][0]
         if num_params >= 2:
