@@ -117,7 +117,7 @@ class Statistics():
 
         def __add__(self, other):
             if isinstance(self, type(other)):
-                command_list = list(dict.fromkeys(self.keys() + other.keys()))
+                command_list = list(dict.fromkeys(list(self.keys()) + list(other.keys())))
                 commands = Statistics.Commands()
                 for command in command_list:
                     commands[command] = 0
