@@ -1,4 +1,4 @@
-from dkp_bot import Response, ResponseStatus
+from dkp_bot import Response, ResponseStatus, Statistics
 from bot_logger import BotLogger
 from display_templates import BasicSuccess, BasicCritical
 
@@ -44,16 +44,37 @@ class Superuser:
         else:
             return Response(ResponseStatus.IGNORE)
 
-    def su_stats(self, param):
+    def su_dbinfo(self, param):
         params = param.split(" ")
         if len(params) > 0:
             bot_id = int(params[0])
             if bot_id in self.__bots:
-                stats = self.__bots[bot_id].statistics
-                return Response(ResponseStatus.SUCCESS, str(stats))
+                return Response(ResponseStatus.SUCCESS, self.__bots[bot_id].statistics.print_database())
             else:
                 return Response(ResponseStatus.SUCCESS, BasicCritical("Server id has no bot.").get())
 
         else:
             return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())
 
+    def su_cmdstats(self, param):
+        params = param.split(" ")
+        if len(params) > 0:
+            bot_id = int(params[0])
+            if bot_id in self.__bots:
+                return Response(ResponseStatus.SUCCESS, self.__bots[bot_id].statistics.print_commands())
+            else:
+                return Response(ResponseStatus.SUCCESS, BasicCritical("Server id has no bot.").get())
+
+        else:
+            return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())
+
+    def su_globalstats(self, param):
+        global_command_stats = Statistics.Commands()
+        for bot in self.__bots.values():
+            global_command_stats += bot.statistics.commands
+
+        string  = "```c\n"
+        string += Statistics.format(global_command_stats.get(), -2)
+        string += "```"
+
+        return Response(ResponseStatus.SUCCESS, string)

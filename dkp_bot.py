@@ -2,6 +2,7 @@ import argparse
 import re
 import json
 import collections
+import copy
 from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
@@ -53,16 +54,21 @@ class Statistics():
             avg = None
             num = None
 
-            def __init__(self, value):
-                value = value * 1000
-                self.min = value
-                self.max = value
-                self.avg = value
-                self.num = 1
+            def __init__(self, value=None):
+                if not isinstance(value, (int, float)):
+                    self.min = 0
+                    self.max = float("inf")
+                    self.avg = 0
+                    self.num = 0
+                else:
+                    self.min = value
+                    self.max = value
+                    self.avg = value
+                    self.num = 1
 
             def update(self, value):
-                if not isinstance(value, (float, int)):
-                    return
+                if not isinstance(value, (int, float)):
+                    raise TypeError
 
                 if value < self.min:
                     self.min = value
@@ -76,16 +82,32 @@ class Statistics():
 
                 self.avg = tmp_sum / self.num
 
-            #def __repr__(self):
-            #    return str(self)
+            def override(self, other):
+                if isinstance(other, type(self)):
+                    self.min = other.min
+                    self.max = other.max
+                    self.avg = other.avg
+                    self.num = other.num
+                else:
+                    raise TypeError
 
-            #def __str__(self):
-            #    string  = ""
-            #    string += "Min: {0}\n".format(self.min)
-            #    string += "Max: {0}\n".format(self.max)
-            #    string += "Avg: {0}\n".format(self.avg)
-            #    string += "Num: {0}\n".format(self.num)
-            #    return string
+            def __add__(self, other):
+                if isinstance(other, type(self)):
+                    tmp = Statistics.Commands.Instrumentation()
+
+                    tmp.min = self.min if self.min < other.min else other.min
+                    tmp.min = self.max if self.max > other.max else other.max
+
+                    tmp.num = self.num + other.num
+
+                    total = (self.avg * self.num) + (other.avg * other.num)
+                    tmp.avg = total/tmp.num
+
+                    return tmp
+                else:
+                    raise TypeError
+
+        ### End Internal class Instrumentation
 
         def __setitem__(self, key, item):
             if key not in self:
@@ -93,15 +115,25 @@ class Statistics():
             else:
                 self[key].update(item)
 
+        def __add__(self, other):
+            if isinstance(self, type(other)):
+                command_list = list(dict.fromkeys(self.keys() + other.keys()))
+                commands = Statistics.Commands()
+                for command in command_list:
+                    commands[command] = 0
+                    if command in self:
+                        commands[command].override(self[command])
+                        if command in other:
+                            commands[command] += other[command]
+                    elif command in other:
+                        commands[command].override(other[command])
+                return commands
+            else:
+                raise TypeError
+
         def get(self):
             data = {}
             for key in self:
-                #data[key] = {
-                #    'Min' : self[key].min,
-                #    'Max' : self[key].max,
-                #    'Avg' : self[key].avg,
-                #    'Num' : self[key].num
-                #}
                 data[key] = public_to_dict(self[key], filter_callable=True)
             return data
 
@@ -152,7 +184,7 @@ class Statistics():
         else:
             return str(data)
 
-    def __print_database(self):
+    def print_database(self):
         string  = ""
         string += "```asciidoc\n=== Database ===```"
         string += "```c\n"
@@ -160,7 +192,7 @@ class Statistics():
         string += "```"
         return string
 
-    def __print_commands(self):
+    def print_commands(self):
         string  = ""
         string += "```asciidoc\n=== Commands ===```"
         if len(self.commands) > 0:
@@ -175,8 +207,8 @@ class Statistics():
 
     def __str__(self):
         string  = ""
-        string += self.__print_database()
-        string += self.__print_commands()
+        string += self.print_database()
+        string += self.print_commands()
         return string
 
 class DKPBot:
@@ -743,11 +775,11 @@ class DKPBot:
                 raise AttributeError
         except AttributeError :
             BotLogger().get().error("Error Parsing .lua file.")
-            return Response(ResponseStatus.ERROR, BasicCritical("Error Parsing .lua file. Check if you have provided proper savedvarible file.").get())
+            return Response(ResponseStatus.ERROR, BasicCritical("Error Parsing .lua file. Check if you have provided proper savedvariable file.").get())
 
         if not isinstance(saved_variable, dict):
             BotLogger().get().error("No SavedVariables found in .lua file.")
-            return Response(ResponseStatus.ERROR, BasicCritical("No SavedVariables found in .lua file. Check if you have provided proper savedvarible file.").get())
+            return Response(ResponseStatus.ERROR, BasicCritical("No SavedVariables found in .lua file. Check if you have provided proper savedvariable file.").get())
 
         self.__init_db_structure()
 
