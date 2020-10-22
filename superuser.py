@@ -89,7 +89,7 @@ class Superuser:
 
                 if bot_id is not None:
                     if bot_id in self.__bots:
-                        response = self.__bots[bot_id].call_config("dummy", {})
+                        response = self.__bots[bot_id].call_config("dummy", {'is_privileged' : True})
                         if response.status == ResponseStatus.SUCCESS:
                             response_list.append(response.data)
                     else:
