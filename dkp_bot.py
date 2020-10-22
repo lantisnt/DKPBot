@@ -95,7 +95,7 @@ class Statistics():
                     tmp = Statistics.Commands.Instrumentation()
 
                     tmp.min = self.min if self.min < other.min else other.min
-                    tmp.min = self.max if self.max > other.max else other.max
+                    tmp.max = self.max if self.max > other.max else other.max
 
                     tmp.num = self.num + other.num
 
