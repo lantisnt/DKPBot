@@ -46,13 +46,20 @@ class Superuser:
 
     def su_dbinfo(self, param):
         params = param.split(" ")
+        response_list = []
         if len(params) > 0:
-            bot_id = int(params[0])
-            if bot_id in self.__bots:
-                return Response(ResponseStatus.SUCCESS, self.__bots[bot_id].statistics.print_database())
-            else:
-                return Response(ResponseStatus.SUCCESS, BasicCritical("Server id has no bot.").get())
+            for server_id in params:
+                bot_id = None
+                try:
+                    bot_id = int(server_id)
+                except TypeError:
+                    response_list.append(BasicCritical("Invalid server id: `{0}`".format(server_id)).get())
 
+                if (bot_id is not None) and (bot_id in self.__bots):
+                    response_list.append(self.__bots[bot_id].statistics.print_database())
+                else:
+                    response_list.append(BasicError("Server `{0}` has no bot.".format(server_id)).get())
+            return Response(ResponseStatus.SUCCESS, response_list)
         else:
             return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())
 
@@ -67,11 +74,10 @@ class Superuser:
                 except TypeError:
                     response_list.append(BasicCritical("Invalid server id: `{0}`".format(server_id)).get())
 
-                if bot_id is not None:
-                    if bot_id in self.__bots:
-                        response_list.append(self.__bots[bot_id].statistics.print_commands())
-                    else:
-                        response_list.append(BasicError("Server `{0}` has no bot.".format(server_id)).get())
+                if (bot_id is not None) and (bot_id in self.__bots):
+                    response_list.append(self.__bots[bot_id].statistics.print_commands())
+                else:
+                    response_list.append(BasicError("Server `{0}` has no bot.".format(server_id)).get())
             return Response(ResponseStatus.SUCCESS, response_list)
         else:
             return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())
@@ -87,13 +93,30 @@ class Superuser:
                 except TypeError:
                     response_list.append(BasicCritical("Invalid server id: `{0}`".format(server_id)).get())
 
-                if bot_id is not None:
-                    if bot_id in self.__bots:
-                        response = self.__bots[bot_id].call_config("dummy", {'is_privileged' : True})
-                        if response.status == ResponseStatus.SUCCESS:
-                            response_list.append(response.data)
-                    else:
-                        response_list.append(BasicError("Server `{0}` has no bot.".format(server_id)).get())
+                if (bot_id is not None) and (bot_id in self.__bots):
+                    response = self.__bots[bot_id].call_config("dummy", {'is_privileged' : True})
+                    if response.status == ResponseStatus.SUCCESS:
+                        response_list.append(response.data)
+                else:
+                    response_list.append(BasicError("Server `{0}` has no bot.".format(server_id)).get())
+            return Response(ResponseStatus.SUCCESS, response_list)
+        else:
+            return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())
+
+    def su_reload(self, param):
+        params = param.split(" ")
+        response_list = []
+        if len(params) > 0:
+            for server_id in params:
+                bot_id = None
+                try:
+                    bot_id = int(server_id)
+                except TypeError:
+                    response_list.append(BasicCritical("Invalid server id: `{0}`".format(server_id)).get())
+
+                if (bot_id is not None) and (bot_id in self.__bots):
+                    return Response(ResponseStatus.RELOAD, bot_id)
+
             return Response(ResponseStatus.SUCCESS, response_list)
         else:
             return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())

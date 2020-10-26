@@ -17,15 +17,9 @@ from display_templates import RawEmbed, BasicCritical, BasicError, BasicSuccess,
 class ResponseStatus(Enum):
     SUCCESS = 0
     ERROR = 1
-    REQUEST = 2
-    IGNORE = 3
-    DELEGATE = 4
-
-
-class Request(Enum):
-    NONE = 0
-    RELOAD = 1
-    RESPAWN = 2
+    DELEGATE = 2
+    RELOAD = 2
+    IGNORE = 99
 
 
 class Response:
@@ -1112,7 +1106,7 @@ class DKPBot:
                 if new == value:
                     self.__config.guild_info.filename = value.capitalize() + 'DKP.lua'
                     self._reconfigure()
-                    return Response(ResponseStatus.REQUEST, Request.RESPAWN)
+                    return Response(ResponseStatus.RELOAD, self.__guild_id)
                 else:
                     return Response(ResponseStatus.ERROR, 'Unexpected error during bot type setup')
             else:
@@ -1138,10 +1132,10 @@ class DKPBot:
 
     def config_call_default(self, params, num_params, request_info): #pylint: disable=unused-argument
         self.__config.default()
-        return Response(ResponseStatus.REQUEST, Request.RESPAWN)
+        return Response(ResponseStatus.RELOAD, self.__guild_id)
 
     def config_call_reload(self, params, num_params, request_info): #pylint: disable=unused-argument
-        return Response(ResponseStatus.REQUEST, Request.RESPAWN)
+        return Response(ResponseStatus.RELOAD, self.__guild_id)
 
     def config_call_register(self, params, num_params, request_info): #pylint: disable=unused-argument
         channel = request_info['channel']['id']

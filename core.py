@@ -12,7 +12,7 @@ import bot_factory
 import bot_memory_manager
 from bot_config import BotConfig
 from bot_logger import BotLogger
-from display_templates import BasicSuccess, BasicError
+from display_templates import BasicSuccess, BasicError, BasicInfo
 from loop_activity import LoopActivity
 import footprint
 import superuser
@@ -256,6 +256,8 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
 
     return dkp_bot.ResponseStatus.IGNORE
 
+## Discord + Bot interactions
+
 async def spawn_bot(guild):
     try:
         config_filename = "{0}/{1}.ini".format(script_control.config_dir, guild.id)
@@ -280,6 +282,30 @@ async def spawn_bot(guild):
 
     except (SystemExit, Exception) as exception:
         handle_exception("spawn_bot()", exception)
+
+async def handle_bot_response(message: discord.Message, request_info: dict, response: dkp_bot.Response, delegated:bool=False):
+    if response and isinstance(response, dkp_bot.Response):
+        ## SUCCESS
+        if response.status == dkp_bot.ResponseStatus.SUCCESS:
+            response_channel = await discord_get_response_channel(message, response.direct_message)
+            await discord_respond(response_channel, response.data)
+            if isinstance(response_channel, discord.DMChannel):
+                await message.delete()
+        ## ERROR
+        elif response.status == dkp_bot.ResponseStatus.ERROR:
+            BotLogger().get().error(response.data)
+        ## RELOAD
+        elif response.status == dkp_bot.ResponseStatus.RELOAD:
+            if response.data in bots.keys():
+                response_channel = await discord_get_response_channel(message, response.direct_message)
+                await discord_respond(response_channel, BasicInfo("Reloading bot.").get())
+                await spawn_bot(message.guild) # Respawn bot
+            else:
+                BotLogger().get().error("Reload invalid bot id: {0}".format(response.data))
+        ## DELEGATE
+        elif response.status == dkp_bot.ResponseStatus.DELEGATE and not delegated:
+            response_su = super_user.handle(response.data[0], response.data[1], request_info)
+            await handle_bot_response(message, request_info, response_su, True)
 
 # Discord API
 
@@ -324,18 +350,12 @@ async def on_message(message):
 
         # Add per-server ratelimiting
 
-
         # Check if we have proper bot for the requester
         bot = bots.get(message.guild.id)
         if not isinstance(bot, dkp_bot.DKPBot):
             return
 
         request_info = get_request_info(message)
-        # request_info = {
-        #     'author': author,
-        #     'channel': message.channel.id,
-        #     'is_privileged': is_privileged
-        # }
 
         if client.user in message.mentions:
             # Handle bot mention
@@ -344,30 +364,7 @@ async def on_message(message):
             # Handle command
             response = bot.handle(message.clean_content, request_info)
 
-        if response and isinstance(response, dkp_bot.Response):
-            if response.status == dkp_bot.ResponseStatus.SUCCESS:
-                response_channel = await discord_get_response_channel(message, response.direct_message)
-                await discord_respond(response_channel, response.data)
-                if isinstance(response_channel, discord.DMChannel):
-                    await message.delete()
-            elif response.status == dkp_bot.ResponseStatus.ERROR:
-                BotLogger().get().error(response.data)
-                return
-            elif response.status == dkp_bot.ResponseStatus.REQUEST:
-                if response.data == dkp_bot.Request.RESPAWN:
-                    response_channel = await discord_get_response_channel(message, response.direct_message)
-                    await spawn_bot(message.guild) # Respawn bot
-                    await discord_respond(response_channel, BasicSuccess("Bot created successfuly").get())
-                else:
-                    BotLogger().get().error("Requested but not respawn. This should not happen atm")
-            elif response.status == dkp_bot.ResponseStatus.DELEGATE:
-                response = super_user.handle(response.data[0], response.data[1], request_info)
-                if response and isinstance(response, dkp_bot.Response):
-                    if response.status == dkp_bot.ResponseStatus.SUCCESS:
-                        await discord_respond(message.channel, response.data)
-                    elif response.status == dkp_bot.ResponseStatus.ERROR:
-                        BotLogger().get().error(response.data)
-
+        await handle_bot_response(message, request_info, response)
         # No command response
         # Check if we have attachment on registered channel
         if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
