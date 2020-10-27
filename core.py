@@ -12,7 +12,7 @@ import bot_factory
 import bot_memory_manager
 from bot_config import BotConfig
 from bot_logger import BotLogger
-from display_templates import BasicSuccess, BasicError, BasicInfo
+from display_templates import BasicSuccess, BasicError, BasicInfo, BasicCritical
 from loop_activity import LoopActivity
 import footprint
 import superuser
@@ -279,11 +279,13 @@ async def spawn_bot(guild):
             bot_memory_manager.Manager().Handle(guild.id, True)
             BotLogger().get().info("Bot for server {0} total footprint: {1} B".format(
                         guild.name.encode('ascii', 'ignore').decode(), footprint.total_size(bot)))
+            return True
 
     except (SystemExit, Exception) as exception:
         handle_exception("spawn_bot()", exception)
+        return False
 
-async def handle_bot_response(message: discord.Message, request_info: dict, response: dkp_bot.Response, delegated:bool=False):
+async def handle_bot_response(message: discord.Message, request_info: dict, response: dkp_bot.Response):
     if response and isinstance(response, dkp_bot.Response):
         ## SUCCESS
         if response.status == dkp_bot.ResponseStatus.SUCCESS:
@@ -296,16 +298,25 @@ async def handle_bot_response(message: discord.Message, request_info: dict, resp
             BotLogger().get().error(response.data)
         ## RELOAD
         elif response.status == dkp_bot.ResponseStatus.RELOAD:
+            guild = None
             if response.data in bots.keys():
+                for _guild in client.guilds:
+                    if _guild.id == response.data:
+                        guild = _guild
+            if guild is not None:
                 response_channel = await discord_get_response_channel(message, response.direct_message)
-                await discord_respond(response_channel, BasicInfo("Reloading bot.").get())
-                await spawn_bot(message.guild) # Respawn bot
+                spawned = await spawn_bot(guild) # Respawn bot
+                if spawned:
+                    await discord_respond(response_channel, BasicSuccess("Reloaded bot successfuly.").get())
+                else:
+                    await discord_respond(response_channel, BasicCritical("Unable to reload bot. Please report this issue to the author. Previous one will continue to be usable.").get())
             else:
                 BotLogger().get().error("Reload invalid bot id: {0}".format(response.data))
         ## DELEGATE
-        elif response.status == dkp_bot.ResponseStatus.DELEGATE and not delegated:
-            response_su = super_user.handle(response.data[0], response.data[1], request_info)
-            await handle_bot_response(message, request_info, response_su, True)
+        elif (response.status == dkp_bot.ResponseStatus.DELEGATE):
+            return super_user.handle(response.data[0], response.data[1], request_info)
+
+    return None
 
 # Discord API
 
@@ -357,6 +368,7 @@ async def on_message(message):
 
         request_info = get_request_info(message)
 
+        response = None
         if client.user in message.mentions:
             # Handle bot mention
             response = bot.call_help("", request_info)
@@ -364,7 +376,11 @@ async def on_message(message):
             # Handle command
             response = bot.handle(message.clean_content, request_info)
 
-        await handle_bot_response(message, request_info, response)
+        delegation_limit = 2
+        while ((response is not None) and (delegation_limit > 0)):
+            response = await handle_bot_response(message, request_info, response)
+            delegation_limit = delegation_limit - 1
+
         # No command response
         # Check if we have attachment on registered channel
         if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
