@@ -486,10 +486,10 @@ class EssentialDKPBot(DKPBot):
         return Response(ResponseStatus.SUCCESS, data)
 
     def config_call_server_side(self, params, num_params, request_info):
-        return Response(ResponseStatus.SUCCESS, BasicError("Server and Side setting is not required.").get())
+        return Response(ResponseStatus.SUCCESS, BasicInfo("Server and Side setting are not used in `essential` mode.").get())
 
     def config_call_guild_name(self, params, num_params, request_info):
-        return Response(ResponseStatus.SUCCESS, BasicError("Guild Name setting is not required.").get())
+        return Response(ResponseStatus.SUCCESS, BasicInfo("Guild Name setting is not used in `essential` mode.").get())
 
     def config_call_team(self, params, num_params, request_info):
-        return Response(ResponseStatus.SUCCESS, BasicError("Multiple teams are not supported.").get())
+        return Response(ResponseStatus.SUCCESS, BasicInfo("Multiple teams are not used in `essential` mode.").get())

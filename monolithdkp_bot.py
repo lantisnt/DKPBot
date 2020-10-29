@@ -1,5 +1,6 @@
+from dkp_bot import Response, ResponseStatus
 from essentialdkp_bot import EssentialDKPBot
-from display_templates import SinglePlayerProfile
+from display_templates import BasicInfo, SinglePlayerProfile
 
 class MonolithDKPBot(EssentialDKPBot):
 
@@ -7,3 +8,12 @@ class MonolithDKPBot(EssentialDKPBot):
         super()._configure()
         # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile("Monolith DKP Profile")
+
+    def config_call_server_side(self, params, num_params, request_info):
+        return Response(ResponseStatus.SUCCESS, BasicInfo("Server and Side setting are not used in `monolith` mode.").get())
+
+    def config_call_guild_name(self, params, num_params, request_info):
+        return Response(ResponseStatus.SUCCESS, BasicInfo("Guild Name setting is not used in `monolith` mode.").get())
+
+    def config_call_team(self, params, num_params, request_info):
+        return Response(ResponseStatus.SUCCESS, BasicInfo("Multiple teams are not used in `monolith` mode.").get())
