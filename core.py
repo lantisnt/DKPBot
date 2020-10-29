@@ -41,7 +41,7 @@ class ScriptControl():
 
 # Global objects
 script_control = ScriptControl()
-client = discord.Client()
+client = discord.Client(chunk_guilds_at_startup=False)
 bots = {}
 activity = LoopActivity("")
 activity.update({
@@ -50,7 +50,9 @@ activity.update({
 super_user = superuser.Superuser()
 
 async def discord_update_activity():
+    BotLogger().get().info("Presence awaiting ready")
     await client.wait_until_ready()
+    BotLogger().get().info("Presence running")
     while True:
         await client.change_presence(activity=activity.next())
         await asyncio.sleep(30)
