@@ -329,12 +329,19 @@ async def on_guild_join(guild):
     except (SystemExit, Exception) as exception:
         handle_exception("on_guild_join()", exception)
 
+@client.event
+async def on_connect():
+    BotLogger().get().info("Connected to discord gateway")
+
+async def on_disconnect():
+    BotLogger().get().info("Disconnected from discord gateway")
 
 @client.event
 async def on_ready():
     try:
         if script_control.is_initialized():
             return
+        BotLogger().get().info("Starting initializing bot for {0} servers".format(len(client.guilds)))
 
         for guild in client.guilds:
             await spawn_bot(guild)
