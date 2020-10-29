@@ -1,2 +1,2 @@
-VERSION = "v1.1.1"
+VERSION = "v1.1.2 premium week"
 SUPPORT_SERVER  = "wowdkpbot.com/discord"
