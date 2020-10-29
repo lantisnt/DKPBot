@@ -358,7 +358,6 @@ class DKPBot:
 
         # If not premium we don't allow doing any group mixin calls
         if not self.is_premium():
-
             # Remove classes
             new_groups = [x for x in groups if x not in self._classes]
             # Remove aliases
@@ -380,6 +379,8 @@ class DKPBot:
                     subgroup = group[:-1]
                     if subgroup in self._classes:
                         new_groups.append(subgroup)
+                    else:
+                        new_groups.append(group)
                 else:
                     new_groups.append(group)
 
