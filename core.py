@@ -169,17 +169,12 @@ def get_request_info(message: discord.Message):
 async def discord_get_response_channel(message, direct_message: bool):
     response_channel = message.channel
     if direct_message:
-        dm_channel = message.author.dm_channel
+        dm_channel = await message.author.create_dm()
         if dm_channel is None:
-            await message.author.create_dm()
-            dm_channel = message.author.dm_channel
-            if dm_channel is None:
-                BotLogger().get().error('Unable to create DM channel with {0}'.format(
+            BotLogger().get().error('Unable to create DM channel with {0}'.format(
                     message.author))
-            else:
-                response_channel = dm_channel
         else:
-            response_channel = dm_channel
+            return dm_channel
 
     return response_channel
 
@@ -290,9 +285,15 @@ async def handle_bot_response(message: discord.Message, request_info: dict, resp
         ## SUCCESS
         if response.status == dkp_bot.ResponseStatus.SUCCESS:
             response_channel = await discord_get_response_channel(message, response.direct_message)
-            await discord_respond(response_channel, response.data)
-            if isinstance(response_channel, discord.DMChannel):
-                await message.delete()
+            if response.direct_message:
+                if isinstance(response_channel, discord.DMChannel):
+                    await discord_respond(response_channel, response.data)
+                    await message.delete()
+                else:
+                    embed = BasicError("Unable to respond to DM request.")
+                    await discord_respond(response_channel, embed.get())
+            else:
+                await discord_respond(response_channel, response.data)
         ## ERROR
         elif response.status == dkp_bot.ResponseStatus.ERROR:
             BotLogger().get().error(response.data)
