@@ -2,7 +2,7 @@ import re
 
 from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
-from display_templates import BasicError, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
+from display_templates import BasicError,BasicInfo, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
 from bot_logger import BotLogger
 
 class EssentialDKPBot(DKPBot):
@@ -383,7 +383,7 @@ class EssentialDKPBot(DKPBot):
                                 output_result_list.append(info)
         else:
             if not self.is_premium():
-                return Response(ResponseStatus.SUCCESS,BasicError("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
+                return Response(ResponseStatus.SUCCESS, BasicInfo("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
             else:
                 return Response(ResponseStatus.ERROR, BasicError("Unable to find data for {0}.".format(param)).get())
 
@@ -452,7 +452,7 @@ class EssentialDKPBot(DKPBot):
 
     def call_raidloot(self, param, request_info):  # pylint: disable=unused-argument
         if not self.is_premium():
-            return Response(ResponseStatus.SUCCESS,BasicError("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
+            return Response(ResponseStatus.SUCCESS,BasicInfo("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
 
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
@@ -468,7 +468,7 @@ class EssentialDKPBot(DKPBot):
 
     def call_item(self, param, request_info):  # pylint: disable=unused-argument
         if not self.is_premium():
-            return Response(ResponseStatus.SUCCESS,BasicError("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
+            return Response(ResponseStatus.SUCCESS, BasicInfo("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
 
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())

@@ -216,7 +216,20 @@ class DKPBot:
     __enabled = False
     __parser = None
     __param_parser = None
-    _all_groups = []
+    _classes = [
+        'warrior',
+        'druid',
+        'priest',
+        'paladin',
+        'shaman',
+        'rogue',
+        'hunter',
+        'mage',
+        'warlock'
+    ]
+    _aliases = [
+        'tank', 'tanks', 'healer', 'healers', 'dps', 'caster', 'casters', 'physical', 'range', 'ranged', 'melee'
+    ]
     __db = {}
 
     __server_side = ''
@@ -229,7 +242,6 @@ class DKPBot:
         self.__announcement_channel = 0
         self.__announcement_mention_role = 0
         self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
-        self._all_groups = ['warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock']
         self._channel_team_map = collections.OrderedDict()
         self.__db_loaded = False
         self.__init_db_structure()
@@ -341,12 +353,15 @@ class DKPBot:
     def __decode_aliases(self, groups):
         # Always allow querying all
         if 'all' in groups:
-            return self._all_groups
+            return self._classes
 
         # If not premium we don't allow doing any group mixin calls
         if not self.is_premium():
-            # Remove groups
-            new_groups = [x for x in groups if x not in self._all_groups]
+
+            # Remove classes
+            new_groups = [x for x in groups if x not in self._classes]
+            # Remove aliases
+            new_groups = [x for x in new_groups if x not in self._aliases]
             # Remove mixins
             if len(new_groups) > 1:
                 new_groups = [new_groups[0]]
@@ -354,12 +369,20 @@ class DKPBot:
             return new_groups
 
         # Else we consider everything for premium users
-        new_groups = groups.copy()
+        new_groups = []
         for group in groups:
-            if group == 'all':
-                return self._all_groups
+            if group in self._classes: # singulars
+                new_groups.append(group)
 
-            if group == 'tank' or group == 'tanks':
+            elif not group in self._aliases:
+                if group.endswith('s'): # class prulals
+                    subgroup = group[:-1]
+                    if subgroup in self._classes:
+                        new_groups.append(subgroup)
+                else:
+                    new_groups.append(group)
+
+            elif group == 'tank' or group == 'tanks':
                 new_groups.extend(['warrior', 'druid'])
 
             elif group == 'healer' or group == 'healers':
