@@ -241,7 +241,7 @@ class DKPBot:
         self.__channel = 0
         self.__announcement_channel = 0
         self.__announcement_mention_role = 0
-        self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
+        self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^'\"]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
         self._channel_team_map = collections.OrderedDict()
         self.__db_loaded = False
         self.__init_db_structure()
