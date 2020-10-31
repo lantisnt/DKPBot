@@ -27,7 +27,7 @@ class GuildInfo():
     guild_name = ''
     channel_team_map = '{}'
 
-    def __init__(self, bot_type, file_upload_channel, announcement_channel, announcement_mention_role, filename, prefix, premium, server_side, guild_name, channel_team_map):
+    def __init__(self, bot_type, file_upload_channel, announcement_channel, announcement_mention_role, filename, prefix, premium, server_side, guild_name, channel_team_map, direct_message_response, block_response_modifier):
         self.bot_type = bot_type
         self.file_upload_channel = file_upload_channel
         self.announcement_channel = announcement_channel
@@ -38,6 +38,8 @@ class GuildInfo():
         self.server_side = server_side
         self.guild_name = guild_name
         self.channel_team_map = channel_team_map
+        self.direct_message_response = bool(direct_message_response)
+        self.block_response_modifier = bool(block_response_modifier)
 
 class DisplayConfig(object):
     __fields = 0
@@ -158,7 +160,7 @@ class BotConfig():
     __filepath = ""
     __config = None
 
-    guild_info = GuildInfo('essential', 0, 0, 0, 'EssentialDKP.lua', '!', False, '', '','{}')
+    guild_info = GuildInfo('essential', 0, 0, 0, 'EssentialDKP.lua', '!', False, '', '','{}', False, False)
     dkp = DisplayConfig(6, 16, 5, True)
     dkp_history = DisplayConfig(1, 10, 1, True)
     loot_history = DisplayConfig(1, 10, 1, True)
@@ -202,7 +204,9 @@ class BotConfig():
             self.__config.getboolean(group, 'premium', fallback=False),
             self.__config.get(group, 'server_side', fallback=''),
             self.__config.get(group, 'guild_name', fallback=''),
-            self.__config.get(group, 'channel_team_map', fallback='{}')
+            self.__config.get(group, 'channel_team_map', fallback='{}'),
+            self.__config.getboolean(group, 'direct_message_response', fallback=False),
+            self.__config.getboolean(group, 'block_response_modifier', fallback=False)
         )
 
         group = 'DKP Display'
