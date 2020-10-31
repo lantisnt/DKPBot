@@ -109,6 +109,7 @@ def unpickle_data(uid):
     return data
 
 # Discord related
+SPLIT_DELIMITERS = ["#", "/", "\\", "|", ":", ";", "-"]
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
@@ -120,9 +121,8 @@ def normalize_author(author):
         normalized = author
 
     normalized = "{0}".format(normalized)
-    normalized = normalized.split("#")[0].strip()
-    normalized = normalized.split("/")[0].strip()
-    normalized = normalized.split("\\")[0].strip()
+    for delimiter in SPLIT_DELIMITERS:
+        normalized = normalized.split(delimiter)[0].strip()
 
     return normalized
 
