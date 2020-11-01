@@ -11,7 +11,7 @@ from bot_utility import timestamp_now, public_to_dict
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
 from display_templates import get_bot_color, get_bot_links, preformatted_block
-from display_templates import RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement
+from display_templates import RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement, BasicInfo
 
 
 class ResponseStatus(Enum):
@@ -1068,7 +1068,7 @@ class DKPBot:
             string += preformatted_block(string2)
             embed.add_field("guild-name", string, False)
             # team
-            string = "Register channel to handle specified team number (starting from 0). Limited to 8 channels. If no #channel is mentioned then the current one will be used. Bot must have access to the channel.\n"
+            string = "Register channel to handle specified team number (starting from 0). Limited to 8 channels. If no #channel is mentioned then the current one will be used. Bot must have access to the channel. Calling without any parameters will result in available team list.\n"
             string += preformatted_block("Usage:     {0}config team Id #channel\nExample:   {0}config team 0".format(self.__prefix))
             num_teams = len(self._channel_team_map)
             if num_teams > 0:
@@ -1293,10 +1293,11 @@ class DKPBot:
             teams = self._get_addon_config(["teams"])
             if isinstance(teams, dict) and len(teams) > 0:
                 team_data  = "```"
+                team_data += "Id   Name\n"
                 for team_id, team_info in teams.items():
-                    team_data += "{0:2} - {1}\n".format(team_id, team_info.get('name'))
+                    team_data += "{0:2}   {1}\n".format(team_id, team_info.get('name'))
                 team_data += "```"
-                return Response(ResponseStatus.SUCCESS, BasicSuccess(team_data).get())
+                return Response(ResponseStatus.SUCCESS, BasicInfo(team_data).get())
             else:
                 return Response(ResponseStatus.SUCCESS, BasicError("No teams found").get())
         elif num_params >= 2:
