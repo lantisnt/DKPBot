@@ -234,6 +234,8 @@ class DKPBot:
 
     __server_side = ''
     __guild_name = ''
+    __direct_message_response = True
+    __block_response_modifier = True
 
     def __init__(self, guild_id: int, config: BotConfig):
         self.__config = config
@@ -259,6 +261,8 @@ class DKPBot:
         channel_mapping = json.loads(self.__config.guild_info.channel_team_map)
         for channel, team in channel_mapping.items():
             self._channel_team_map[channel] = team
+        self.__direct_message_response = bool(self.__config.guild_info.direct_message_response)
+        self.__block_response_modifier = bool(self.__config.guild_info.block_response_modifier)
 
     def _reconfigure(self):
         self.__config.store()
@@ -460,11 +464,12 @@ class DKPBot:
     def __handle_command(self, command, param, request_info):
         method = ''
         sanitized_command = ''
-        direct_message = False
+        direct_message = self.__direct_message_response
         if command[0] == self.__prefix:
             if len(command) > 1 and command[1] == self.__prefix:
-                direct_message = True  # direct message
                 sanitized_command = command[2:]  # remove second ! also
+                if (not self.__block_response_modifier or (self.__block_response_modifier and request_info['is_privileged'])):
+                    direct_message = not self.__direct_message_response  # direct message
             else:
                 sanitized_command = command[1:]
             method = 'call_' + sanitized_command
@@ -845,7 +850,7 @@ class DKPBot:
                 setattr(internal_group, config, value)
                 new_value = getattr(internal_group, config)
                 if isinstance(new_value, bool):
-                    return (new_value and value == 'true') or (not new_value and value == 'false')
+                    return (new_value and value in ['true', True]) or (not new_value and value in ['false', False])
                 elif isinstance(new_value, int):
                     try:
                         return new_value == int(value)
@@ -856,8 +861,28 @@ class DKPBot:
 
         return False
 
-    def __set_config_specific(self, config, value):  # pylint: disable=unused-argument
-        return "Invalid value"
+    def __set_config_boolean(self, group, config, value):  # pylint: disable=unused-argument
+        value_sanitized = value.lower()
+        if value_sanitized in ["true", "1", 1, True]:
+            value_sanitized = True
+        elif value in ["false", "0", 0, False]:
+            value_sanitized = False
+        else:
+            return False
+
+        if self.__set_config(group, config, value_sanitized):
+            self.__config.store()
+            self._configure()
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def __generic_response(success, config, value):
+        if success:
+            return Response(ResponseStatus.SUCCESS, BasicSuccess("Successfuly set **{0}** to **{1}**".format(config, value)).get())
+        else:
+            return Response(ResponseStatus.SUCCESS, BasicError("Unsupported value **{1}** provided for **{0}**".format(config, value)).get())
 
     ### Command related ###
     @staticmethod
@@ -1053,6 +1078,18 @@ class DKPBot:
             string += preformatted_block("Current:   {0}\n".format(self.__prefix))
             string += preformatted_block("Supported: {0}\n".format(' '.join(self.get_supported_prefixes())))
             embed.add_field("prefix", string, False)
+            # dm-response
+            string = "Swap default response channel to DM (direct message)\n"
+            string += preformatted_block("Usage:     {0}config dm-response True/False".format(self.__prefix))
+            string += preformatted_block("Current:   {0}\n".format(self.__direct_message_response))
+            string += preformatted_block("Supported: {0}\n".format("True False"))
+            embed.add_field("dm-response", string, False)
+            # block-response-modifier
+            string = "Block response modifier `{0}` for users without administrator privileges\n".format(2 * self.__prefix)
+            string += preformatted_block("Usage:     {0}config block-response-modifier True/False".format(self.__prefix))
+            string += preformatted_block("Current:   {0}\n".format(self.__block_response_modifier))
+            string += preformatted_block("Supported: {0}\n".format("True False"))
+            embed.add_field("block-response-modifier", string, False)
             # reload
             string = "Reload the bot. This is required to apply some configuration changes. Afterwards bot reparses database with new `server-side` and `guild-name` configuration.\n"
             string += preformatted_block("Usage:     {0}config reload".format(self.__prefix))
@@ -1232,5 +1269,19 @@ class DKPBot:
             else:
                 error_text = "Exceeded maximum number of channels. Removing oldest assignment."
             return Response(ResponseStatus.SUCCESS, BasicSuccess('Registered channel <#{0}> to handle team {1}. {2}'.format(channel, params[1], error_text)).get())
+        else:
+            return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
+
+    def config_call_dm_response(self, params, num_params, request_info): #pylint: disable=unused-argument
+        if num_params == 2:
+            success = self.__set_config_boolean('guild_info', 'direct_message_response', params[1])
+            return self.__generic_response(success, "dm-response", params[1])
+        else:
+            return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
+
+    def config_call_block_response_modifier(self, params, num_params, request_info): #pylint: disable=unused-argument
+        if num_params == 2:
+            success = self.__set_config_boolean('guild_info', 'block_response_modifier', params[1])
+            return self.__generic_response(success, "block-response-modifier", params[1])
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
