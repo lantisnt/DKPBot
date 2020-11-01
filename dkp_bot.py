@@ -1289,7 +1289,17 @@ class DKPBot:
         channel = request_info['channel']['id']
         if len(request_info['mentions']['channels']) > 0:
             channel = request_info['mentions']['channels'][0]
-        if num_params >= 2:
+        if num_params == 1:
+            teams = self._get_addon_config(["teams"])
+            if isinstance(teams, dict) and len(teams) > 0:
+                team_data  = "```"
+                for team_id, team_info in teams.items():
+                    team_data += "{0:2} - {1}\n".format(team_id, team_info.get('name'))
+                team_data += "```"
+                return Response(ResponseStatus.SUCCESS, BasicSuccess(team_data).get())
+            else:
+                return Response(ResponseStatus.SUCCESS, BasicError("No teams found").get())
+        elif num_params >= 2:
             if self._set_channel_team_mapping(channel, params[1]):
                 error_text = ""
             else:
