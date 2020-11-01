@@ -7,6 +7,7 @@ from bot_logger import BotLogger
 
 class EssentialDKPBot(DKPBot):
 
+    _CONFIG_SV = "MonDKP_DB"
     _DKP_SV = "MonDKP_DKPTable"
     _LOOT_SV = "MonDKP_Loot"
     _HISTORY_SV = "MonDKP_DKPHistory"
@@ -48,7 +49,7 @@ class EssentialDKPBot(DKPBot):
         self._multiple_item_search_output_builder = LootMultipleResponse("Search results", self._get_config().item_search.fields, self._get_config(
         ).item_search.entries_per_field, self._get_config().item_search.separate_messages, self._get_config().item_search.multiple_columns)
 
-        self._update_views_db_info()
+        self._update_views_info()
 
     def __build_dkp_output_single(self, info):
         if not info or not isinstance(info, PlayerInfo):
@@ -254,6 +255,23 @@ class EssentialDKPBot(DKPBot):
         self._fill_history(players, dkp, date, reason, index, team)
 
     # Called 1st
+    def _build_config_database(self, saved_variable):  # pylint: disable=unused-argument
+        super()._build_dkp_database(None)
+
+        if saved_variable is None:
+            return False
+
+        team = DKPBot.DEFAULT_TEAM
+
+        config_list = saved_variable.get(self._CONFIG_SV)
+        if not config_list:
+            return False
+
+        self._set_addon_config(config_list)
+
+        return True
+
+    # Called 2nd
     def _build_dkp_database(self, saved_variable):
         super()._build_dkp_database(None)
 
@@ -281,7 +299,7 @@ class EssentialDKPBot(DKPBot):
 
         return True
 
-    # Called 2nd
+    # Called 3rd
     def _build_loot_database(self, saved_variable):
         super()._build_loot_database(None)
 
@@ -314,7 +332,7 @@ class EssentialDKPBot(DKPBot):
 
         return True
 
-    # Called 3rd
+    # Called 4th
     def _build_history_database(self, saved_variable):
         super()._build_history_database(None)
 
@@ -344,9 +362,10 @@ class EssentialDKPBot(DKPBot):
     # Called after whole database is built
 
     def _finalize_database(self):
-        self._update_views_db_info()
+        self._update_views_info()
 
-    def _update_views_db_info(self):
+    def _update_views_info(self):
+        ## Database
         self._single_player_profile_builder.set_database_info(
             self._db_get_info())
         self._multiple_dkp_output_builder.set_database_info(
@@ -359,6 +378,14 @@ class EssentialDKPBot(DKPBot):
             self._db_get_info())
         self._multiple_item_search_output_builder.set_database_info(
             self._db_get_info())
+        ## Global
+        rounding = self._get_addon_config(["modes", "rounding"])
+        self._single_player_profile_builder.set_info(rounding)
+        self._multiple_dkp_output_builder.set_info(rounding)
+        self._multiple_history_output_builder.set_info(rounding)
+        self._multiple_player_loot_output_builder.set_info(rounding)
+        self._multiple_loot_output_builder.set_info(rounding)
+        self._multiple_item_search_output_builder.set_info(rounding)
 
     ### Commands ###
 

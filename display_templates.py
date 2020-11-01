@@ -122,11 +122,11 @@ def get_thumbnail(class_name):
 def preformatted_block(string: str, language='swift'):
     return "```" + language + "\n" + string + "```"
 
-def generate_dkp_history_entry(history_entry, format_string=None):
+def generate_dkp_history_entry(history_entry, format_string=None, rounding=1):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):
         if not format_string:
-            format_string = "`{{0:{0}.1f}} DKP`".format(
-                len(str(int(history_entry.dkp()))))
+            format_string = "`{{0:{0}.{1}f}} DKP`".format(
+                len(str(int(history_entry.dkp()))), rounding)
         row = ""
         row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp()))
         row += format_string.format(history_entry.dkp())
@@ -136,11 +136,11 @@ def generate_dkp_history_entry(history_entry, format_string=None):
         return row
     return "- No data available -"
 
-def generate_loot_entry(loot_entry, format_string=None, player=False):
+def generate_loot_entry(loot_entry, format_string=None, player=False, rounding=1):
     if loot_entry and isinstance(loot_entry, PlayerLoot):
         if not format_string:
-            format_string = "`{{0:{0}.1f}} DKP`".format(
-                len(str(int(loot_entry.dkp()))))
+            format_string = "`{{0:{0}.{1}f}} DKP`".format(
+                len(str(int(loot_entry.dkp()))), rounding)
         row = ""
         row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
         row += format_string.format(loot_entry.dkp())
@@ -292,6 +292,7 @@ class BaseResponse:
     _author = ""
     _comment = ""
     _isBuilt = False
+    _rounding = 1
 
     def __init__(self, title):
         self._embed = RawEmbed()
@@ -312,6 +313,10 @@ class BaseResponse:
 
         return self
 
+    def set_info(self, rounding):
+        if isinstance(rounding, int) and rounding >= 0 and rounding <= 7:
+            self._rounding = rounding
+
 
 class SinglePlayerProfile(BaseResponse):
 
@@ -330,16 +335,17 @@ class SinglePlayerProfile(BaseResponse):
             footer_text=self._get_footer()
         )
 
-        self._embed.add_field("Current:", "`{0} DKP`".format(
+        dkp_format = "`{{0:.{0}f}} DKP`".format(self._rounding)
+        self._embed.add_field("Current:", dkp_format.format(
             info.dkp()), False)
-        self._embed.add_field("Lifetime gained:", "`{0} DKP`".format(
+        self._embed.add_field("Lifetime gained:", dkp_format.format(
             info.lifetime_gained()), True)
-        self._embed.add_field("Lifetime spent:", "`{0} DKP`".format(
+        self._embed.add_field("Lifetime spent:", dkp_format.format(
             info.lifetime_spent()), True)
         self._embed.add_field("Last DKP award:",
-                             generate_dkp_history_entry(info.get_latest_history_entry()), False)
+                             generate_dkp_history_entry(info.get_latest_history_entry(), rounding=self._rounding), False)
         self._embed.add_field("Last received loot:",
-                             generate_loot_entry(info.get_latest_loot_entry()), False)
+                             generate_loot_entry(info.get_latest_loot_entry(), rounding=self._rounding), False)
 
         return self
 
@@ -497,10 +503,11 @@ class DKPMultipleResponse(MultipleResponse):
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-        # +2 for decimal
+        
+        float_extend = 0 if self._rounding == 0 else self._rounding + 1
         value_width = max(len(str(int(data_list_min.dkp()))),
-                          len(str(int(data_list_max.dkp())))) + 2
-        self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
+                          len(str(int(data_list_max.dkp())))) + float_extend
+        self._value_format_string = "`{{0:{0}.{1}f}} DKP`".format(value_width, self._rounding)
 
     def _display_filter(self, data):
         if data and isinstance(data, PlayerInfo):
@@ -534,10 +541,11 @@ class HistoryMultipleResponse(MultipleResponse):
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-        # +2 for decimal
+        
+        float_extend = 0 if self._rounding == 0 else self._rounding + 1
         value_width = max(len(str(int(data_list_min.dkp()))),
-                          len(str(int(data_list_max.dkp())))) + 2
-        self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
+                          len(str(int(data_list_max.dkp())))) + float_extend
+        self._value_format_string = "`{{0:{0}.{1}f}} DKP`".format(value_width, self._rounding)
 
         for data in data_list:
             if data and isinstance(data, PlayerDKPHistory):
@@ -571,10 +579,11 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-        # +2 for decimal
+        
+        float_extend = 0 if self._rounding == 0 else self._rounding + 1
         value_width = max(len(str(int(data_list_min.dkp()))),
-                          len(str(int(data_list_max.dkp())))) + 2
-        self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
+                          len(str(int(data_list_max.dkp())))) + float_extend
+        self._value_format_string = "`{{0:{0}.{1}f}} DKP`".format(value_width, self._rounding)
 
         for data in data_list:
             if data and isinstance(data, PlayerLoot):
@@ -608,10 +617,11 @@ class LootMultipleResponse(MultipleResponse):
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-        # +2 for decimal
+        
+        float_extend = 0 if self._rounding == 0 else self._rounding + 1
         value_width = max(len(str(int(data_list_min.dkp()))),
-                          len(str(int(data_list_max.dkp())))) + 2
-        self._value_format_string = "`{{0:{0}.1f}} DKP`".format(value_width)
+                          len(str(int(data_list_max.dkp())))) + float_extend
+        self._value_format_string = "`{{0:{0}.{1}f}} DKP`".format(value_width, self._rounding)
 
         for data in data_list:
             if data and isinstance(data, PlayerLoot):
