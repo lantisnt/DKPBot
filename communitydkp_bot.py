@@ -4,6 +4,7 @@ from display_templates import SinglePlayerProfile
 
 class CommunityDKPBot(EssentialDKPBot):
 
+    _CONFIG_SV = "CommDKP_DB"
     _DKP_SV = "CommDKP_DKPTable"
     _LOOT_SV = "CommDKP_Loot"
     _HISTORY_SV = "CommDKP_DKPHistory"
@@ -54,6 +55,17 @@ class CommunityDKPBot(EssentialDKPBot):
         return guilds.get(guild_name_key)
 
     # Called 1st
+    def _build_config_database(self, saved_variable):  # pylint: disable=unused-argument
+        super()._build_loot_database(None)
+        config_list = self.__get_configured_teams(saved_variable.get(self._CONFIG_SV))
+        if config_list is None:
+            return False
+
+        self._set_addon_config(config_list)
+
+        return True
+
+    # Called 2st
     def _build_dkp_database(self, saved_variable):
         super()._build_dkp_database(None)
         teams = self.__get_configured_teams(saved_variable.get(self._DKP_SV))
@@ -71,7 +83,7 @@ class CommunityDKPBot(EssentialDKPBot):
 
         return True
 
-    # Called 2nd
+    # Called 3nd
     def _build_loot_database(self, saved_variable):
         super()._build_loot_database(None)
         teams = self.__get_configured_teams(saved_variable.get(self._LOOT_SV))
@@ -93,7 +105,7 @@ class CommunityDKPBot(EssentialDKPBot):
 
         return True
 
-    # Called 3rd
+    # Called 4rd
     def _build_history_database(self, saved_variable):
         super()._build_history_database(None)
         teams = self.__get_configured_teams(saved_variable.get(self._HISTORY_SV))

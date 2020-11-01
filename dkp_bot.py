@@ -510,6 +510,9 @@ class DKPBot:
     def _db_get_info(self):
         return self.__db['info']
 
+    def _build_config_database(self, saved_variable):  # pylint: disable=unused-argument
+        return False
+
     def _build_dkp_database(self, saved_variable):  # pylint: disable=unused-argument
         return False
 
@@ -549,6 +552,7 @@ class DKPBot:
     def __init_db_structure(self):
         self.__db.clear()
         self.__db = {
+            'config' : {},
             # Database for all global data indexed by player name. Unsorted.
             'global': {},
             'group': {},   # Database for all grouped data. Indexed by group name. Sorted by DKP value descending
@@ -590,6 +594,25 @@ class DKPBot:
             for group in data:
                 self.statistics.database['group'][team].append(group)
 
+    def _set_addon_config(self, config: dict):
+        self.__db['config'] = config
+
+
+    def _get_addon_config(self, key_list: list):
+        if isinstance(key_list, (int, float, str)):
+            key_list = [key_list]
+        
+        if not isinstance(key_list, list) or len(key_list) == 0:
+            return None
+
+        tmp = self.__db['config']
+        for key in key_list:
+            tmp = tmp.get(key)
+            if not isinstance(tmp, dict):
+                break
+
+        return tmp
+        
     def _set_dkp(self, player, entry, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
@@ -810,6 +833,9 @@ class DKPBot:
         self.__db['info']['date'] = info.get('date')
         self.__db['info']['author'] = info.get('author')
 
+        if not self._build_config_database(saved_variable):
+            BotLogger().get().error("Configuration Database building failed.")
+            return Response(ResponseStatus.ERROR, BasicError("Configuration Database building failed.").get())
         if not self._build_dkp_database(saved_variable):
             BotLogger().get().error("DKP Database building failed.")
             return Response(ResponseStatus.ERROR, BasicError("DKP Database building failed. Please check your `server-side` and `guild-name` settings.").get())
