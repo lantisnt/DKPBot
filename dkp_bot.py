@@ -850,7 +850,7 @@ class DKPBot:
                 setattr(internal_group, config, value)
                 new_value = getattr(internal_group, config)
                 if isinstance(new_value, bool):
-                    return (new_value and value == 'true') or (not new_value and value == 'false')
+                    return (new_value and value in ['true', True]) or (not new_value and value in ['false', False])
                 elif isinstance(new_value, int):
                     try:
                         return new_value == int(value)
@@ -861,8 +861,16 @@ class DKPBot:
 
         return False
 
-    def __set_config_specific(self, group, config, value):  # pylint: disable=unused-argument
-        if self.__set_config(group, config, value):
+    def __set_config_boolean(self, group, config, value):  # pylint: disable=unused-argument
+        value_sanitized = value.lower()
+        if value_sanitized in ["true", "1", 1, True]:
+            value_sanitized = True
+        elif value in ["false", "0", 0, False]:
+            value_sanitized = False
+        else:
+            return False
+
+        if self.__set_config(group, config, value_sanitized):
             self.__config.store()
             self._configure()
             return True
@@ -1266,14 +1274,14 @@ class DKPBot:
 
     def config_call_dm_response(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params == 2:
-            success = self.__set_config_specific('guild_info', 'direct_message_response', params[1])
+            success = self.__set_config_boolean('guild_info', 'direct_message_response', params[1])
             return self.__generic_response(success, "dm-response", params[1])
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_block_response_modifier(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params == 2:
-            success = self.__set_config_specific('guild_info', 'block_response_modifier', params[1])
+            success = self.__set_config_boolean('guild_info', 'block_response_modifier', params[1])
             return self.__generic_response(success, "block-response-modifier", params[1])
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
