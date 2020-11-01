@@ -910,12 +910,12 @@ class DKPBot:
                     "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM.\n"
                     "Request will be removed by the bot afterwards.\n\n"
                     "To get more information on supported commands type"
-                    "```{0}help group```"
+                    "```{0}help group (e.g. {0}help dkp)```"
                     "Supported command groups:".format(self.__prefix), None, get_bot_color(), None)
             commands  = "```{0}help```".format(self.__prefix)
             commands += "```{0}info```".format(self.__prefix)
             embed.add_field(":information_source: General", commands, True)
-            commands  = "```{0}dkp param```".format(self.__prefix)
+            commands  = "```{0}dkp #####```".format(self.__prefix)
             embed.add_field(":crossed_swords: DKP", commands, True)
             commands  = "```{0}dkphistory player```".format(self.__prefix)
             commands += "```{0}loot player```".format(self.__prefix)
@@ -944,8 +944,8 @@ class DKPBot:
                     preformatted_block(self.get_prefix() + "dkp player", ''))
                 help_string += 'Display dkp list for all active players.\nPlayers are assumed active if they gained positive DKP within last 45 days.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkp all", ''))
-                help_string += 'Display current DKP for multiple players, classes or aliases mixed together.\n{0}'.format(
-                    preformatted_block(self.get_prefix() + "dkp class alias player", ''))
+                help_string += 'Display current DKP for as many players, classes or aliases mixed together as you wish.\n{0}'.format(
+                    preformatted_block("{0}dkp class/alias/player\nExamples:\n{0}dkp hunter tanks joe\n{0}dkp rogue druid\n{0}dkp joe andy".format(self.get_prefix()), ''))
                 help_string += preformatted_block('Supported aliases:\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee', '')
                 help_string += preformatted_block('Supporter only command', 'css')
                 embed.add_field("DKP", help_string, False)
@@ -1023,7 +1023,7 @@ class DKPBot:
             embed.add_field("bot-type", string, False)
             # server-side
             string = "Set ingame server and side data required by some addons\n"
-            string += preformatted_block("Usage:     {0}config server-side Server Name Side\n".format(self.__prefix))
+            string += preformatted_block("Usage:     {0}config server-side ServerName Side\nExample:   {0}config server-side Dragon's Call Alliance\n".format(self.__prefix))
             data = self.__config.guild_info.server_side.split("-")
             if len(data) == 2:
                 string2 = "Current:   {0}".format(' '.join(data).lower())
@@ -1033,7 +1033,7 @@ class DKPBot:
             embed.add_field("server-side", string, False)
             # guild-name
             string = "Set ingame guild name required by some addons\n"
-            string += preformatted_block("Usage:     {0}config guild-name Some Guild\n".format(self.__prefix))
+            string += preformatted_block("Usage:     {0}config guild-name GuildName\nExample:   {0}config guild-name Some Guild".format(self.__prefix))
             data = self.__config.guild_info.guild_name
             if len(data) > 0:
                 string2 = "Current:   {0}".format(data.lower())
@@ -1043,7 +1043,7 @@ class DKPBot:
             embed.add_field("guild-name", string, False)
             # team
             string = "Register channel to handle specified team number (starting from 0). Limited to 8 channels. If no #channel is mentioned then the current one will be used. Bot must have access to the channel.\n"
-            string += preformatted_block("Usage:     {0}config team Id #channel".format(self.__prefix))
+            string += preformatted_block("Usage:     {0}config team Id #channel\nExample:   {0}config team 0".format(self.__prefix))
             num_teams = len(self._channel_team_map)
             if num_teams > 0:
                 string += preformatted_block("Current:") + "\n"
@@ -1080,13 +1080,13 @@ class DKPBot:
             embed.add_field("prefix", string, False)
             # dm-response
             string = "Swap default response channel to DM (direct message)\n"
-            string += preformatted_block("Usage:     {0}config dm-response True/False".format(self.__prefix))
+            string += preformatted_block("Usage:     {0}config dm-response value".format(self.__prefix))
             string += preformatted_block("Current:   {0}\n".format(self.__direct_message_response))
             string += preformatted_block("Supported: {0}\n".format("True False"))
             embed.add_field("dm-response", string, False)
             # block-response-modifier
             string = "Block response modifier `{0}` for users without administrator privileges\n".format(2 * self.__prefix)
-            string += preformatted_block("Usage:     {0}config block-response-modifier True/False".format(self.__prefix))
+            string += preformatted_block("Usage:     {0}config block-response-modifier value".format(self.__prefix))
             string += preformatted_block("Current:   {0}\n".format(self.__block_response_modifier))
             string += preformatted_block("Supported: {0}\n".format("True False"))
             embed.add_field("block-response-modifier", string, False)
