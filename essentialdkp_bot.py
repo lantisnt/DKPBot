@@ -153,8 +153,12 @@ class EssentialDKPBot(DKPBot):
         if role is None:
             return None
 
+        spec = entry.get("spec")
+        if spec is None:
+            return None
+
         return PlayerInfo(player, dkp, lifetime_gained,
-                          lifetime_spent, ingame_class, role)
+                          lifetime_spent, ingame_class, role, spec)
 
     def _generate_player_loot(self, entry, team):
         if entry is None:
@@ -392,7 +396,7 @@ class EssentialDKPBot(DKPBot):
     def call_dkp(self, param, request_info):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
-        targets = self._parse_param(param)
+        targets = self._parse_player_param(param)
         output_result_list = []
         if len(targets) > 0:
             team = self._get_channel_team_mapping(request_info['channel']['id'])
@@ -429,7 +433,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
-        targets = self._parse_param(param)
+        targets = self._parse_player_param(param)
         output_result_list = []
 
         if len(targets) > 0:
@@ -455,7 +459,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
-        targets = self._parse_param(param)
+        targets = self._parse_player_param(param)
         output_result_list = []
 
         if len(targets) > 0:
