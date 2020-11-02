@@ -355,6 +355,30 @@ class DKPBot:
         self.__db_loaded = False
 
     # Class related
+    def __decode_alias_internal(self, group):
+        if group == 'tank' or group == 'tanks':
+            return ['warrior', 'druid']
+
+        elif group == 'healer' or group == 'healers':
+            return ['priest', 'paladin', 'druid', 'shaman']
+
+        elif group == 'dps':
+            return ['warrior', 'rogue', 'hunter', 'mage', 'warlock', 'shaman']
+
+        elif group == 'caster' or group == 'casters':
+            return ['mage', 'warlock']
+
+        elif group == 'physical':
+            return ['warrior', 'rogue', 'hunter', 'shaman']
+
+        elif group == 'range' or group == 'ranged':
+            return ['mage', 'warlock']
+
+        elif group == 'melee':
+            return ['warrior', 'rogue', 'shaman']
+
+        return []
+
     def __decode_aliases(self, groups):
         # Always allow querying all
         if 'all' in groups:
@@ -377,7 +401,6 @@ class DKPBot:
         for group in groups:
             if group in self._classes: # singulars
                 new_groups.append(group)
-
             elif not group in self._aliases:
                 if group.endswith('s'): # class prulals
                     subgroup = group[:-1]
@@ -387,28 +410,8 @@ class DKPBot:
                         new_groups.append(group)
                 else:
                     new_groups.append(group)
-
-            elif group == 'tank' or group == 'tanks':
-                new_groups.extend(['warrior', 'druid'])
-
-            elif group == 'healer' or group == 'healers':
-                new_groups.extend(['priest', 'paladin', 'druid', 'shaman'])
-
-            elif group == 'dps':
-                new_groups.extend(
-                    ['warrior', 'rogue', 'hunter', 'mage', 'warlock', 'shaman'])
-
-            elif group == 'caster' or group == 'casters':
-                new_groups.extend(['mage', 'warlock'])
-
-            elif group == 'physical':
-                new_groups.extend(['warrior', 'rogue', 'hunter', 'shaman'])
-
-            elif group == 'range' or group == 'ranged':
-                new_groups.extend(['mage', 'warlock'])
-
-            elif group == 'melee':
-                new_groups.extend(['warrior', 'rogue', 'shaman'])
+            else:
+                new_groups.extend(self.__decode_alias_internal(group))
 
         return new_groups
 
@@ -440,7 +443,7 @@ class DKPBot:
         # Lowercase all
         return list(map(lambda x: x.strip().lower(), targets))
 
-    def _parse_player_param(self, param):
+    def _parse_player_param(self, param, decode_aliases = True):
         # Remove empty strings
         targets = list(filter(None, self.__param_parser.findall(param)))
         # Decode aliases
