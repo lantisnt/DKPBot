@@ -397,27 +397,31 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
         targets = self._parse_player_param(param)
-        output_result_list = []
+
+        output_result_list_single = []
+        output_result_list_group = []
         if len(targets) > 0:
             team = self._get_channel_team_mapping(request_info['channel']['id'])
             for target in targets:
                 # Single player
                 info = self._get_dkp(target, team)
                 if isinstance(info, PlayerInfo):
-                    output_result_list.append(info)
+                    output_result_list_single.append(info)
                 else:
                     # Group request
                     group_info = self._get_group_dkp(target, team)
                     if group_info and len(group_info) > 0:
                         for info in group_info:
                             if info and isinstance(info, PlayerInfo):
-                                output_result_list.append(info)
+                                output_result_list_group.append(info)
         else:
             if not self.is_premium():
                 return Response(ResponseStatus.SUCCESS, BasicInfo("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
             else:
                 return Response(ResponseStatus.ERROR, BasicError("Unable to find data for {0}.".format(param)).get())
 
+        # TODO smart class filtering here
+        output_result_list = output_result_list_single + output_result_list_group
         if len(output_result_list) == 1:
             data = self.__build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
