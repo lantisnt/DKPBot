@@ -432,7 +432,15 @@ class DKPBot:
 
     ### Command handling and parsing ###
 
-    def _parse_param(self, param, decode_aliases=True):
+    def _parse_param(self, param):
+        # Remove empty strings
+        targets = list(filter(None, self.__param_parser.findall(param)))
+        # Remove duplicates either from input or introduced by aliases
+        targets = list(dict.fromkeys(targets))
+        # Lowercase all
+        return list(map(lambda x: x.strip().lower(), targets))
+
+    def _parse_player_param(self, param):
         # Remove empty strings
         targets = list(filter(None, self.__param_parser.findall(param)))
         # Decode aliases
@@ -926,7 +934,7 @@ class DKPBot:
     ### Command callbacks ###
 
     def call_help(self, param, request_info):  # pylint: disable=unused-argument
-        params = self._parse_param(param, False)
+        params = self._parse_param(param)
         num_params = len(params)
         embed = RawEmbed()
         supported_groups = ['general', 'dkp', 'history', 'items', 'administration']
@@ -1025,7 +1033,7 @@ class DKPBot:
         if not request_info['is_privileged']:
             return Response(ResponseStatus.IGNORE)
 
-        params = self._parse_param(param, False)
+        params = self._parse_param(param)
         num_params = len(params)
         if num_params == 0:
             return Response(ResponseStatus.IGNORE)
@@ -1135,7 +1143,7 @@ class DKPBot:
         if not request_info['is_privileged']:
             return Response(ResponseStatus.IGNORE)
 
-        param = self._parse_param(param, False)
+        param = self._parse_param(param)
         params = list(map(lambda p: p.lower().replace("-", "_"), param))
 
         num_params = len(params)
