@@ -311,8 +311,7 @@ class DKPBot:
         return self.__config.guild_info.guild_name
 
     def is_premium(self):
-        return True
-        #return self.__premium
+        return self.__premium
 
     def get_announcement(self):
         announcement = "DKP standings have just been updated by {0}!\n".format(self.__db['info']['author'])
