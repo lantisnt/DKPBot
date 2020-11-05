@@ -393,9 +393,15 @@ class EssentialDKPBot(DKPBot):
 
     ### Commands ###
 
-    def __get_target_results_regular(self, team, targets):
+    def __get_target_results(self, team, targets, use_smart_roles):
         output_result_list = []
-        for target in targets:
+        output_result_list_single = []
+        output_result_list_group = []
+
+        targets_internal = targets.copy()
+        if use_smart_roles:
+            self.
+        for target in targets_internal:
             # Single player
             info = self._get_dkp(target, team)
             if isinstance(info, PlayerInfo):
@@ -407,26 +413,29 @@ class EssentialDKPBot(DKPBot):
                     for info in group_info:
                         if info and isinstance(info, PlayerInfo):
                             output_result_list.append(info)
+        if use_smart_roles:
+            pass
+        else:
+            output_result_list = output_result_list_single +  output_result_list_group
+
+        
         return output_result_list
+
+
         
     def call_dkp(self, param, request_info):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
         smart_roles = False
-        drop_command = False
+        
+        team = self._get_channel_team_mapping(request_info['channel']['id'])
 
         output_result_list = []
-        if smart_roles:
-            pass
+        use_smart_roles = smart_roles and self.is_premium()
+        (targets, aliases) = self._parse_player_param(param)
+        if len(targets) > 0:
+            output_result_list = self.__get_target_results(team, targets, use_smart_roles)
         else:
-            targets = self._parse_player_param(param)
-            if len(targets) > 0:
-                team = self._get_channel_team_mapping(request_info['channel']['id'])
-                output_result_list = self.__get_target_results_regular(team, targets)
-            else:
-                drop_command = True
-        
-        if drop_command:
             if not self.is_premium():
                 return Response(ResponseStatus.SUCCESS, BasicInfo("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
             else:
@@ -447,7 +456,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
-        targets = self._parse_player_param(param)
+        (targets, aliases) = self._parse_player_param(param)
         output_result_list = []
 
         if len(targets) > 0:
@@ -473,7 +482,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
-        targets = self._parse_player_param(param)
+        (targets, aliases) = self._parse_player_param(param)
         output_result_list = []
 
         if len(targets) > 0:
