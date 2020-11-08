@@ -2,7 +2,8 @@ import re
 
 from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
-from display_templates import BasicError,BasicInfo, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
+from player_role import RoleFilter
+from display_templates import BasicError, BasicInfo, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
 from bot_logger import BotLogger
 
 class EssentialDKPBot(DKPBot):
@@ -393,40 +394,67 @@ class EssentialDKPBot(DKPBot):
 
     ### Commands ###
 
-    def __get_target_results_regular(self, team, targets):
-        output_result_list = []
-        for target in targets:
-            # Single player
-            info = self._get_dkp(target, team)
-            if isinstance(info, PlayerInfo):
-                output_result_list.append(info)
-            else:
-                # Group request
+    def __get_dkp_target_results(self, team, targets, original, smart_roles_decoder):
+        
+        output_result_list_single = []
+        output_result_list_group = []
+        if smart_roles_decoder is not None: # smart roles
+            for target in targets: # iterate to get all single player mixins
+                info = self._get_dkp(target, team)
+                if isinstance(info, PlayerInfo):
+                    output_result_list_single.append(info)
+            for target in self._classes: # Get data for all classess supported
                 group_info = self._get_group_dkp(target, team)
                 if group_info and len(group_info) > 0:
                     for info in group_info:
                         if info and isinstance(info, PlayerInfo):
-                            output_result_list.append(info)
-        return output_result_list
+                            output_result_list_group.append(info)
+            # Filter out the required data
+            output_result_list_group = smart_roles_decoder(output_result_list_group)
+            # Add classes that are not result of aliases
+            output_result_list_class = []
+
+            for target in original:
+                if target in self._classes:
+                    group_info = self._get_group_dkp(target, team)
+                    if group_info and len(group_info) > 0:
+                        for info in group_info:
+                            if info and isinstance(info, PlayerInfo):
+                                output_result_list_class.append(info)
+            output_result_list_group = output_result_list_group + output_result_list_class
+        else: # regular division
+            for target in targets:
+                # Single player
+                info = self._get_dkp(target, team)
+                if isinstance(info, PlayerInfo):
+                    output_result_list_single.append(info)
+                else:
+                    # Group request
+                    group_info = self._get_group_dkp(target, team)
+                    if group_info and len(group_info) > 0:
+                        for info in group_info:
+                            if info and isinstance(info, PlayerInfo):
+                                output_result_list_group.append(info)
+
+        # Filter non unique
+        return list(set(output_result_list_single + output_result_list_group))
         
     def call_dkp(self, param, request_info):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
-        smart_roles = False
-        drop_command = False
+        
+        team = self._get_channel_team_mapping(request_info['channel']['id'])
 
         output_result_list = []
-        if smart_roles:
-            pass
+        targets, aliases, original = self._parse_player_param(param)
+
+        smart_roles_filter = None
+        if self.smart_roles():
+            smart_roles_filter = RoleFilter(aliases)
+
+        if len(targets) > 0:
+            output_result_list = self.__get_dkp_target_results(team, targets, original, smart_roles_filter)
         else:
-            targets = self._parse_player_param(param)
-            if len(targets) > 0:
-                team = self._get_channel_team_mapping(request_info['channel']['id'])
-                output_result_list = self.__get_target_results_regular(team, targets)
-            else:
-                drop_command = True
-        
-        if drop_command:
             if not self.is_premium():
                 return Response(ResponseStatus.SUCCESS, BasicInfo("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
             else:
@@ -447,7 +475,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
-        targets = self._parse_player_param(param)
+        targets, aliases, original = self._parse_player_param(param)
         output_result_list = []
 
         if len(targets) > 0:
@@ -473,7 +501,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
-        targets = self._parse_player_param(param)
+        targets, aliases, original = self._parse_player_param(param)
         output_result_list = []
 
         if len(targets) > 0:

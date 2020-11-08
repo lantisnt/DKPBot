@@ -13,7 +13,6 @@ from display_templates import SUPPORT_SERVER
 from display_templates import get_bot_color, get_bot_links, preformatted_block
 from display_templates import RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement, BasicInfo
 
-
 class ResponseStatus(Enum):
     SUCCESS = 0
     ERROR = 1
@@ -234,8 +233,9 @@ class DKPBot:
 
     __server_side = ''
     __guild_name = ''
-    __direct_message_response = True
-    __block_response_modifier = True
+    __direct_message_response = False
+    __block_response_modifier = False
+    __smart_roles = True
 
     def __init__(self, guild_id: int, config: BotConfig):
         self.__config = config
@@ -263,6 +263,7 @@ class DKPBot:
             self._channel_team_map[channel] = team
         self.__direct_message_response = bool(self.__config.guild_info.direct_message_response)
         self.__block_response_modifier = bool(self.__config.guild_info.block_response_modifier)
+        self.__smart_roles = bool(self.__config.guild_info.smart_roles)
 
     def _reconfigure(self):
         self.__config.store()
@@ -313,6 +314,9 @@ class DKPBot:
     def is_premium(self):
         return self.__premium
 
+    def smart_roles(self):
+        return self.__smart_roles
+
     def get_announcement(self):
         announcement = "DKP standings have just been updated by {0}!\n".format(self.__db['info']['author'])
         if len(self.__db['info']['comment']) > 0:
@@ -354,7 +358,7 @@ class DKPBot:
         self.__db_loaded = False
 
     # Class related
-    def __decode_alias_internal(self, group):
+    def _decode_alias_internal(self, group):
         if group == 'tank' or group == 'tanks':
             return ['warrior', 'druid']
 
@@ -362,26 +366,26 @@ class DKPBot:
             return ['priest', 'paladin', 'druid', 'shaman']
 
         elif group == 'dps':
-            return ['warrior', 'rogue', 'hunter', 'mage', 'warlock', 'shaman']
+            return ['warrior', 'rogue', 'hunter', 'mage', 'warlock', 'shaman', 'druid']
 
         elif group == 'caster' or group == 'casters':
-            return ['mage', 'warlock']
+            return ['mage', 'warlock', 'shaman']
 
         elif group == 'physical':
-            return ['warrior', 'rogue', 'hunter', 'shaman']
+            return ['warrior', 'rogue', 'hunter', 'druid']
 
         elif group == 'range' or group == 'ranged':
-            return ['mage', 'warlock']
+            return ['mage', 'warlock', 'shaman']
 
         elif group == 'melee':
-            return ['warrior', 'rogue', 'shaman']
+            return ['warrior', 'rogue', 'druid']
 
         return []
 
     def __decode_aliases(self, groups):
         # Always allow querying all
         if 'all' in groups:
-            return self._classes
+            return (self._classes, self._aliases)
 
         # If not premium we don't allow doing any group mixin calls
         if not self.is_premium():
@@ -393,7 +397,7 @@ class DKPBot:
             if len(new_groups) > 1:
                 new_groups = [new_groups[0]]
 
-            return new_groups
+            return (new_groups, [])
 
         # Else we consider everything for premium users
         new_groups = []
@@ -410,9 +414,15 @@ class DKPBot:
                 else:
                     new_groups.append(group)
             else:
-                new_groups.extend(self.__decode_alias_internal(group))
+                new_groups.extend(self._decode_alias_internal(group))
 
-        return new_groups
+        # Get aliases
+        aliases = []
+        for alias in self._aliases:
+            if alias in groups:
+                aliases.append(alias)
+
+        return (new_groups, aliases)
 
     # Team related
     def _get_channel_team_mapping(self, channel_id): #pylint: disable=unused-argument
@@ -437,21 +447,28 @@ class DKPBot:
     def _parse_param(self, param):
         # Remove empty strings
         targets = list(filter(None, self.__param_parser.findall(param)))
-        # Remove duplicates either from input or introduced by aliases
+        # Remove duplicates
         targets = list(dict.fromkeys(targets))
         # Lowercase all
         return list(map(lambda x: x.strip().lower(), targets))
 
-    def _parse_player_param(self, param, decode_aliases = True):
+    def _parse_player_param(self, param):
         # Remove empty strings
-        targets = list(filter(None, self.__param_parser.findall(param)))
+        original = list(filter(None, self.__param_parser.findall(param)))
+        # Remove duplicates from input
+        original = list(dict.fromkeys(original))
         # Decode aliases
-        if decode_aliases:
-            targets = self.__decode_aliases(targets)
-        # Remove duplicates either from input or introduced by aliases
+        (targets, aliases) = self.__decode_aliases(original)
+        # Remove introduced by aliases
         targets = list(dict.fromkeys(targets))
+        aliases = list(dict.fromkeys(aliases))
         # Lowercase all
-        return list(map(lambda x: x.strip().lower(), targets))
+        original = list(map(lambda x: x.strip().lower(), original))
+        targets = list(map(lambda x: x.strip().lower(), targets))
+        aliases = list(map(lambda x: x.strip().lower(), aliases))
+
+        return (targets, aliases, original)
+
 
     def __get_command_parser(self):
         if not(self.__parser and isinstance(self.__parser, argparse.ArgumentParser)):
@@ -1088,6 +1105,12 @@ class DKPBot:
             else:
                 string += preformatted_block("Current:   none") + "\n"
             embed.add_field("team", string, False)
+            # smart-roles
+            string = "Configure `smart roles`. This feature modifies group alias requests (e.g. tank, healer) to be based on class and talent specialisation instead of class only. This result may be inaccurate.\n"
+            string += preformatted_block("Usage:     {0}config smart-roles value".format(self.__prefix))
+            string += preformatted_block("Current:   {0}\n".format(self.__smart_roles))
+            string += preformatted_block("Supported: {0}\n".format("True False"))
+            embed.add_field("smart-roles", string, False)
             # register
             string = "Register channel as the only one on which lua saved variable upload will be accepted. If no #channel is mentioned then the current one will be used. Bot must have access to the channel.\n"
             string += preformatted_block("Usage:     {0}config register #channel".format(self.__prefix))
@@ -1316,6 +1339,13 @@ class DKPBot:
             else:
                 error_text = "Exceeded maximum number of channels. Removing oldest assignment."
             return Response(ResponseStatus.SUCCESS, BasicSuccess('Registered channel <#{0}> to handle team {1}. {2}'.format(channel, params[1], error_text)).get())
+        else:
+            return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
+
+    def config_call_smart_roles(self, params, num_params, request_info): #pylint: disable=unused-argument
+        if num_params == 2:
+            success = self.__set_config_boolean('guild_info', 'smart_roles', params[1])
+            return self.__generic_response(success, "smart-roles", params[1])
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 

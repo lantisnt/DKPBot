@@ -21,7 +21,8 @@ class PlayerInfo:
         self.__ingame_class = str(ingame_class).lower().capitalize()
         self.__role = str(role).lower().capitalize()
         self.__smart_role = player_role.get(ingame_class, spec)
-
+        with open("create_log.txt", "a") as f:
+            f.write(str(self))
     def name(self):
         return self.__player
 
@@ -68,10 +69,13 @@ class PlayerInfo:
         return self.__latest_history_entry
 
     def __str__(self):
-        return "{0} ({1} - {5}) {2} ({3}/{4}) DKP | Active: {5}\n".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent(), self.__active, self.__smart_role)
+        return "{0} ({1} - {6}) {2} ({3}/{4}) DKP | Active: {5}\n".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent(), self.__active, self.__smart_role)
 
     def __repr__(self):
         return self.__str__()
+
+    def __hash__(self):
+        return hash(str(self))
 
     ### Overriding comparison to use DKP ###
 
@@ -143,6 +147,9 @@ class PlayerLoot:
     def __repr__(self):
         return self.__str__()
 
+    def __hash__(self):
+        return hash(str(self))
+
 class PlayerDKPHistory:
     __player = ""
     __dkp = 0
@@ -180,6 +187,9 @@ class PlayerDKPHistory:
 
     def __repr__(self):
         return self.__str__()
+
+    def __hash__(self):
+        return hash(str(self))
 
     ### Overriding comparison to use dkp ###
 
