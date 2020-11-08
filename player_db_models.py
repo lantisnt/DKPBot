@@ -21,8 +21,7 @@ class PlayerInfo:
         self.__ingame_class = str(ingame_class).lower().capitalize()
         self.__role = str(role).lower().capitalize()
         self.__smart_role = player_role.get(ingame_class, spec)
-        with open("create_log.txt", "a") as f:
-            f.write(str(self))
+
     def name(self):
         return self.__player
 
