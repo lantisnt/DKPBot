@@ -1,3 +1,6 @@
+import player_role
+from player_role import Role
+
 class PlayerInfo:
     __player = ""
     __dkp = 0
@@ -5,17 +8,19 @@ class PlayerInfo:
     __lifetime_spent = 0
     __ingame_class = ""
     __role = ""
+    __smart_role = None
     __latest_loot_entry = None
     __latest_history_entry = None
     __active = True
 
-    def __init__(self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role):
+    def __init__(self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role, spec):
         self.__player = str(player).lower().capitalize()
         self.__dkp = float(dkp)
         self.__lifetime_gained = abs(float(lifetime_gained))
         self.__lifetime_spent = abs(float(lifetime_spent))
         self.__ingame_class = str(ingame_class).lower().capitalize()
         self.__role = str(role).lower().capitalize()
+        self.__smart_role = player_role.get(ingame_class, spec)
 
     def name(self):
         return self.__player
@@ -36,7 +41,8 @@ class PlayerInfo:
         return self.__ingame_class
 
     def role(self):
-        return self.__role
+        #return self.__role
+        return self.__smart_role
 
     def set_inactive(self):
         self.__active = False
@@ -62,10 +68,13 @@ class PlayerInfo:
         return self.__latest_history_entry
 
     def __str__(self):
-        return "{0} ({1}) {2} ({3}/{4}) DKP | Active: {5}\n".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent(), self.__active)
+        return "{0} ({1} - {6}) {2} ({3}/{4}) DKP | Active: {5}\n".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent(), self.__active, self.__smart_role)
 
     def __repr__(self):
         return self.__str__()
+
+    def __hash__(self):
+        return hash(str(self))
 
     ### Overriding comparison to use DKP ###
 
@@ -137,6 +146,9 @@ class PlayerLoot:
     def __repr__(self):
         return self.__str__()
 
+    def __hash__(self):
+        return hash(str(self))
+
 class PlayerDKPHistory:
     __player = ""
     __dkp = 0
@@ -174,6 +186,9 @@ class PlayerDKPHistory:
 
     def __repr__(self):
         return self.__str__()
+
+    def __hash__(self):
+        return hash(str(self))
 
     ### Overriding comparison to use dkp ###
 

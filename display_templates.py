@@ -49,7 +49,7 @@ def get_class_color(class_name=None):
 
     return 10204605
 
-def get_icon_string(class_name=None):
+def get_icon_string(class_name=None, spec_id=0):
     if not class_name:
         return ""
 
@@ -59,19 +59,39 @@ def get_icon_string(class_name=None):
         return "<:rogue:760863674071777280>"
 
     if class_name == 'warrior':
-        return "<:warrior:760863673978978314>"
+        if spec_id == 2:
+            return "<:warrtank:760863674222510120>"
+        else:
+            return "<:warrior:760863673978978314>"
 
     if class_name == 'hunter':
         return "<:hunter:760863674196951060>"
 
     if class_name == 'druid':
-        return "<:druid:760863673458622488>"
+        if spec_id == 0:
+            return "<:druidmoon:760863673564135434>"
+        elif spec_id == 1:
+            return "<:druidtank:760863673643302934>"
+        elif spec_id == 2:
+            return "<:restodruid:760863673740165151>"
+        else:
+            return "<:druid:760863673458622488>"
 
     if class_name == 'priest':
-        return "<:priest:760863673974784071>"
+        if spec_id == 2:
+            return "<:spriest:760863673752223797>"
+        else:
+            return "<:priest:760863673974784071>"
 
     if class_name == 'paladin':
-        return "<:paladin:760863674306527243>"
+        if spec_id == 0:
+            return "<:holypala:760863674067583006>"
+        elif spec_id == 1:
+            return "<:palatank:760863674147274822>"
+        elif spec_id == 2:
+            return "<:retripala:760863673908199436>"
+        else:
+            return "<:paladin:760863674306527243>"
 
     if class_name == 'warlock':
         return "<:warlock:760863673982910484>"
@@ -80,7 +100,10 @@ def get_icon_string(class_name=None):
         return "<:mage:760863673719455835>"
 
     if class_name == 'shaman':
-        return "<:shaman:760863673887227955>"
+        if spec_id == 2:
+            return "<:restosham:774936622620868609>"
+        else:
+            return "<:shaman:760863673887227955>"
 
     return ""
 
@@ -148,7 +171,7 @@ def generate_loot_entry(loot_entry, format_string=None, player=False, rounding=1
                                       loot_entry.item_id())
         if player:
             row += " - "
-            row += "{0}".format(get_icon_string(loot_entry.player().ingame_class()))
+            row += "{0}".format(get_icon_string(loot_entry.player().ingame_class(), loot_entry.player().role().spec_id()))
             row += "{0}".format(loot_entry.player().name())
         row += "\n"
         return row
@@ -517,7 +540,7 @@ class DKPMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerInfo):
-            row = "{0}".format(get_icon_string(data.ingame_class()))
+            row = "{0}".format(get_icon_string(data.ingame_class(), data.role().spec_id()))
             row += self._value_format_string.format(data.dkp())
             row += " "
             if requester == data.player().name():
