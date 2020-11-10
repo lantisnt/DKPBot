@@ -143,7 +143,7 @@ def __get(class_name: str, talents: list):
         else:
             return Role(False, False, True, True, True, 2)
 
-    return Role.DPS
+    return Role(False, False, False, False, False, 0)
 
 
 def get(class_name: str, role_string: str):
