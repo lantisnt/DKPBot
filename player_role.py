@@ -99,6 +99,7 @@ def __get(class_name: str, talents: list):
         if talents[0] >= 30:
             return Role(False, True, False, True, True, 0)
         elif talents[1] >= 21:
+            # TODO HotW/NS
             return Role(True, True, False, False, False, 1)
         elif talents[2] >= 21:
             return Role(False, False, True, True, True, 2)
@@ -207,13 +208,13 @@ class RoleFilter:
         if self.__ranged:
             ranged_list = list(filter(lambda p: p.role().is_dps() and p.role().is_ranged(), player_info_list))
 
-        if self.__melee:
+        if self.__melee: #TODO include tanks?
             melee_list = list(filter(lambda p: p.role().is_dps() and not p.role().is_ranged(), player_info_list))
 
         if self.__caster:
             caster_list = list(filter(lambda p: p.role().is_dps() and p.role().is_caster(), player_info_list))
 
-        if self.__physical:
+        if self.__physical: #TODO include tanks?
             physical_list = list(filter(lambda p: p.role().is_dps() and not p.role().is_caster(), player_info_list))
 
         return dps_list + tank_list + healer_list + ranged_list + melee_list + caster_list + physical_list
