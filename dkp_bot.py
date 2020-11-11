@@ -447,8 +447,6 @@ class DKPBot:
     def _parse_param(self, param):
         # Remove empty strings
         targets = list(filter(None, self.__param_parser.findall(param)))
-        # Remove duplicates
-        targets = list(dict.fromkeys(targets))
         # Lowercase all
         return list(map(lambda x: x.strip().lower(), targets))
 
