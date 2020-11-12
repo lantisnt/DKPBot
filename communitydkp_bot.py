@@ -73,6 +73,11 @@ class CommunityDKPBot(EssentialDKPBot):
             return False
 
         for team, dkp_list in teams.items():
+            if isinstance(dkp_list, dict): # dict because there may be ["seed"] field...
+                dkp_list = dkp_list.values()
+            elif not isinstance(dkp_list, list):
+                return False
+
             for entry in dkp_list:
                 info = self._generate_player_info(entry)
                 if info is None:
@@ -91,7 +96,12 @@ class CommunityDKPBot(EssentialDKPBot):
             return False
 
         for team, loot_list in teams.items():
-            for entry in loot_list.values():
+            if isinstance(loot_list, dict): # dict because there is ["seed"] field...
+                loot_list = loot_list.values()
+            elif not isinstance(loot_list, list):
+                return False
+
+            for entry in loot_list:
                 player_loot = self._generate_player_loot(entry, team)
                 if player_loot is None:
                     continue
@@ -113,7 +123,12 @@ class CommunityDKPBot(EssentialDKPBot):
             return False
 
         for team, history in teams.items():
-            for entry in history.values():
+            if isinstance(history, dict): # dict because there is ["seed"] field...
+                history = history.values()
+            elif not isinstance(history, list):
+                return False
+
+            for entry in history:
                 self._generate_player_history(entry, team)
 
         self._sort_history()
