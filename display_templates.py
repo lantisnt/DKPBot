@@ -135,7 +135,7 @@ def get_thumbnail(class_name):
         return "https://cdn.discordapp.com/attachments/765089790295015425/765091111822950430/warlock.png"
 
     if class_name == 'mage':
-        return "https://cdn.discordapp.com/attachments/765089790295015425/765091102545412096/mage.pngx`"
+        return "https://cdn.discordapp.com/attachments/765089790295015425/765091102545412096/mage.png"
 
     if class_name == 'shaman':
         return "https://cdn.discordapp.com/attachments/765089790295015425/765241408449019914/shaman.png"

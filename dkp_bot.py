@@ -859,8 +859,8 @@ class DKPBot:
         self.__db['info']['author'] = info.get('author')
 
         if not self._build_config_database(saved_variable):
-            BotLogger().get().error("Configuration Database building failed.")
-            return Response(ResponseStatus.ERROR, BasicError("Configuration Database building failed.").get())
+            BotLogger().get().error("Configuration Database building failed. Please validate your settings.")
+            return Response(ResponseStatus.ERROR, BasicError("Configuration Database building failed. Please validate your settings.").get())
         if not self._build_dkp_database(saved_variable):
             BotLogger().get().error("DKP Database building failed.")
             return Response(ResponseStatus.ERROR, BasicError("DKP Database building failed. Please check your `server-side` and `guild-name` settings.").get())
