@@ -901,7 +901,7 @@ class DKPBot:
                 setattr(internal_group, config, value)
                 new_value = getattr(internal_group, config)
                 if isinstance(new_value, bool):
-                    return (new_value and value in ['true', True]) or (not new_value and value in ['false', False])
+                    return (new_value and (value in ['true', True])) or (not new_value and (value in ['false', False]))
                 elif isinstance(new_value, int):
                     try:
                         return new_value == int(value)

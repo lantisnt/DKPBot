@@ -53,12 +53,14 @@ class DisplayConfig(object):
     __entries_per_field = 0
     __separate_messages = 0
     __multiple_columns = False
+    __enable_icons = True
 
-    def __init__(self, fields, entries_per_field, separate_messages, multiple_columns):
+    def __init__(self, fields, entries_per_field, separate_messages, multiple_columns, enable_icons):
         self.__fields = fields
         self.__entries_per_field = entries_per_field
         self.__separate_messages = separate_messages
         self.__multiple_columns = bool(multiple_columns)
+        self.__enable_icons = bool(enable_icons)
 
     def __getattr__(self, name):
         if not name.startswith('__get_') and hasattr(self,'__get_' + name):
@@ -92,7 +94,7 @@ class DisplayConfig(object):
 
     @staticmethod
     def __supported_entries_per_field():
-        return (1, 16)
+        return (1, 32)
 
     def __get_entries_per_field(self):
         return self.__entries_per_field
@@ -136,6 +138,22 @@ class DisplayConfig(object):
 
     multiple_columns = property(__get_multiple_columns, __set_multiple_columns)
 
+    @staticmethod
+    def __supported_enable_icons():
+        return [True, False]
+
+    def __get_enable_icons(self):
+        return self.__enable_icons
+
+    def __set_enable_icons(self, enable_icons):
+        enable_icons = str(enable_icons)
+        if enable_icons.lower() == 'true':
+            self.__enable_icons = True
+        elif enable_icons.lower() == 'false':
+            self.__enable_icons = False
+
+    enable_icons = property(__get_enable_icons, __set_enable_icons)
+
     def __str__(self):
         row_format = get_row_format()
         string = ""
@@ -168,11 +186,11 @@ class BotConfig():
     __config = None
 
     guild_info = GuildInfo('essential', 0, 0, 0, 'EssentialDKP.lua', '!', False, '', '','{}', False, False, True)
-    dkp = DisplayConfig(6, 16, 5, True)
-    dkp_history = DisplayConfig(1, 10, 1, True)
-    loot_history = DisplayConfig(1, 10, 1, True)
-    latest_loot = DisplayConfig(6, 5, 1, False)
-    item_search = DisplayConfig(6, 5, 3, False)
+    dkp = DisplayConfig(6, 16, 5, True, True)
+    dkp_history = DisplayConfig(1, 10, 1, True, True)
+    loot_history = DisplayConfig(1, 10, 1, True, True)
+    latest_loot = DisplayConfig(6, 5, 1, False, True)
+    item_search = DisplayConfig(6, 5, 3, False, True)
 
     def __init__(self, filepath):
         self.__filepath = filepath
@@ -222,7 +240,8 @@ class BotConfig():
             self.__config.getint(group, 'fields', fallback=1),
             self.__config.getint(group, 'entries_per_field', fallback=1),
             self.__config.getint(group, 'separate_messages', fallback=1),
-            self.__config.getboolean(group, 'multiple_columns', fallback=False)
+            self.__config.getboolean(group, 'multiple_columns', fallback=False),
+            self.__config.getboolean(group, 'enable_icons', fallback=True)
         )
 
         group = 'DKP History Display'
@@ -230,7 +249,8 @@ class BotConfig():
             self.__config.getint(group, 'fields', fallback=1),
             self.__config.getint(group, 'entries_per_field', fallback=1),
             self.__config.getint(group, 'separate_messages', fallback=1),
-            self.__config.getboolean(group, 'multiple_columns', fallback=False)
+            self.__config.getboolean(group, 'multiple_columns', fallback=False),
+            self.__config.getboolean(group, 'enable_icons', fallback=True)
         )
 
         group = 'Loot History Display'
@@ -238,7 +258,8 @@ class BotConfig():
             self.__config.getint(group, 'fields', fallback=1),
             self.__config.getint(group, 'entries_per_field', fallback=1),
             self.__config.getint(group, 'separate_messages', fallback=1),
-            self.__config.getboolean(group, 'multiple_columns', fallback=False)
+            self.__config.getboolean(group, 'multiple_columns', fallback=False),
+            self.__config.getboolean(group, 'enable_icons', fallback=True)
         )
 
         group = 'Latest Loot Display'
@@ -246,7 +267,8 @@ class BotConfig():
             self.__config.getint(group, 'fields', fallback=1),
             self.__config.getint(group, 'entries_per_field', fallback=1),
             self.__config.getint(group, 'separate_messages', fallback=1),
-            self.__config.getboolean(group, 'multiple_columns', fallback=False)
+            self.__config.getboolean(group, 'multiple_columns', fallback=False),
+            self.__config.getboolean(group, 'enable_icons', fallback=True)
         )
 
         group = 'Item Search Display'
@@ -254,7 +276,8 @@ class BotConfig():
             self.__config.getint(group, 'fields', fallback=1),
             self.__config.getint(group, 'entries_per_field', fallback=1),
             self.__config.getint(group, 'separate_messages', fallback=1),
-            self.__config.getboolean(group, 'multiple_columns', fallback=False)
+            self.__config.getboolean(group, 'multiple_columns', fallback=False),
+            self.__config.getboolean(group, 'enable_icons', fallback=True)
         )
 
     # Store from config to dictionary
