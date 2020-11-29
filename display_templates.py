@@ -401,16 +401,16 @@ class MultipleResponse(BaseResponse):
         super().__init__(title)
 
         if field_limit and isinstance(field_limit, int):
-            if field_limit > DisplayConfig.supported_fields()[1]:
-                self.__field_limit = DisplayConfig.supported_fields()[1]
+            if field_limit > 9:
+                self.__field_limit = 9
             elif field_limit < 1:
                 self.__field_limit = 1
             else:
                 self.__field_limit = field_limit
 
         if entry_limit and isinstance(entry_limit, int):
-            if entry_limit > DisplayConfig.supported_entries_per_field()[1]:
-                self.__entry_limit = DisplayConfig.supported_entries_per_field()[1]
+            if entry_limit > 32:
+                self.__entry_limit = 32
             elif entry_limit < 1:
                 self.__entry_limit = 1
             else:
@@ -554,7 +554,10 @@ class DKPMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerInfo):
-            row = "{0}".format(get_class_icon_string(data.ingame_class(), data.role().spec_id()))
+            if self._enable_icons:
+                row = "{0}".format(get_class_icon_string(data.ingame_class(), data.role().spec_id()))
+            else:
+                row = ""
             row += self._value_format_string.format(data.dkp())
             row += " "
             if requester == data.player().name():

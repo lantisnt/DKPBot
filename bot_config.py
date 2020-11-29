@@ -78,7 +78,7 @@ class DisplayConfig(object):
             BotLogger().get().error(exception, exc_info=True)
 
     @staticmethod
-    def supported_fields():
+    def __supported_fields():
         return (1, 9)
 
     def __get_fields(self):
@@ -86,14 +86,14 @@ class DisplayConfig(object):
 
     def __set_fields(self, fields):
         fields = int(fields)
-        val = self.supported_fields()
+        val = self.__supported_fields()
         if val[0] <= fields <= val[1]:
             self.__fields = fields
 
     fields = property(__get_fields, __set_fields)
 
     @staticmethod
-    def supported_entries_per_field():
+    def __supported_entries_per_field():
         return (1, 32)
 
     def __get_entries_per_field(self):
@@ -101,14 +101,14 @@ class DisplayConfig(object):
 
     def __set_entries_per_field(self, entries_per_field):
         entries_per_field = int(entries_per_field)
-        val = self.supported_entries_per_field()
+        val = self.__supported_entries_per_field()
         if val[0] <= entries_per_field <= val[1]:
             self.__entries_per_field = entries_per_field
 
     entries_per_field = property(__get_entries_per_field, __set_entries_per_field)
 
     @staticmethod
-    def get_class_icon_string_separate_messages():
+    def __supported_separate_messages():
         return (0, 16)
 
     def __get_separate_messages(self):
@@ -116,14 +116,14 @@ class DisplayConfig(object):
 
     def __set_separate_messages(self, separate_messages):
         separate_messages = int(separate_messages)
-        val = self.supported_separate_messages()
+        val = self.__supported_separate_messages()
         if val[0] <= separate_messages <= val[1]:
             self.__separate_messages = separate_messages
 
     separate_messages = property(__get_separate_messages, __set_separate_messages)
 
     @staticmethod
-    def supported_multiple_columns():
+    def __supported_multiple_columns():
         return [True, False]
 
     def __get_multiple_columns(self):
@@ -139,7 +139,7 @@ class DisplayConfig(object):
     multiple_columns = property(__get_multiple_columns, __set_multiple_columns)
 
     @staticmethod
-    def supported_enable_icons():
+    def __supported_enable_icons():
         return [True, False]
 
     def __get_enable_icons(self):
@@ -160,7 +160,7 @@ class DisplayConfig(object):
         attributes = public_to_dict(self)
         for attr in attributes:
             supported_values_string = ""
-            supported_values = getattr(self, "_" + self.__class__.__name__ + "supported_" + attr, None)
+            supported_values = getattr(self, "_" + self.__class__.__name__ + "__supported_" + attr, None)
             if supported_values is not None and callable(supported_values):
                 supported_values = supported_values()
 
