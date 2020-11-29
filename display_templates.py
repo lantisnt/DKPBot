@@ -1,5 +1,6 @@
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp
+from bot_config import DisplayConfig
 import build_info
 
 INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
@@ -33,7 +34,7 @@ def get_class_color(class_name=None):
         return 16743690
 
     if class_name == 'priest':
-        return 16777215
+        return 16711422
 
     if class_name == 'paladin':
         return 16092346
@@ -49,7 +50,13 @@ def get_class_color(class_name=None):
 
     return 10204605
 
-def get_icon_string(class_name=None, spec_id=0):
+def get_plus_minus_icon_string(plus=True):
+    if plus:
+        return "<:plus:782168773875728384>"
+    else:
+        return "<:minus:782168774035374080>"
+
+def get_class_icon_string(class_name=None, spec_id=0):
     if not class_name:
         return ""
 
@@ -145,12 +152,15 @@ def get_thumbnail(class_name):
 def preformatted_block(string: str, language='swift'):
     return "```" + language + "\n" + string + "```"
 
-def generate_dkp_history_entry(history_entry, format_string=None, rounding=1):
+def generate_dkp_history_entry(history_entry, format_string=None, rounding=1, enable_icons=True):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):
         if not format_string:
             format_string = "`{{0:{0}.{1}f}} DKP`".format(
                 len(str(int(history_entry.dkp()))), rounding)
+
         row = ""
+        if enable_icons:
+            row += get_plus_minus_icon_string(history_entry.dkp() > 0) + " "
         row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp()))
         row += format_string.format(history_entry.dkp())
         row += " - {0} _by {1}_".format(history_entry.reason(),
@@ -159,7 +169,7 @@ def generate_dkp_history_entry(history_entry, format_string=None, rounding=1):
         return row
     return "- No data available -"
 
-def generate_loot_entry(loot_entry, format_string=None, player=False, rounding=1):
+def generate_loot_entry(loot_entry, format_string=None, player=False, rounding=1, enable_icons=True):
     if loot_entry and isinstance(loot_entry, PlayerLoot):
         if not format_string:
             format_string = "`{{0:{0}.{1}f}} DKP`".format(
@@ -171,7 +181,8 @@ def generate_loot_entry(loot_entry, format_string=None, player=False, rounding=1
                                       loot_entry.item_id())
         if player:
             row += " - "
-            row += "{0}".format(get_icon_string(loot_entry.player().ingame_class(), loot_entry.player().role().spec_id()))
+            if enable_icons:
+                row += "{0}".format(get_class_icon_string(loot_entry.player().ingame_class(), loot_entry.player().role().spec_id()))
             row += "{0}".format(loot_entry.player().name())
         row += "\n"
         return row
@@ -366,9 +377,9 @@ class SinglePlayerProfile(BaseResponse):
         self._embed.add_field("Lifetime spent:", dkp_format.format(
             info.lifetime_spent()), True)
         self._embed.add_field("Last DKP award:",
-                             generate_dkp_history_entry(info.get_latest_history_entry(), rounding=self._rounding), False)
+                             generate_dkp_history_entry(info.get_latest_history_entry(), rounding=self._rounding, enable_icons=False), False)
         self._embed.add_field("Last received loot:",
-                             generate_loot_entry(info.get_latest_loot_entry(), rounding=self._rounding), False)
+                             generate_loot_entry(info.get_latest_loot_entry(), rounding=self._rounding, enable_icons=False), False)
 
         return self
 
@@ -379,26 +390,27 @@ class SinglePlayerProfile(BaseResponse):
 class MultipleResponse(BaseResponse):
     __response_list = []
     __field_limit = 6
-    __entry_limit = 16
+    __entry_limit = 32
     __response_limit = 0
     __multiple_columns = True
+    _enable_icons = True
 
     _value_format_string = "{0:8.1f}"
 
-    def __init__(self, title, field_limit, entry_limit, response_limit, multiple_columns):
+    def __init__(self, title, field_limit, entry_limit, response_limit, multiple_columns, enable_icons):
         super().__init__(title)
 
         if field_limit and isinstance(field_limit, int):
-            if field_limit > 9:
-                self.__field_limit = 9
+            if field_limit > DisplayConfig.supported_fields()[1]:
+                self.__field_limit = DisplayConfig.supported_fields()[1]
             elif field_limit < 1:
                 self.__field_limit = 1
             else:
                 self.__field_limit = field_limit
 
         if entry_limit and isinstance(entry_limit, int):
-            if entry_limit > 16:
-                self.__entry_limit = 16
+            if entry_limit > DisplayConfig.supported_entries_per_field()[1]:
+                self.__entry_limit = DisplayConfig.supported_entries_per_field()[1]
             elif entry_limit < 1:
                 self.__entry_limit = 1
             else:
@@ -411,6 +423,8 @@ class MultipleResponse(BaseResponse):
                 self.__response_limit = response_limit
 
         self.__multiple_columns = bool(multiple_columns)
+
+        self._enable_icons = bool(enable_icons)
 
     def _prepare(self, data_list): # pylint: disable=unused-argument
         pass
@@ -540,7 +554,7 @@ class DKPMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerInfo):
-            row = "{0}".format(get_icon_string(data.ingame_class(), data.role().spec_id()))
+            row = "{0}".format(get_class_icon_string(data.ingame_class(), data.role().spec_id()))
             row += self._value_format_string.format(data.dkp())
             row += " "
             if requester == data.player().name():
@@ -586,7 +600,7 @@ class HistoryMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerDKPHistory):
-            return generate_dkp_history_entry(data, self._value_format_string)
+            return generate_dkp_history_entry(data, self._value_format_string, enable_icons=self._enable_icons)
 
         return ""
 
@@ -624,7 +638,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerLoot):
-            return generate_loot_entry(data, self._value_format_string)
+            return generate_loot_entry(data, self._value_format_string, enable_icons=self._enable_icons)
 
         return ""
 
@@ -659,6 +673,6 @@ class LootMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerLoot):
-            return generate_loot_entry(data, self._value_format_string, True)
+            return generate_loot_entry(data, self._value_format_string, True, enable_icons=self._enable_icons)
 
         return ""
