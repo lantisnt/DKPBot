@@ -402,8 +402,8 @@ class MultipleResponse(BaseResponse):
         super().__init__(title)
 
         if field_limit and isinstance(field_limit, int):
-            if field_limit > 9:
-                self.__field_limit = 9
+            if field_limit > 16:
+                self.__field_limit = 16
             elif field_limit < 1:
                 self.__field_limit = 1
             else:

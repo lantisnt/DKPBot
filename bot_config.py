@@ -81,7 +81,7 @@ class DisplayConfig(object):
 
     @staticmethod
     def __supported_fields():
-        return (1, 9)
+        return (1, 16)
 
     def __get_fields(self):
         return self.__fields
