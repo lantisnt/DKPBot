@@ -551,10 +551,19 @@ class DKPBot:
         return
 
     def _get_dkp(self, player, team):
-        team_data = self.__db['global'].get(team)
-        if team_data is None:
-            return None
-        return team_data['dkp'].get(player.lower())
+            team_data = self.__db['global'].get(team)
+            if team_data is None:
+                return None
+            return team_data['dkp'].get(player.lower())
+
+    def _get_team_dkp(self, team):
+            team_data = self.__db['global'].get(team)
+            if team_data is None:
+                return None
+            team_dkp_data = []
+            for entry in team_data['dkp'].values():
+                team_dkp_data.append(entry)
+            return team_dkp_data
 
     def _get_player_loot(self, player, team):
         team_data = self.__db['global'].get(team)
@@ -1214,7 +1223,7 @@ class DKPBot:
     def config_call_bot_type(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params == 2:
             value = params[1]
-            if value in ['community', 'monolith', 'essential']:
+            if value in ['community', 'monolith', 'essential', 'cepgp']:
                 current = self.__config.guild_info.bot_type
                 if value == current:
                     return Response(ResponseStatus.SUCCESS,  BasicSuccess('Retaining current bot type').get())
@@ -1223,7 +1232,10 @@ class DKPBot:
                 new = self.__config.guild_info.bot_type
 
                 if new == value:
-                    self.__config.guild_info.filename = value.capitalize() + 'DKP.lua'
+                    if value == 'cepgp':
+                        self.__config.guild_info.filename = "CEPGP.lua"
+                    else:
+                        self.__config.guild_info.filename = value.capitalize() + 'DKP.lua'
                     self._reconfigure()
                     return Response(ResponseStatus.RELOAD, self.__guild_id)
                 else:

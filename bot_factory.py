@@ -2,7 +2,7 @@ import bot_config
 import essentialdkp_bot
 import monolithdkp_bot
 import communitydkp_bot
-
+import classicepgp_bot
 
 def new(guild_id, config: bot_config.BotConfig):
     if not isinstance(config, bot_config.BotConfig):
@@ -14,5 +14,7 @@ def new(guild_id, config: bot_config.BotConfig):
         return essentialdkp_bot.EssentialDKPBot(guild_id, config)
     elif config.guild_info.bot_type == 'community':
         return communitydkp_bot.CommunityDKPBot(guild_id, config)
+    elif config.guild_info.bot_type == 'cepgp':
+        return classicepgp_bot.CEPGPBot(guild_id, config)
     else:
         return None

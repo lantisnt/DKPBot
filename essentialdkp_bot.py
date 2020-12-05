@@ -264,8 +264,8 @@ class EssentialDKPBot(DKPBot):
         self._fill_history(players, dkp, date, reason, index, team)
 
     # Called 1st
-    def _build_config_database(self, saved_variable):  # pylint: disable=unused-argument
-        super()._build_dkp_database(None)
+    def _build_config_database(self, saved_variable):
+        super()._build_config_database(None)
 
         if saved_variable is None:
             return False

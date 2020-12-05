@@ -7,7 +7,6 @@ class PlayerInfo:
     __lifetime_gained = 0
     __lifetime_spent = 0
     __ingame_class = ""
-    __role = ""
     __smart_role = None
     __latest_loot_entry = None
     __latest_history_entry = None
@@ -19,8 +18,10 @@ class PlayerInfo:
         self.__lifetime_gained = abs(float(lifetime_gained))
         self.__lifetime_spent = abs(float(lifetime_spent))
         self.__ingame_class = str(ingame_class).lower().capitalize()
-        self.__role = str(role).lower().capitalize()
-        self.__smart_role = player_role.get(ingame_class, spec)
+        if ingame_class is None or spec is None:
+            self.__smart_role = Role(True, True, True, True, True, 0)
+        else:
+            self.__smart_role = player_role.get(ingame_class, spec)
 
     def name(self):
         return self.__player
@@ -41,7 +42,6 @@ class PlayerInfo:
         return self.__ingame_class
 
     def role(self):
-        #return self.__role
         return self.__smart_role
 
     def set_inactive(self):
@@ -108,6 +108,19 @@ class PlayerInfo:
             other = other.dkp()
         return self.dkp() >= other
 
+class PlayerInfoEPGP(PlayerInfo):
+
+    def __init__(self, player, ep, gp):
+         super().__init__(player, ep, gp, 0, None, None, None)
+
+    def ep(self):
+        return self.dkp()
+
+    def gp(self):
+        return self.lifetime_gained()
+
+    def __str__(self):
+        return "{0}: {1} EP {2} GP\n".format(self.name(), self.ep(), self.gp())
 
 class PlayerLoot:
     __player = ""
@@ -148,6 +161,11 @@ class PlayerLoot:
 
     def __hash__(self):
         return hash(str(self))
+
+class PlayerLootEPGP(PlayerLoot):
+    
+    def gp():
+        return self.lifetime_gained()
 
 class PlayerDKPHistory:
     __player = ""
