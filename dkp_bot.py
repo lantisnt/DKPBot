@@ -464,9 +464,20 @@ class DKPBot:
         original = list(map(lambda x: x.strip().lower(), original))
         targets = list(map(lambda x: x.strip().lower(), targets))
         aliases = list(map(lambda x: x.strip().lower(), aliases))
+        # Int list
+        int_list = self._get_int_list(original)
 
-        return (targets, aliases, original)
+        return (targets, aliases, original, int_list)
 
+    def _get_int_list(self, original: list):
+        int_list = []
+        for param in original:
+            try:
+                param_int = int(param)
+                int_list.append(param_int)
+            except ValueError:
+                continue
+        return int_list
 
     def __get_command_parser(self):
         if not(self.__parser and isinstance(self.__parser, argparse.ArgumentParser)):

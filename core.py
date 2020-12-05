@@ -14,6 +14,7 @@ from bot_config import BotConfig
 from bot_logger import BotLogger
 from display_templates import BasicSuccess, BasicError, BasicInfo, BasicCritical
 from loop_activity import LoopActivity
+from bot_utility import SPLIT_DELIMITERS
 import footprint
 import superuser
 
@@ -109,7 +110,6 @@ def unpickle_data(uid):
     return data
 
 # Discord related
-SPLIT_DELIMITERS = ["#", "/", "\\", "|", ":", ";", "-"]
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
