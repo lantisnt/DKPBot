@@ -49,7 +49,6 @@ class RaidHelper:
             try:
                 response = requests.get(self.__endpoint + self.RAIDS_ENDPOINT + target, headers={"Authorization": "Bearer " + self.__token})
                 if response.status_code == 200:
-                    print(str(response)) #TODO remove
                     return response.json()
                 else:
                     BotLogger().get().warning(str(response))
