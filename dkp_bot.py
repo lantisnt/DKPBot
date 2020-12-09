@@ -567,6 +567,14 @@ class DKPBot:
             return None
         return team_data['dkp'].get(player.lower())
 
+    def _search_dkp(self, player, team):
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            return None
+        players = team_data['dkp'].keys()
+        players = [p for p in players if p.lower().startswith(player)]
+        return players
+
     def _get_player_loot(self, player, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:

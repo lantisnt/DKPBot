@@ -462,18 +462,18 @@ class EssentialDKPBot(DKPBot):
         signed = []
         if len(int_list) > 0:
             for event_id in int_list:
-                #if event_id > 0:
-                signed.extend(RaidHelper.get_event_signups(event_id))
-        print(signed)
+                if event_id > 0:
+                    raid_user_list = RaidHelper().get_event_signups(event_id)
+                    for raid_user in raid_user_list:
+                        # TODO Handles only mains for now
+                        signed.append(raid_user.main())
         raid_helper_filter = (len(signed) > 0)
 
         if len(targets) == len(int_list) and raid_helper_filter:
-            # Handle special case: !dkp <event id>
             output_result_list = self.__get_dkp_target_results(team, signed, original, smart_roles_filter)
         elif len(targets) > 0:
             output_result_list = self.__get_dkp_target_results(team, targets, original, smart_roles_filter)
-            #if self.is_premium() and raid_helper_filter:
-            if raid_helper_filter:
+            if self.is_premium() and raid_helper_filter:
                 output_result_list = list(filter(lambda t: (t.name().lower() in signed), output_result_list))
         else:
             if not self.is_premium():
