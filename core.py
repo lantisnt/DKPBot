@@ -14,8 +14,10 @@ from bot_config import BotConfig
 from bot_logger import BotLogger
 from display_templates import BasicSuccess, BasicError, BasicInfo, BasicCritical
 from loop_activity import LoopActivity
+from bot_utility import SPLIT_DELIMITERS
 import footprint
 import superuser
+import raidhelper
 
 MAX_ATTACHMENT_BYTES = 3145728 # 3MB
 
@@ -66,11 +68,15 @@ def main(control: ScriptControl):
     in_memory_objects_limit = sys.argv[4]
     log_dir = sys.argv[5]
     su_id = int(sys.argv[6])
+    raidhelper_api_endpoint = sys.argv[7]
+    raidhelper_api_token = sys.argv[8]
+
 
     control.initialize(token, config_dir, storage_dir, in_memory_objects_limit)
     BotLogger().initialize(log_dir)
     super_user.initialize(su_id, bots)
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
+    raidhelper.RaidHelper().initialize(raidhelper_api_endpoint, raidhelper_api_token)
 
     client.loop.create_task(discord_update_activity())
     client.run(control.token)
@@ -109,7 +115,6 @@ def unpickle_data(uid):
     return data
 
 # Discord related
-SPLIT_DELIMITERS = ["#", "/", "\\", "|", ":", ";", "-"]
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
@@ -401,6 +406,6 @@ async def on_message(message):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 7:
+    if len(sys.argv) != 9:
         sys.exit(1)
     main(script_control)

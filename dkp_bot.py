@@ -464,9 +464,20 @@ class DKPBot:
         original = list(map(lambda x: x.strip().lower(), original))
         targets = list(map(lambda x: x.strip().lower(), targets))
         aliases = list(map(lambda x: x.strip().lower(), aliases))
+        # Int list
+        int_list = self._get_int_list(original)
 
-        return (targets, aliases, original)
+        return (targets, aliases, original, int_list)
 
+    def _get_int_list(self, original: list):
+        int_list = []
+        for param in original:
+            try:
+                param_int = int(param)
+                int_list.append(param_int)
+            except ValueError:
+                continue
+        return int_list
 
     def __get_command_parser(self):
         if not(self.__parser and isinstance(self.__parser, argparse.ArgumentParser)):
@@ -555,6 +566,14 @@ class DKPBot:
         if team_data is None:
             return None
         return team_data['dkp'].get(player.lower())
+
+    def _search_dkp(self, player, team):
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            return None
+        players = team_data['dkp'].keys()
+        players = [p for p in players if p.lower().startswith(player)]
+        return players
 
     def _get_player_loot(self, player, team):
         team_data = self.__db['global'].get(team)
