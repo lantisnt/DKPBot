@@ -11,7 +11,7 @@ from bot_utility import timestamp_now, public_to_dict
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
 from display_templates import get_bot_color, get_bot_links, preformatted_block
-from display_templates import RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement, BasicInfo
+from display_templates import SupportReminder, RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement, BasicInfo
 
 class ResponseStatus(Enum):
     SUCCESS = 0
@@ -205,6 +205,7 @@ class Statistics():
 
 class DKPBot:
     DEFAULT_TEAM = "0"
+    REMINDER_FREQUENCY = 25
     statistics = None
     __config = None
     __guild_id = 0
@@ -246,6 +247,7 @@ class DKPBot:
         self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^'\"]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
         self._channel_team_map = collections.OrderedDict()
         self.__db_loaded = False
+        self.__reminder_command_count = self.REMINDER_FREQUENCY
         self.__init_db_structure()
         self.statistics = Statistics()
 
@@ -491,6 +493,25 @@ class DKPBot:
 #                                       help='All other string values will be put here', nargs='*', default=None)
         return self.__parser
 
+    def __reminder_injection(self, response: Response):
+        if self.is_premium():
+            return response
+
+        if not isinstance(response, Response):
+            return response
+
+        if response.direct_message:
+            return response
+
+        self.__reminder_command_count = self.__reminder_command_count - 1
+        if self.__reminder_command_count == 0:
+            self.__reminder_command_count = self.REMINDER_FREQUENCY
+            if not isinstance(response.data, list):
+                response.data = [response.data]
+            response.data.append(SupportReminder().get())
+
+        return response
+
     def __parse_command(self, string):
         if string:
             return self.__get_command_parser().parse_args(string.split())
@@ -519,7 +540,7 @@ class DKPBot:
             response = callback(param, request_info)  # pylint: disable=not-callable
             self.statistics.commands[sanitized_command] = (1000 * (timestamp_now() - start)) # miliseconds
             response.direct_message = direct_message
-
+            response = self.__reminder_injection(response)
             return response
         elif sanitized_command.startswith('su_'):
             return Response(ResponseStatus.DELEGATE, (sanitized_command, param))
