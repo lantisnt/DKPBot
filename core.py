@@ -235,7 +235,7 @@ async def discord_respond(channel, responses, self_call=False):
             embed = BasicError("Response data exceeded Discord limits. Please limit the response in `display` configuration.")
             await discord_respond(channel, embed.get(), True)
         else:
-            pass # log here
+            BotLogger().get().error(str(exception))
 
 async def discord_announce(bot: dkp_bot.DKPBot, channels):
     announcement_channel = None
