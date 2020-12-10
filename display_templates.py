@@ -319,6 +319,28 @@ class BasicAnnouncement(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
+class SupporterResponse(RawEmbed):
+    def __init__(self, title):
+        self.build(
+            None,
+            title,
+            "Thank you for using the **WoW DKP Bot**. Visit support server and donate to unlock powerful features and help keeping the bot actively developed.",
+            "https://cdn.discordapp.com/avatars/746132320297156608/1d6c8788497eb6418c821e4d9450e06c.png",
+            get_config_color(),
+            None)
+        self.add_field("\u200b", get_bot_links(), False)
+
+class SupporterOnlyResponse(SupporterResponse):
+
+    def __init__(self):
+        super().__init__("Supporter only command")
+
+class SupportReminder(SupporterResponse):
+
+    def __init__(self):
+        super().__init__("Unlock access to supporter commands for your server")
+
+
 class BaseResponse:
     _embed = None
     _title = ""

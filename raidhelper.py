@@ -3,13 +3,15 @@ from bot_logger import BotLogger
 from bot_utility import split_names
 from player_db_models import PlayerInfo
 
+
 class RaidUser:
-    def __init__(self, userid = 0, username = "", spec = "", role = "", entrydate = "", raidid = 0, id = 0):
+    def __init__(self, userid=0, username="", spec="", role="", entrydate="", raidid=0, id=0):
         self.id = userid
         self.__username = username
 
         self.names = split_names(self.__username.strip("*"))
-        self.names = list(filter(lambda x: len(x) >= 2 and len(x) <= 12, self.names))
+        self.names = list(filter(lambda x: len(
+            x) >= 2 and len(x) <= 12, self.names))
 
     def name(self):
         if len(self.names) > 0:
@@ -35,19 +37,21 @@ class RaidUser:
         else:
             return self.main()
 
+
 class RaidHelper:
 
-    class __RaidHelper: #pylint: disable=invalid-name, attribute-defined-outside-init
+    class __RaidHelper:  # pylint: disable=invalid-name, attribute-defined-outside-init
 
         RAIDS_ENDPOINT = "/api/raids/"
-        
+
         def initialize(self, endpoint, token):
             self.__token = token
             self.__endpoint = endpoint
 
         def execute_query(self, target):
             try:
-                response = requests.get(self.__endpoint + self.RAIDS_ENDPOINT + target, headers={"Authorization": "Bearer " + self.__token})
+                response = requests.get(self.__endpoint + self.RAIDS_ENDPOINT + target, headers={
+                                        "Authorization": "Bearer " + self.__token})
                 if response.status_code == 200:
                     return response.json()
                 else:
@@ -60,7 +64,7 @@ class RaidHelper:
         def decode_signed_list(self, json_response):
             if json_response is None:
                 return []
-            
+
             raidusers = json_response.get("raidusers")
             if raidusers is None:
                 return []
