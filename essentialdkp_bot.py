@@ -115,7 +115,7 @@ class EssentialDKPBot(DKPBot):
             for player in players:
                 player_info = self._get_dkp(player, team)
                 if player_info is None:
-                    return
+                    continue
                 self._add_history(player, PlayerDKPHistory(
                     player_info, dkp, timestamp, reason, index), team)
         elif isinstance(players, list) and isinstance(dkp, list):
@@ -130,6 +130,8 @@ class EssentialDKPBot(DKPBot):
                     continue
                 self._add_history(player, PlayerDKPHistory(
                     player_info, float(dkp.pop(0)), timestamp, reason, index), team)
+        else:
+            BotLogger().get().warning("Unexpected combination: type(players): {0} type(dkp): {1}".format(str(type(players)), str(type(dkp))))
 
     def _generate_player_info(self, entry):
         if entry is None:
