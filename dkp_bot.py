@@ -206,6 +206,7 @@ class Statistics():
 class DKPBot:
     DEFAULT_TEAM = "0"
     REMINDER_FREQUENCY = 25
+    __POSITIVE_ENTRY_THRESHOLD = 2
     statistics = None
     __config = None
     __guild_id = 0
@@ -862,16 +863,22 @@ class DKPBot:
             BotLogger().get().debug(team)
             for dkp in team_data['dkp'].values():
                 dkp.set_inactive()
+                positive_entry_count = 0
                 history = self._get_history(dkp.name(), team)
                 if history and isinstance(history, list):
                     BotLogger().get().debug("history len {0} \n".format(len(history)))
                     for history_entry in history:
                         BotLogger().get().debug("dkp: {0} | now: {1} | timestamp: {2} | diff {3} ({4}) | {5} \n".format(history_entry.dkp(), now, history_entry.timestamp(), abs(now - history_entry.timestamp()), inactive_time, abs(now - history_entry.timestamp()) <= inactive_time))
                         if history_entry.dkp() > 0:
-                            dkp.set_latest_history_entry(history_entry)
+                            if positive_entry_count == 0:
+                                dkp.set_latest_history_entry(history_entry)
                             if abs(now - history_entry.timestamp()) <= inactive_time:
-                                dkp.set_active()
-                            break
+                                positive_entry_count = positive_entry_count +  1
+                                if positive_entry_count >= self.__POSITIVE_ENTRY_THRESHOLD:
+                                    dkp.set_active()
+                                    break
+                            else:
+                                break
 
     # This method handles response differently. ERROR status is printed also
     def build_database(self, input_string, info):
