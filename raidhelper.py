@@ -47,9 +47,14 @@ class RaidHelper:
         def initialize(self, endpoint, token):
             self.__token = token
             self.__endpoint = endpoint
+            self.__num_calls = 0
+
+        def stats(self):
+            return self.__num_calls
 
         def execute_query(self, target):
             try:
+                self.__num_calls = self.__num_calls + 1
                 response = requests.get(self.__endpoint + self.RAIDS_ENDPOINT + target, headers={
                                         "Authorization": "Bearer " + self.__token})
                 if response.status_code == 200:
