@@ -3,8 +3,9 @@ import re
 from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from player_role import RoleFilter
-from display_templates import BasicError, BasicInfo, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
+from display_templates import SupporterOnlyResponse, BasicError, BasicInfo, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
 from bot_logger import BotLogger
+from raidhelper import RaidHelper
 
 class EssentialDKPBot(DKPBot):
 
@@ -114,7 +115,7 @@ class EssentialDKPBot(DKPBot):
             for player in players:
                 player_info = self._get_dkp(player, team)
                 if player_info is None:
-                    return
+                    continue
                 self._add_history(player, PlayerDKPHistory(
                     player_info, dkp, timestamp, reason, index), team)
         elif isinstance(players, list) and isinstance(dkp, list):
@@ -129,6 +130,8 @@ class EssentialDKPBot(DKPBot):
                     continue
                 self._add_history(player, PlayerDKPHistory(
                     player_info, float(dkp.pop(0)), timestamp, reason, index), team)
+        else:
+            BotLogger().get().warning("Unexpected combination: type(players): {0} type(dkp): {1}".format(str(type(players)), str(type(dkp))))
 
     def _generate_player_info(self, entry):
         if entry is None:
@@ -450,17 +453,33 @@ class EssentialDKPBot(DKPBot):
         team = self._get_channel_team_mapping(request_info['channel']['id'])
 
         output_result_list = []
-        targets, aliases, original = self._parse_player_param(param)
+        targets, aliases, original, int_list = self._parse_player_param(param)
 
+        ## Smart Roles Filter preparation
         smart_roles_filter = None
         if self.smart_roles():
             smart_roles_filter = RoleFilter(aliases)
 
-        if len(targets) > 0:
+        ## Handle Raid-Helper integration
+        signed = []
+        if len(int_list) > 0:
+            for event_id in int_list:
+                if event_id > 0:
+                    raid_user_list = RaidHelper().get_event_signups(event_id)
+                    for raid_user in raid_user_list:
+                        # TODO Handles only mains for now
+                        signed.append(raid_user.main())
+        raid_helper_filter = (len(signed) > 0)
+
+        if len(targets) == len(int_list) and raid_helper_filter:
+            output_result_list = self.__get_dkp_target_results(team, signed, original, smart_roles_filter)
+        elif len(targets) > 0:
             output_result_list = self.__get_dkp_target_results(team, targets, original, smart_roles_filter)
+            if self.is_premium() and raid_helper_filter:
+                output_result_list = list(filter(lambda t: (t.name().lower() in signed), output_result_list))
         else:
             if not self.is_premium():
-                return Response(ResponseStatus.SUCCESS, BasicInfo("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
+                return Response(ResponseStatus.SUCCESS, SupporterOnlyResponse().get())
             else:
                 return Response(ResponseStatus.ERROR, BasicError("Unable to find data for {0}.".format(param)).get())
 
@@ -479,7 +498,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
-        targets, aliases, original = self._parse_player_param(param)
+        targets, aliases, original, int_list = self._parse_player_param(param)
         output_result_list = []
 
         if len(targets) > 0:
@@ -505,7 +524,7 @@ class EssentialDKPBot(DKPBot):
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
-        targets, aliases, original = self._parse_player_param(param)
+        targets, aliases, original, int_list = self._parse_player_param(param)
         output_result_list = []
 
         if len(targets) > 0:
@@ -529,7 +548,7 @@ class EssentialDKPBot(DKPBot):
 
     def call_raidloot(self, param, request_info):  # pylint: disable=unused-argument
         if not self.is_premium():
-            return Response(ResponseStatus.SUCCESS,BasicInfo("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
+            return Response(ResponseStatus.SUCCESS, SupporterOnlyResponse().get())
 
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
@@ -545,7 +564,7 @@ class EssentialDKPBot(DKPBot):
 
     def call_item(self, param, request_info):  # pylint: disable=unused-argument
         if not self.is_premium():
-            return Response(ResponseStatus.SUCCESS, BasicInfo("```css\nSupporter only command```\n Want your server to get access to the commands and support bot development? Check the instructions on discord - link below.").get())
+            return Response(ResponseStatus.SUCCESS, SupporterOnlyResponse().get())
 
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())

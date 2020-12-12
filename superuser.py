@@ -1,6 +1,7 @@
 from dkp_bot import Response, ResponseStatus, Statistics
 from bot_logger import BotLogger
-from display_templates import BasicError, BasicCritical
+from display_templates import BasicError, BasicCritical,BasicInfo
+from raidhelper import RaidHelper
 
 class Superuser:
     __su_id = 0
@@ -130,6 +131,7 @@ class Superuser:
         if len(global_command_stats) > 0:
             string += "```c\n"
             string += Statistics.format(global_command_stats.get(), -2)
+            string += "\nRaid-Helper: " + str(RaidHelper().stats())
             string += "```"
         else:
             string += "```asciidoc\n"
@@ -137,3 +139,10 @@ class Superuser:
             string += "```"
 
         return Response(ResponseStatus.SUCCESS, string)
+
+    def su_rhlist(self, param): # pylint: disable=unused-argument
+        raid_user_list = RaidHelper().get_event_signups(int(param.split(" ")[0]))
+        signed = []
+        for raid_user in raid_user_list:
+            signed.extend(raid_user.names)
+        return Response(ResponseStatus.SUCCESS, BasicInfo("\n".join(signed)).get())

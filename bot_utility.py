@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 import pytz
 
+SPLIT_DELIMITERS = ["#", "/", "\\", "|", ":", ";", "-", "(", ")", "[", "]"]
+
 def public_to_dict(obj, filter_callable=False):
     dictionary = {}
     public = filter(lambda x: not str(x).startswith("_"), dir(obj))
@@ -30,3 +32,29 @@ def timestamp_now(round_output = False):
         return int(now)
     else:
         return now
+
+def sanitize_name(name: str):
+    out_name = name
+    for delimiter in SPLIT_DELIMITERS:
+        out_name = out_name.replace(delimiter, "")
+    return out_name
+
+def split_names(name: str):
+    names_list = []
+    delimieter_found = False
+    for delimiter in SPLIT_DELIMITERS:
+        if name.find(delimiter) >= 0:
+            delimieter_found = True
+            for sub_name in name.split(delimiter):
+                names_list.append(sanitize_name(sub_name).strip().lower())
+    if not delimieter_found:
+        names_list.append(sanitize_name(name).strip().lower())
+
+    return names_list
+
+def get_all_names(name_list: list):
+    full_name_list = []
+    for name in name_list:
+        full_name_list.extend(split_names(name))
+
+    return full_name_list

@@ -3,6 +3,7 @@ import io
 import pickle
 import asyncio
 import pytz
+from configparser import ConfigParser
 
 import discord
 
@@ -14,8 +15,10 @@ from bot_config import BotConfig
 from bot_logger import BotLogger
 from display_templates import BasicSuccess, BasicError, BasicInfo, BasicCritical
 from loop_activity import LoopActivity
+from bot_utility import SPLIT_DELIMITERS
 import footprint
 import superuser
+import raidhelper
 
 MAX_ATTACHMENT_BYTES = 3145728 # 3MB
 
@@ -58,19 +61,32 @@ async def discord_update_activity():
         await asyncio.sleep(30)
 
 
+def get_config(filepath):
+    config = ConfigParser()
+    config.read(filepath)
+
+    section = "General"
+    token = config.get(section, 'token')
+    su_id = config.getint(section, 'su-id')
+    in_memory_objects_limit = config.get(section, 'in-memory-objects-limit')
+    section = "Directories"
+    config_dir = config.get(section, 'config')
+    storage_dir = config.get(section, 'storage')
+    log_dir = config.get(section, 'log')
+    section = "Raid-Helper"
+    raidhelper_api_endpoint = config.get(section, 'endpoint')
+    raidhelper_api_token = config.get(section, 'token')
+
+    return (token, config_dir, storage_dir, in_memory_objects_limit, log_dir, su_id, raidhelper_api_endpoint, raidhelper_api_token)
+
 # Main
 def main(control: ScriptControl):
-    token = sys.argv[1]
-    config_dir = sys.argv[2]
-    storage_dir = sys.argv[3]
-    in_memory_objects_limit = sys.argv[4]
-    log_dir = sys.argv[5]
-    su_id = int(sys.argv[6])
-
+    (token, config_dir, storage_dir, in_memory_objects_limit, log_dir, su_id, raidhelper_api_endpoint, raidhelper_api_token) = get_config(sys.argv[1])
     control.initialize(token, config_dir, storage_dir, in_memory_objects_limit)
     BotLogger().initialize(log_dir)
     super_user.initialize(su_id, bots)
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
+    raidhelper.RaidHelper().initialize(raidhelper_api_endpoint, raidhelper_api_token)
 
     client.loop.create_task(discord_update_activity())
     client.run(control.token)
@@ -109,7 +125,6 @@ def unpickle_data(uid):
     return data
 
 # Discord related
-SPLIT_DELIMITERS = ["#", "/", "\\", "|", ":", ";", "-"]
 
 def normalize_author(author):
     if isinstance(author, discord.Member):
@@ -402,6 +417,6 @@ async def on_message(message):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 7:
+    if len(sys.argv) != 2:
         sys.exit(1)
     main(script_control)

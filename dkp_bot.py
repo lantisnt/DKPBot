@@ -11,7 +11,7 @@ from bot_utility import timestamp_now, public_to_dict
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
 from display_templates import get_bot_color, get_bot_links, preformatted_block
-from display_templates import RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement, BasicInfo
+from display_templates import SupportReminder, RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement, BasicInfo
 
 class ResponseStatus(Enum):
     SUCCESS = 0
@@ -205,6 +205,8 @@ class Statistics():
 
 class DKPBot:
     DEFAULT_TEAM = "0"
+    REMINDER_FREQUENCY = 25
+    __POSITIVE_ENTRY_THRESHOLD = 2
     statistics = None
     __config = None
     __guild_id = 0
@@ -246,6 +248,7 @@ class DKPBot:
         self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^'\"]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
         self._channel_team_map = collections.OrderedDict()
         self.__db_loaded = False
+        self.__reminder_command_count = self.REMINDER_FREQUENCY
         self.__init_db_structure()
         self.statistics = Statistics()
 
@@ -464,9 +467,20 @@ class DKPBot:
         original = list(map(lambda x: x.strip().lower(), original))
         targets = list(map(lambda x: x.strip().lower(), targets))
         aliases = list(map(lambda x: x.strip().lower(), aliases))
+        # Int list
+        int_list = self._get_int_list(original)
 
-        return (targets, aliases, original)
+        return (targets, aliases, original, int_list)
 
+    def _get_int_list(self, original: list):
+        int_list = []
+        for param in original:
+            try:
+                param_int = int(param)
+                int_list.append(param_int)
+            except ValueError:
+                continue
+        return int_list
 
     def __get_command_parser(self):
         if not(self.__parser and isinstance(self.__parser, argparse.ArgumentParser)):
@@ -479,6 +493,25 @@ class DKPBot:
 #            self.__parser.add_argument('varargs', metavar='varargs', type=str,
 #                                       help='All other string values will be put here', nargs='*', default=None)
         return self.__parser
+
+    def __reminder_injection(self, response: Response):
+        if self.is_premium():
+            return response
+
+        if not isinstance(response, Response):
+            return response
+
+        if response.direct_message:
+            return response
+
+        self.__reminder_command_count = self.__reminder_command_count - 1
+        if self.__reminder_command_count == 0:
+            self.__reminder_command_count = self.REMINDER_FREQUENCY
+            if not isinstance(response.data, list):
+                response.data = [response.data]
+            response.data.append(SupportReminder().get())
+
+        return response
 
     def __parse_command(self, string):
         if string:
@@ -508,7 +541,7 @@ class DKPBot:
             response = callback(param, request_info)  # pylint: disable=not-callable
             self.statistics.commands[sanitized_command] = (1000 * (timestamp_now() - start)) # miliseconds
             response.direct_message = direct_message
-
+            response = self.__reminder_injection(response)
             return response
         elif sanitized_command.startswith('su_'):
             return Response(ResponseStatus.DELEGATE, (sanitized_command, param))
@@ -564,6 +597,14 @@ class DKPBot:
             for entry in team_data['dkp'].values():
                 team_dkp_data.append(entry)
             return team_dkp_data
+
+    def _search_dkp(self, player, team):
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            return None
+        players = team_data['dkp'].keys()
+        players = [p for p in players if p.lower().startswith(player)]
+        return players
 
     def _get_player_loot(self, player, team):
         team_data = self.__db['global'].get(team)
@@ -831,16 +872,22 @@ class DKPBot:
             BotLogger().get().debug(team)
             for dkp in team_data['dkp'].values():
                 dkp.set_inactive()
+                positive_entry_count = 0
                 history = self._get_history(dkp.name(), team)
                 if history and isinstance(history, list):
                     BotLogger().get().debug("history len {0} \n".format(len(history)))
                     for history_entry in history:
                         BotLogger().get().debug("dkp: {0} | now: {1} | timestamp: {2} | diff {3} ({4}) | {5} \n".format(history_entry.dkp(), now, history_entry.timestamp(), abs(now - history_entry.timestamp()), inactive_time, abs(now - history_entry.timestamp()) <= inactive_time))
                         if history_entry.dkp() > 0:
-                            dkp.set_latest_history_entry(history_entry)
+                            if positive_entry_count == 0:
+                                dkp.set_latest_history_entry(history_entry)
                             if abs(now - history_entry.timestamp()) <= inactive_time:
-                                dkp.set_active()
-                            break
+                                positive_entry_count = positive_entry_count +  1
+                                if positive_entry_count >= self.__POSITIVE_ENTRY_THRESHOLD:
+                                    dkp.set_active()
+                                    break
+                            else:
+                                break
 
     # This method handles response differently. ERROR status is printed also
     def build_database(self, input_string, info):
