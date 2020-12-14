@@ -695,6 +695,7 @@ class DKPBot:
         self.__db['global'][team]['dkp'][player.lower()] = entry
 
     def _add_loot(self, entry, team):
+        print("add_loot", team, entry)
         team_data = self.__db['global'].get(team)
         if team_data is None:
             self.__init_team_structure(team)
@@ -740,6 +741,7 @@ class DKPBot:
         return True
 
     def _add_player_loot(self, player, entry, team):
+        print("add_player_loot", player, team, entry)
         if not self._validate_player(player, team):
             return
 
@@ -772,6 +774,15 @@ class DKPBot:
             else:
                 for loot in team_data['player_loot'].values():
                     loot.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
+
+    def _add_history_to_all_players(self, entry, team):
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            self.__init_team_structure(team)
+            team_data = self.__db['global'].get(team)
+
+            for player in team_data:
+                self._add_history(player.name(), entry, team)
 
     def _add_history(self, player, entry, team):
         if not self._validate_player(player, team):
@@ -877,7 +888,12 @@ class DKPBot:
                 if history and isinstance(history, list):
                     BotLogger().get().debug("history len {0} \n".format(len(history)))
                     for history_entry in history:
-                        BotLogger().get().debug("dkp: {0} | now: {1} | timestamp: {2} | diff {3} ({4}) | {5} \n".format(history_entry.dkp(), now, history_entry.timestamp(), abs(now - history_entry.timestamp()), inactive_time, abs(now - history_entry.timestamp()) <= inactive_time))
+                        BotLogger().get().debug(
+                            "player {6} dkp: {0} | now: {1} | timestamp: {2} | diff {3} ({4}) | {5} \n".format(
+                                history_entry.dkp(), now, history_entry.timestamp(), 
+                                abs(now - history_entry.timestamp()), 
+                                inactive_time, abs(now - history_entry.timestamp()) <= inactive_time,
+                                history_entry.player().name()))
                         if history_entry.dkp() > 0:
                             if positive_entry_count == 0:
                                 dkp.set_latest_history_entry(history_entry)
@@ -1024,7 +1040,7 @@ class DKPBot:
             embed.add_field(":information_source: General", commands, True)
             commands  = "```{0}dkp #####```".format(self.__prefix)
             embed.add_field(":crossed_swords: DKP", commands, True)
-            commands  = "```{0}dkphistory player```".format(self.__prefix)
+            commands  = "```{0}history player```".format(self.__prefix)
             commands += "```{0}loot player```".format(self.__prefix)
             embed.add_field(":scroll: History", commands, True)
             commands  = "```{0}raidloot```".format(self.__prefix)
@@ -1055,13 +1071,15 @@ class DKPBot:
                     preformatted_block("{0}dkp class/alias/player\nExamples:\n{0}dkp hunter tanks joe\n{0}dkp rogue druid\n{0}dkp joe andy".format(self.get_prefix()), ''))
                 help_string += preformatted_block('Supported aliases:\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee', '')
                 help_string += preformatted_block('Supporter only command', 'css')
+                help_string += 'Display summary information for players signed to `raidid` event in `Raid-Helper` bot.\n{0}\n'.format(
+                preformatted_block(self.get_prefix() + "dkp raidid", ''))
                 embed.add_field("DKP", help_string, False)
             # History
             if 'history' in params:
                 help_string = 'Display DKP history for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "dkphistory", ''))
+                    preformatted_block(self.get_prefix() + "history", ''))
                 help_string += 'Display DKP history  for specified `player`.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "dkphistory player", ''))
+                    preformatted_block(self.get_prefix() + "history player", ''))
                 help_string += 'Display latest loot for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "loot", ''))
                 help_string += 'Display latest loot  for specified `player`.\n{0}\n'.format(
@@ -1419,3 +1437,8 @@ class DKPBot:
             return self.__generic_response(success, "block-response-modifier", params[1])
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
+
+    def call_dbdump(self, param, request_info):
+        import pprint
+        with open("dump.txt", "w") as fout:
+            fout.write(pprint.pformat(self.__db))

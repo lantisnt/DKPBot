@@ -26,7 +26,7 @@ class EssentialDKPBot(DKPBot):
     def __init__(self, guild_id, config):
         super().__init__(guild_id, config)
         # Matches either a,b,c,d or A / B or A \ B
-        self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)")  # pylint: disable=anomalous-backslash-in-string
+        self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)", re.I)  # pylint: disable=anomalous-backslash-in-string
         self._configure()
     ###
 
@@ -97,6 +97,9 @@ class EssentialDKPBot(DKPBot):
         return self._multiple_item_search_output_builder.build(output_result_list).get()
 
     ### Database - Variables parsing ###
+
+    def _get_item_id_name(self, loot):
+        return list(filter(None, self.__item_id_name_find.findall(loot)))  # [0] -> id [1] -> name
 
     def _fill_history(self, players, dkp, timestamp, reason, index, team):
         if not players:
@@ -202,7 +205,7 @@ class EssentialDKPBot(DKPBot):
         if not isinstance(loot, str):
             return None
 
-        item_info = list(filter(None, self.__item_id_name_find.findall(loot)))  # [0] -> id [1] -> name
+        item_info = self._get_item_id_name(loot)
 
         if not item_info or not isinstance(item_info, list) or len(item_info) != 1:
             BotLogger().get().warning("ERROR in entry: " + str(player.player()) + " " + str(date) + " " + str(cost) + " " + str(loot))
@@ -494,7 +497,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_dkphistory(self, param, request_info):  # pylint: disable=unused-argument
+    def call_history(self, param, request_info):  # pylint: disable=unused-argument
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
 
@@ -541,7 +544,7 @@ class EssentialDKPBot(DKPBot):
         if len(output_result_list) > 0:
             data = self.__build_player_loot_output_multiple(output_result_list)
         else:
-            data = BasicError("{0}'s DKP loot was not found in database.".format(
+            data = BasicError("{0}'s loot was not found in database.".format(
                 param.capitalize())).get()
 
         return Response(ResponseStatus.SUCCESS, data)

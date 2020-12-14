@@ -1,3 +1,4 @@
+import sys
 import logging
 
 class BotLogger():
@@ -10,6 +11,9 @@ class BotLogger():
             self.file_handler.setFormatter(self.formatter)
             self.logger.addHandler(self.file_handler)
             self.logger.setLevel(logging.INFO)
+            self.handler = logging.StreamHandler(sys.stdout)
+            self.logger.addHandler(self.handler)
+            #self.logger.setLevel(logging.DEBUG)
 
         def get(self):
             return self.logger

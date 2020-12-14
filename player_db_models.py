@@ -8,8 +8,8 @@ class PlayerInfo:
     __lifetime_spent = 0
     __ingame_class = ""
     __smart_role = None
-    __latest_loot_entry = None
-    __latest_history_entry = None
+    _latest_loot_entry = None
+    _latest_history_entry = None
     __active = True
 
     def __init__(self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role, spec):
@@ -55,17 +55,17 @@ class PlayerInfo:
 
     def set_latest_loot_entry(self, loot_entry):
         if loot_entry and isinstance(loot_entry, PlayerLoot):
-            self.__latest_loot_entry = loot_entry
+            self._latest_loot_entry = loot_entry
 
     def get_latest_loot_entry(self):
-        return self.__latest_loot_entry
+        return self._latest_loot_entry
 
     def set_latest_history_entry(self, history_entry):
         if history_entry and isinstance(history_entry, PlayerDKPHistory):
-            self.__latest_history_entry = history_entry
+            self._latest_history_entry = history_entry
 
     def get_latest_history_entry(self):
-        return self.__latest_history_entry
+        return self._latest_history_entry
 
     def __str__(self):
         return "{0} ({1} - {6}) {2} ({3}/{4}) DKP | Active: {5}\n".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent(), self.__active, self.__smart_role)
@@ -119,6 +119,15 @@ class PlayerInfoEPGP(PlayerInfo):
     def gp(self):
         return self.lifetime_gained()
 
+    def set_latest_loot_entry(self, loot_entry):
+        if loot_entry and isinstance(loot_entry, PlayerLootEPGP):
+            self._latest_loot_entry = loot_entry
+
+    def set_latest_history_entry(self, history_entry):
+        if history_entry and isinstance(history_entry, PlayerEPGPHistory):
+            print("set_latest_history_entry: ", str(history_entry))
+            self._latest_history_entry = history_entry
+            print("LHE: ", str(self._latest_history_entry))
     def __str__(self):
         return "{0}: {1} EP {2} GP\n".format(self.name(), self.ep(), self.gp())
 
@@ -130,8 +139,9 @@ class PlayerLoot:
     __timestamp = 0
 
     def __init__(self, player, item_id, item_name, dkp, timestamp):
-        if not isinstance(player, PlayerInfo): #Workaround as we expect player to be connected to the Player
-            player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN")
+        if not isinstance(player, (PlayerInfo, PlayerInfoEPGP)): #Workaround as we expect player to be connected to the Player
+           player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
+           print("Abnormal player genreation:", str(player))
         self.__player = player
         self.__item_id = int(item_id)
         self.__item_name = str(item_name)
@@ -164,8 +174,8 @@ class PlayerLoot:
 
 class PlayerLootEPGP(PlayerLoot):
     
-    def gp():
-        return self.lifetime_gained()
+    def gp(self):
+        return self.dkp()
 
 class PlayerDKPHistory:
     __player = ""
@@ -175,8 +185,9 @@ class PlayerDKPHistory:
     __officer = ""
 
     def __init__(self, player, dkp, timestamp, reason, index):
-        if not isinstance(player, PlayerInfo): #Workaround as we expect player to be connected to the Player DKP
-            player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN")
+        if not isinstance(player, (PlayerInfo, PlayerInfoEPGP)): #Workaround as we expect player to be connected to the Player DKP
+            player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
+            print("Abnormal player genreation:", str(player))
         self.__player = player
         self.__dkp = float(dkp)
         self.__timestamp = int(timestamp)
@@ -239,3 +250,19 @@ class PlayerDKPHistory:
     #     if isinstance(other, PlayerDKPHistory):
     #         other = other.dkp()
     #     return self.dkp() >= other
+
+
+class PlayerEPGPHistory(PlayerDKPHistory):
+    def __init__(self, player, ep, gp, is_percentage, timestamp, reason, officer):
+        super().__init__(player, ep, timestamp, reason, officer)
+        self.__gp = float(gp)
+        self.__is_percentage = bool(is_percentage)
+
+    def ep(self):
+        return self.dkp()
+
+    def gp(self):
+        return self.__gp
+
+    def is_percentage(self):
+        return is_percentage

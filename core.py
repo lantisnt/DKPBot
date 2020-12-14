@@ -298,7 +298,6 @@ async def spawn_bot(guild):
         return False
 
 async def handle_bot_response(message: discord.Message, request_info: dict, response: dkp_bot.Response):
-    print(response.data)
     if response and isinstance(response, dkp_bot.Response):
         ## SUCCESS
         if response.status == dkp_bot.ResponseStatus.SUCCESS:
