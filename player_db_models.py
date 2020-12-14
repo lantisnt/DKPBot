@@ -125,9 +125,7 @@ class PlayerInfoEPGP(PlayerInfo):
 
     def set_latest_history_entry(self, history_entry):
         if history_entry and isinstance(history_entry, PlayerEPGPHistory):
-            print("set_latest_history_entry: ", str(history_entry))
             self._latest_history_entry = history_entry
-            print("LHE: ", str(self._latest_history_entry))
     def __str__(self):
         return "{0}: {1} EP {2} GP\n".format(self.name(), self.ep(), self.gp())
 
@@ -141,7 +139,6 @@ class PlayerLoot:
     def __init__(self, player, item_id, item_name, dkp, timestamp):
         if not isinstance(player, (PlayerInfo, PlayerInfoEPGP)): #Workaround as we expect player to be connected to the Player
            player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
-           print("Abnormal player genreation:", str(player))
         self.__player = player
         self.__item_id = int(item_id)
         self.__item_name = str(item_name)
@@ -187,7 +184,6 @@ class PlayerDKPHistory:
     def __init__(self, player, dkp, timestamp, reason, index):
         if not isinstance(player, (PlayerInfo, PlayerInfoEPGP)): #Workaround as we expect player to be connected to the Player DKP
             player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
-            print("Abnormal player genreation:", str(player))
         self.__player = player
         self.__dkp = float(dkp)
         self.__timestamp = int(timestamp)

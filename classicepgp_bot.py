@@ -41,50 +41,6 @@ class CEPGPBot(EssentialDKPBot):
 
         self._update_views_info()
 
-    ### Display ###
-
-    def __build_epgp_output_single(self, info):
-        if not info or not isinstance(info, PlayerInfoEPGP):
-            return None
-
-        return self._single_player_profile_builder.build(info, None).get()
-
-    def __build_epgp_output_multiple(self, output_result_list, requester):
-        if not output_result_list or not isinstance(output_result_list, list):
-            return None
-
-        if not requester:
-            requester = ""
-
-        return self._multiple_dkp_output_builder.build(output_result_list, requester).get()
-
-    def __build_history_output_multiple(self, output_result_list, requester):
-        if not output_result_list or not isinstance(output_result_list, list):
-            return None
-
-        if not requester:
-            requester = ""
-
-        return self._multiple_history_output_builder.build(output_result_list, requester).get()
-
-    def __build_player_loot_output_multiple(self, output_result_list):
-        if not output_result_list or not isinstance(output_result_list, list):
-            return None
-
-        return self._multiple_player_loot_output_builder.build(output_result_list).get()
-
-    def __build_loot_output_multiple(self, output_result_list):
-        if not output_result_list or not isinstance(output_result_list, list):
-            return None
-
-        return self._multiple_loot_output_builder.build(output_result_list).get()
-
-    def __build_item_search_output_multiple(self, output_result_list):
-        if not output_result_list or not isinstance(output_result_list, list):
-            return None
-
-        return self._multiple_item_search_output_builder.build(output_result_list).get()
-
     ### Database - Variables parsing ###
 
     def _generate_player_info(self, player, data):
@@ -117,9 +73,7 @@ class CEPGPBot(EssentialDKPBot):
         is_target_raid = target.lower() == 'raid'
 
         # Check for item id and name to see if we have Loot Entry
-        print(item_link)
         item_info = self._get_item_id_name(item_link)
-        print(item_info)
         if item_info and isinstance(item_info, list) and len(item_info) == 1:
             if item_info[0] and isinstance(item_info[0], tuple) and len(item_info[0]) == 2:
                 # We have found 1 item entry in ItemLink
@@ -242,21 +196,6 @@ class CEPGPBot(EssentialDKPBot):
     # Called 4th
     def _build_history_database(self, saved_variable):
         return True # This is being handled within loot database as all is based on traffic
-
-    def _update_views_info(self):
-        # ## Database
-        self._single_player_profile_builder.set_database_info(
-            self._db_get_info())
-        self._multiple_dkp_output_builder.set_database_info(
-            self._db_get_info())
-        self._multiple_history_output_builder.set_database_info(
-            self._db_get_info())
-        self._multiple_player_loot_output_builder.set_database_info(
-            self._db_get_info())
-        self._multiple_loot_output_builder.set_database_info(
-            self._db_get_info())
-        self._multiple_item_search_output_builder.set_database_info(
-            self._db_get_info())
         
     def call_dkp(self, param, request_info):
         return Response(ResponseStatus.IGNORE)
@@ -279,36 +218,12 @@ class CEPGPBot(EssentialDKPBot):
                     output_result_list.append(info)
 
         if len(output_result_list) == 1:
-            data = self.__build_epgp_output_single(output_result_list[0])
+            data = self._build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
             output_result_list.sort(key=lambda info: info.dkp(), reverse=True)
-            data = self.__build_epgp_output_multiple(output_result_list, request_info['author']['name'])
+            data = self._build_dkp_output_multiple(output_result_list, request_info['author']['name'])
         else:
-            data = BasicError("{0}'s DKP was not found in database.".format(
-                param.capitalize())).get()
-
-        return Response(ResponseStatus.SUCCESS, data)
-
-    def call_epgphistory(self, param, request_info):  # pylint: disable=unused-argument
-        if not self.is_database_loaded():
-            return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
-
-        targets, aliases, original, int_list = self._parse_player_param(param)
-        output_result_list = []
-
-        for target in targets:
-            # Single player
-            info = self._get_history(target, self.DEFAULT_TEAM)
-            if info and isinstance(info, list):
-                output_result_list = info
-                break  # Yes single only
-            else:
-                return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
-
-        if len(output_result_list) > 0:
-            data = self.__build_history_output_multiple(output_result_list, request_info['author']['name'])
-        else:
-            data = BasicError("{0}'s EPGP history was not found in database.".format(
+            data = BasicError("{0}'s was not found in database.".format(
                 param.capitalize())).get()
 
         return Response(ResponseStatus.SUCCESS, data)

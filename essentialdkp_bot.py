@@ -57,13 +57,13 @@ class EssentialDKPBot(DKPBot):
 
         self._update_views_info()
 
-    def __build_dkp_output_single(self, info):
+    def _build_dkp_output_single(self, info):
         if not info or not isinstance(info, PlayerInfo):
             return None
 
         return self._single_player_profile_builder.build(info, info.ingame_class()).get()
 
-    def __build_dkp_output_multiple(self, output_result_list, requester):
+    def _build_dkp_output_multiple(self, output_result_list, requester):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
@@ -72,25 +72,25 @@ class EssentialDKPBot(DKPBot):
 
         return self._multiple_dkp_output_builder.build(output_result_list, requester).get()
 
-    def __build_history_output_multiple(self, output_result_list):
+    def _build_history_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
         return self._multiple_history_output_builder.build(output_result_list).get()
 
-    def __build_player_loot_output_multiple(self, output_result_list):
+    def _build_player_loot_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
         return self._multiple_player_loot_output_builder.build(output_result_list).get()
 
-    def __build_loot_output_multiple(self, output_result_list):
+    def _build_loot_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
         return self._multiple_loot_output_builder.build(output_result_list).get()
 
-    def __build_item_search_output_multiple(self, output_result_list):
+    def _build_item_search_output_multiple(self, output_result_list):
         if not output_result_list or not isinstance(output_result_list, list):
             return None
 
@@ -487,12 +487,12 @@ class EssentialDKPBot(DKPBot):
                 return Response(ResponseStatus.ERROR, BasicError("Unable to find data for {0}.".format(param)).get())
 
         if len(output_result_list) == 1:
-            data = self.__build_dkp_output_single(output_result_list[0])
+            data = self._build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
             output_result_list.sort(key=lambda info: info.dkp(), reverse=True)
-            data = self.__build_dkp_output_multiple(output_result_list, request_info['author']['name'])
+            data = self._build_dkp_output_multiple(output_result_list, request_info['author']['name'])
         else:
-            data = BasicError("{0}'s DKP was not found in database.".format(
+            data = BasicError("{0}'s was not found in database.".format(
                 param.capitalize())).get()
 
         return Response(ResponseStatus.SUCCESS, data)
@@ -516,9 +516,9 @@ class EssentialDKPBot(DKPBot):
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
 
         if len(output_result_list) > 0:
-            data = self.__build_history_output_multiple(output_result_list)
+            data = self._build_history_output_multiple(output_result_list)
         else:
-            data = BasicError("{0}'s DKP history was not found in database.".format(
+            data = BasicError("{0}'s history was not found in database.".format(
                 param.capitalize())).get()
 
         return Response(ResponseStatus.SUCCESS, data)
@@ -542,7 +542,7 @@ class EssentialDKPBot(DKPBot):
             return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
 
         if len(output_result_list) > 0:
-            data = self.__build_player_loot_output_multiple(output_result_list)
+            data = self._build_player_loot_output_multiple(output_result_list)
         else:
             data = BasicError("{0}'s loot was not found in database.".format(
                 param.capitalize())).get()
@@ -559,9 +559,9 @@ class EssentialDKPBot(DKPBot):
         output_result_list = self._get_loot(self._get_channel_team_mapping(request_info['channel']['id']))
 
         if len(output_result_list) > 0:
-            data = self.__build_loot_output_multiple(output_result_list)
+            data = self._build_loot_output_multiple(output_result_list)
         else:
-            data = BasicError("Unable to find data loot data.").get()
+            data = BasicError("Unable to find loot data.").get()
 
         return Response(ResponseStatus.SUCCESS, data)
 
@@ -578,7 +578,7 @@ class EssentialDKPBot(DKPBot):
         output_result_list = self._find_loot(param, self._get_channel_team_mapping(request_info['channel']['id']))
 
         if len(output_result_list) > 0:
-            data = self.__build_item_search_output_multiple(output_result_list)
+            data = self._build_item_search_output_multiple(output_result_list)
         else:
             data = BasicError("No loot matching `{0}` found.".format(param)).get()
 

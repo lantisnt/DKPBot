@@ -695,7 +695,6 @@ class DKPBot:
         self.__db['global'][team]['dkp'][player.lower()] = entry
 
     def _add_loot(self, entry, team):
-        print("add_loot", team, entry)
         team_data = self.__db['global'].get(team)
         if team_data is None:
             self.__init_team_structure(team)
@@ -741,7 +740,6 @@ class DKPBot:
         return True
 
     def _add_player_loot(self, player, entry, team):
-        print("add_player_loot", player, team, entry)
         if not self._validate_player(player, team):
             return
 
