@@ -196,11 +196,12 @@ class CEPGPBot(EssentialDKPBot):
     # Called 4th
     def _build_history_database(self, saved_variable):
         return True # This is being handled within loot database as all is based on traffic
-        
+
+    ### CEPGP commands ###
+
     def call_dkp(self, param, request_info):
         return Response(ResponseStatus.IGNORE)
 
-    ### CEPGP commands ###
     def call_epgp(self, param, request_info):  # pylint: disable=unused-argument
         if not self.is_database_loaded():
             return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
@@ -220,7 +221,7 @@ class CEPGPBot(EssentialDKPBot):
         if len(output_result_list) == 1:
             data = self._build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
-            output_result_list.sort(key=lambda info: info.dkp(), reverse=True)
+            output_result_list.sort(key=lambda info: info.ep(), reverse=True)
             data = self._build_dkp_output_multiple(output_result_list, request_info['author']['name'])
         else:
             data = BasicError("{0}'s was not found in database.".format(

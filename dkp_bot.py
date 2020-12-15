@@ -1024,7 +1024,7 @@ class DKPBot:
         params = self._parse_param(param)
         num_params = len(params)
         embed = RawEmbed()
-        supported_groups = ['general', 'dkp', 'history', 'items', 'administration']
+        supported_groups = ['general', 'standings', 'history', 'items', 'administration']
         if num_params == 0 or ((num_params == 1) and ((params[0] not in supported_groups) or (params[0] == 'administration' and not request_info['is_privileged']))):
             embed.build(None, "Help", "WoW DKP Bot allows querying DKP standings, history and loot data directly through the discord.\n"
                     "All commands and values are case insensitive.\n\n"
@@ -1037,7 +1037,8 @@ class DKPBot:
             commands += "```{0}info```".format(self.__prefix)
             embed.add_field(":information_source: General", commands, True)
             commands  = "```{0}dkp #####```".format(self.__prefix)
-            embed.add_field(":crossed_swords: DKP", commands, True)
+            commands += "```{0}epgp #####```".format(self.__prefix)
+            embed.add_field(":crossed_swords: Standings", commands, True)
             commands  = "```{0}history player```".format(self.__prefix)
             commands += "```{0}loot player```".format(self.__prefix)
             embed.add_field(":scroll: History", commands, True)
@@ -1057,8 +1058,8 @@ class DKPBot:
                 help_string  = 'Display this help. You can also get it by @mentioning the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "help", ''))
                 help_string += 'Get basic information about the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "info", ''))
                 embed.add_field("General", help_string, False)
-            # DKP
-            if 'dkp' in params:
+            # Standings
+            if 'standings' in params:
                 help_string  = 'Display summary information for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
                     preformatted_block(self.get_prefix() + "dkp", ''))
                 help_string += 'Display summary information for specified `player`.\n{0}\n'.format(
@@ -1068,10 +1069,10 @@ class DKPBot:
                 help_string += 'Display current DKP for as many players, classes or aliases mixed together as you wish.\n{0}'.format(
                     preformatted_block("{0}dkp class/alias/player\nExamples:\n{0}dkp hunter tanks joe\n{0}dkp rogue druid\n{0}dkp joe andy".format(self.get_prefix()), ''))
                 help_string += preformatted_block('Supported aliases:\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee', '')
-                help_string += preformatted_block('Supporter only command', 'css')
-                help_string += 'Display summary information for players signed to `raidid` event in `Raid-Helper` bot.\n{0}\n'.format(
+                help_string += preformatted_block('Supporter only command', 'css') + "\n"
+                help_string += 'Display summary information for players signed to `raidid` event in `Raid-Helper` bot. Supporters can also use it in conjunction with above mixnis.\n{0}\n'.format(
                 preformatted_block(self.get_prefix() + "dkp raidid", ''))
-                embed.add_field("DKP", help_string, False)
+                embed.add_field("Standings", help_string, False)
             # History
             if 'history' in params:
                 help_string = 'Display DKP history for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
@@ -1113,7 +1114,6 @@ class DKPBot:
         embed.add_field("\u200b", info_string, False)
         info_string = "If you want to become supporter and get access to `supporter only commands` or you need help configuring the bot checkout the {0}.\n\n".format(SUPPORT_SERVER)
         embed.add_field("\u200b", info_string, False)
-        #embed.add_field("\u200b", info_string, False)
         # Pseudo-Footer: Discord link
         embed.add_field("\u200b", get_bot_links(), False)
         return Response(ResponseStatus.SUCCESS, embed.get())
