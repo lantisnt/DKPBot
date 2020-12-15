@@ -3,9 +3,9 @@ from enum import Enum
 from dkp_bot import DKPBot, Response, ResponseStatus
 from essentialdkp_bot import EssentialDKPBot
 from player_db_models import PlayerInfoEPGP, PlayerEPGPHistory, PlayerLootEPGP
-from display_templates import BasicError, BasicCritical, BasicAnnouncement, BasicInfo, BasicSuccess
+from display_templates import preformatted_block, get_bot_color, get_bot_links, SUPPORT_SERVER
+from display_templates import RawEmbed, BasicError, BasicCritical, BasicAnnouncement, BasicInfo, BasicSuccess
 from display_templates_epgp import SinglePlayerProfile, MultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
-
 class CEPGPBot(EssentialDKPBot):
 
     _SV = "CEPGP"
@@ -199,6 +199,24 @@ class CEPGPBot(EssentialDKPBot):
 
     ### CEPGP commands ###
 
+    def call_info(self, param, request_info): # pylint: disable=unused-argument
+        embed = RawEmbed()
+        embed.build(None, "Info", None, None, get_bot_color(), None)
+        info_string  = "WoW DKP Bot allows querying DKP/EPGP standings, history and loot data directly through the discord."
+        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP`, `CommunityDKP` and `CEPGP` to a discord channel.\n"
+        embed.add_field("\u200b", info_string, False)
+        info_string = "Due to many possible usages of the addons and discord limitations bot data may exceed maxium accetable size. To mitigate this issue extensive `display` configuration is available to tweak response sizes."
+        embed.add_field("\u200b", info_string, False)
+        info_string = "For bot to work properly you will need to upload saved variable file of your addon every time you want to update the data."
+        embed.add_field("\u200b", info_string, False)
+        info_string = "Due to holding current standings in Officer Notes `CEPGP` requires one additional step before: do an ingame backup named `bot` and `/reload` before uploading the file."
+        embed.add_field("\u200b", info_string, False)
+        info_string = "If you want to become supporter and get access to `supporter only commands` or you need help configuring the bot checkout the {0}.\n\n".format(SUPPORT_SERVER)
+        embed.add_field("\u200b", info_string, False)
+        # Pseudo-Footer: Discord link
+        embed.add_field("\u200b", get_bot_links(), False)
+        return Response(ResponseStatus.SUCCESS, embed.get())
+
     def call_dkp(self, param, request_info):
         return Response(ResponseStatus.IGNORE)
 
@@ -228,3 +246,23 @@ class CEPGPBot(EssentialDKPBot):
                 param.capitalize())).get()
 
         return Response(ResponseStatus.SUCCESS, data)
+
+    ### Help handlers ###
+
+    def _help_internal(self, is_privileged):
+        return Response(ResponseStatus.SUCCESS, self._build_help_internal(is_privileged, 'epgp'))
+
+    def help_call_dkp(self, is_privileged): # pylint: disable=unused-argument
+        return self._help_internal(is_privileged)
+
+    def help_call_epgp(self, is_privileged): # pylint: disable=unused-argument
+        help_string  = 'Display summary information for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "epgp", ''))
+        help_string += 'Display summary information for specified `player`.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "epgp player", ''))
+        help_string += 'Display dkp list for all active players.\nPlayers are assumed active if they gained positive EP within last 45 days.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "epgp all", ''))
+        help_string += 'Display summary information for players signed to `raidid` event in `Raid-Helper` bot.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "epgp raidid", ''))
+
+        return Response(ResponseStatus.SUCCESS, self._help_handler_internal("EPGP", help_string))
