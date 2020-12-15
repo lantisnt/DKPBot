@@ -1115,7 +1115,7 @@ class DKPBot:
             string = "Set bot type to handle specified addon\n"
             string += preformatted_block("Usage:     {0}config bot-type Type\n".format(self.__prefix))
             string += preformatted_block("Current:   {0}\n".format(self.__config.guild_info.bot_type.lower()))
-            string += preformatted_block("Supported: essential monolith community")
+            string += preformatted_block("Supported: essential monolith community cepgp")
             embed.add_field("bot-type", string, False)
             # server-side
             string = "Set ingame server and side data required by some addons\n"
