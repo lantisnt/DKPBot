@@ -584,10 +584,19 @@ class DKPBot:
         return
 
     def _get_dkp(self, player, team):
-        team_data = self.__db['global'].get(team)
-        if team_data is None:
-            return None
-        return team_data['dkp'].get(player.lower())
+            team_data = self.__db['global'].get(team)
+            if team_data is None:
+                return None
+            return team_data['dkp'].get(player.lower())
+
+    def _get_team_dkp(self, team):
+            team_data = self.__db['global'].get(team)
+            if team_data is None:
+                return None
+            team_dkp_data = []
+            for entry in team_data['dkp'].values():
+                team_dkp_data.append(entry)
+            return team_dkp_data
 
     def _search_dkp(self, player, team):
         team_data = self.__db['global'].get(team)
@@ -764,6 +773,15 @@ class DKPBot:
                 for loot in team_data['player_loot'].values():
                     loot.sort(key=lambda info: info.timestamp(), reverse=bool(newest))
 
+    def _add_history_to_all_players(self, entry, team):
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            self.__init_team_structure(team)
+            team_data = self.__db['global'].get(team)
+
+            for player in team_data:
+                self._add_history(player.name(), entry, team)
+
     def _add_history(self, player, entry, team):
         if not self._validate_player(player, team):
             return
@@ -868,7 +886,12 @@ class DKPBot:
                 if history and isinstance(history, list):
                     BotLogger().get().debug("history len {0} \n".format(len(history)))
                     for history_entry in history:
-                        BotLogger().get().debug("dkp: {0} | now: {1} | timestamp: {2} | diff {3} ({4}) | {5} \n".format(history_entry.dkp(), now, history_entry.timestamp(), abs(now - history_entry.timestamp()), inactive_time, abs(now - history_entry.timestamp()) <= inactive_time))
+                        BotLogger().get().debug(
+                            "player {6} dkp: {0} | now: {1} | timestamp: {2} | diff {3} ({4}) | {5} \n".format(
+                                history_entry.dkp(), now, history_entry.timestamp(), 
+                                abs(now - history_entry.timestamp()), 
+                                inactive_time, abs(now - history_entry.timestamp()) <= inactive_time,
+                                history_entry.player().name()))
                         if history_entry.dkp() > 0:
                             if positive_entry_count == 0:
                                 dkp.set_latest_history_entry(history_entry)
@@ -995,100 +1018,75 @@ class DKPBot:
 
         return string.rstrip(", ")
 
+    def _build_help_internal(self, is_privileged, standings):
+        embed = RawEmbed()
+        embed.build(None, "Help", "WoW DKP Bot allows querying DKP/EPGP standings, history and loot data directly through the discord.\n"
+                "All commands and values are case insensitive.\n\n"
+                "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM.\n"
+                "Request will be removed by the bot afterwards.\n\n"
+                "To get more information on supported commands type"
+                "```{0}help group (e.g. {0}help {1})```"
+                "Supported command groups:".format(self.__prefix, standings.lower()), None, get_bot_color(), None)
+        commands  = "```{0}help```".format(self.__prefix)
+        commands += "```{0}info```".format(self.__prefix)
+        embed.add_field(":information_source: General", commands, True)
+        commands  = "```{0}{1} #####```".format(self.__prefix, standings.lower())
+        embed.add_field(":crossed_swords: {0}".format(standings.upper()), commands, True)
+        commands  = "```{0}history player```".format(self.__prefix)
+        commands += "```{0}loot player```".format(self.__prefix)
+        embed.add_field(":scroll: History", commands, True)
+        commands  = "```{0}raidloot```".format(self.__prefix)
+        commands += "```{0}item```".format(self.__prefix)
+        commands += preformatted_block('Supporter only commands', 'css')
+        embed.add_field(":mag: Items", commands, True)
+        if is_privileged:
+            commands  = "```{0}config```".format(self.__prefix)
+            commands += "```{0}display```".format(self.__prefix)
+            embed.add_field(":a:  Administration", commands, False)
+        embed.add_field("\u200b", get_bot_links(), False)
+        return embed.get()
+
+    def _help_internal(self, is_privileged):
+        return Response(ResponseStatus.SUCCESS, self._build_help_internal(is_privileged, 'dkp'))
+
+    def _help_handler_internal(self, title, help_string):
+        embed = RawEmbed()
+        embed.build(None, "Commands", None, None, get_bot_color(), None)
+        embed.add_field(title, help_string, False)
+        # Pseudo-Footer: Discord link
+        embed.add_field("\u200b", get_bot_links(), False)
+        return embed.get()
+
     ### Command callbacks ###
 
     def call_help(self, param, request_info):  # pylint: disable=unused-argument
         params = self._parse_param(param)
         num_params = len(params)
-        embed = RawEmbed()
-        supported_groups = ['general', 'dkp', 'history', 'items', 'administration']
-        if num_params == 0 or ((num_params == 1) and ((params[0] not in supported_groups) or (params[0] == 'administration' and not request_info['is_privileged']))):
-            embed.build(None, "Help", "WoW DKP Bot allows querying DKP standings, history and loot data directly through the discord.\n"
-                    "All commands and values are case insensitive.\n\n"
-                    "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM.\n"
-                    "Request will be removed by the bot afterwards.\n\n"
-                    "To get more information on supported commands type"
-                    "```{0}help group (e.g. {0}help dkp)```"
-                    "Supported command groups:".format(self.__prefix), None, get_bot_color(), None)
-            commands  = "```{0}help```".format(self.__prefix)
-            commands += "```{0}info```".format(self.__prefix)
-            embed.add_field(":information_source: General", commands, True)
-            commands  = "```{0}dkp #####```".format(self.__prefix)
-            embed.add_field(":crossed_swords: DKP", commands, True)
-            commands  = "```{0}dkphistory player```".format(self.__prefix)
-            commands += "```{0}loot player```".format(self.__prefix)
-            embed.add_field(":scroll: History", commands, True)
-            commands  = "```{0}raidloot```".format(self.__prefix)
-            commands += "```{0}item```".format(self.__prefix)
-            commands += preformatted_block('Supporter only commands', 'css')
-            embed.add_field(":mag: Items", commands, True)
-            if request_info['is_privileged']:
-                commands  = "```{0}config```".format(self.__prefix)
-                commands += "```{0}display```".format(self.__prefix)
-                embed.add_field(":a:  Administration", commands, False)
 
+        if num_params == 0:
+            return self._help_internal(request_info['is_privileged'])
+
+        command = params[0]
+
+        method = "help_call_" + command.replace("-", "_").lower()
+        callback = getattr(self, method, None)
+        if callback and callable(callback):
+            return callback(request_info['is_privileged'])
         else:
-            embed.build(None, "Commands", None, None, get_bot_color(), None)
-            # General
-            if 'general' in params:
-                help_string  = 'Display this help. You can also get it by @mentioning the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "help", ''))
-                help_string += 'Get basic information about the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "info", ''))
-                embed.add_field("General", help_string, False)
-            # DKP
-            if 'dkp' in params:
-                help_string  = 'Display summary information for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "dkp", ''))
-                help_string += 'Display summary information for specified `player`.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "dkp player", ''))
-                help_string += 'Display dkp list for all active players.\nPlayers are assumed active if they gained positive DKP within last 45 days.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "dkp all", ''))
-                help_string += 'Display current DKP for as many players, classes or aliases mixed together as you wish.\n{0}'.format(
-                    preformatted_block("{0}dkp class/alias/player\nExamples:\n{0}dkp hunter tanks joe\n{0}dkp rogue druid\n{0}dkp joe andy".format(self.get_prefix()), ''))
-                help_string += preformatted_block('Supported aliases:\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee', '')
-                help_string += preformatted_block('Supporter only command', 'css')
-                embed.add_field("DKP", help_string, False)
-            # History
-            if 'history' in params:
-                help_string = 'Display DKP history for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "dkphistory", ''))
-                help_string += 'Display DKP history  for specified `player`.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "dkphistory player", ''))
-                help_string += 'Display latest loot for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "loot", ''))
-                help_string += 'Display latest loot  for specified `player`.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "loot player", ''))
-                embed.add_field("History", help_string, False)
-            # Items - Supporter only
-            if 'items' in params:
-                help_string  = 'Display latest 30 loot entries from raids.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "raidloot", '') + preformatted_block('Supporter only command', 'css'))
-                help_string += 'Find loot entries matching `name`. Supports partial match.\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "item name", '') + preformatted_block('Supporter only command', 'css'))
-                embed.add_field("Items", help_string, False)
-            # Administration
-            if request_info['is_privileged'] and 'administration' in params:
-                help_string = preformatted_block('Administrator only commands', 'css')
-                help_string  = 'Generic bot configuration (including server and guild)\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "config", ''))
-                help_string += 'Display related configuration\n{0}\n'.format(
-                    preformatted_block(self.get_prefix() + "display", ''))
-                embed.add_field("Administration", help_string, False)
+            return self._help_internal(request_info['is_privileged'])
 
-        # Pseudo-Footer: Discord link
-        embed.add_field("\u200b", get_bot_links(), False)
-        return Response(ResponseStatus.SUCCESS, embed.get())
-
-    def call_info(self, param, request_info): #pylint: disable=unused-argument
+    def call_info(self, param, request_info): # pylint: disable=unused-argument
         embed = RawEmbed()
         embed.build(None, "Info", None, None, get_bot_color(), None)
-        info_string  = "WoW DKP Bot allows querying DKP standings, history and loot data directly through the discord."
-        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP` and `CommunityDKP` to a discord channel.\n"
+        info_string  = "WoW DKP Bot allows querying DKP/EPGP standings, history and loot data directly through the discord."
+        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP`, `CommunityDKP` and `CEPGP` to a discord channel.\n"
         embed.add_field("\u200b", info_string, False)
         info_string = "Due to many possible usages of the addons and discord limitations bot data may exceed maxium accetable size. To mitigate this issue extensive `display` configuration is available to tweak response sizes."
         embed.add_field("\u200b", info_string, False)
+        info_string = "For bot to work properly you will need to upload saved variable file of your addon every time you want to update the data."
+        embed.add_field("\u200b", info_string, False)
         info_string = "If you want to become supporter and get access to `supporter only commands` or you need help configuring the bot checkout the {0}.\n\n".format(SUPPORT_SERVER)
         embed.add_field("\u200b", info_string, False)
-        #embed.add_field("\u200b", info_string, False)
         # Pseudo-Footer: Discord link
         embed.add_field("\u200b", get_bot_links(), False)
         return Response(ResponseStatus.SUCCESS, embed.get())
@@ -1117,7 +1115,7 @@ class DKPBot:
             string = "Set bot type to handle specified addon\n"
             string += preformatted_block("Usage:     {0}config bot-type Type\n".format(self.__prefix))
             string += preformatted_block("Current:   {0}\n".format(self.__config.guild_info.bot_type.lower()))
-            string += preformatted_block("Supported: essential monolith community")
+            string += preformatted_block("Supported: essential monolith community cepgp")
             embed.add_field("bot-type", string, False)
             # server-side
             string = "Set ingame server and side data required by some addons\n"
@@ -1256,12 +1254,68 @@ class DKPBot:
 
         return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
+    ### Help handlers ###
+
+    def help_call_general(self, is_privileged): # pylint: disable=unused-argument
+        help_string  = 'Display this help. You can also get it by @mentioning the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "help", ''))
+        help_string += 'Get basic information about the bot.\n{0}\n'.format(preformatted_block(self.get_prefix() + "info", ''))
+
+        return Response(ResponseStatus.SUCCESS, self._help_handler_internal("General", help_string))
+
+    def help_call_dkp(self, is_privileged): # pylint: disable=unused-argument
+        help_string  = 'Display summary information for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "dkp", ''))
+        help_string += 'Display summary information for specified `player`.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "dkp player", ''))
+        help_string += 'Display dkp list for all active players.\nPlayers are assumed active if they gained positive DKP within last 45 days.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "dkp all", ''))
+        help_string += 'Display current DKP for as many players, classes or aliases mixed together as you wish.\n{0}'.format(
+            preformatted_block("{0}dkp class/alias/player\nExamples:\n{0}dkp hunter tanks joe\n{0}dkp rogue druid\n{0}dkp joe andy".format(self.get_prefix()), ''))
+        help_string += preformatted_block('Supported aliases:\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee', '')
+        help_string += preformatted_block('Supporter only command', 'css') + "\n"
+        help_string += 'Display summary information for players signed to `raidid` event in `Raid-Helper` bot. Supporters can also use it in conjunction with above mixnis.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "dkp raidid", ''))
+
+        return Response(ResponseStatus.SUCCESS, self._help_handler_internal("DKP", help_string))
+    
+    def help_call_history(self, is_privileged): # pylint: disable=unused-argument
+        help_string = 'Display DKP history for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "history", ''))
+        help_string += 'Display DKP history  for specified `player`.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "history player", ''))
+        help_string += 'Display latest loot for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "loot", ''))
+        help_string += 'Display latest loot  for specified `player`.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "loot player", ''))
+
+        return Response(ResponseStatus.SUCCESS, self._help_handler_internal("History", help_string))
+
+    def help_call_items(self, is_privileged): # pylint: disable=unused-argument
+        help_string  = 'Display latest 30 loot entries from raids.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "raidloot", '') + preformatted_block('Supporter only command', 'css'))
+        help_string += 'Find loot entries matching `name`. Supports partial match.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "item name", '') + preformatted_block('Supporter only command', 'css'))
+
+        return Response(ResponseStatus.SUCCESS, self._help_handler_internal("Items", help_string))
+
+    def help_call_administration(self, is_privileged): # pylint: disable=unused-argument
+        if is_privileged:
+            help_string = preformatted_block('Administrator only commands', 'css')
+            help_string  = 'Generic bot configuration (including server and guild)\n{0}\n'.format(
+                preformatted_block(self.get_prefix() + "config", ''))
+            help_string += 'Display related configuration\n{0}\n'.format(
+                preformatted_block(self.get_prefix() + "display", ''))
+
+            return Response(ResponseStatus.SUCCESS, self._help_handler_internal("Administration", help_string))
+        else:
+            return Response(ResponseStatus.IGNORE)
+
     ### Config handlers ###
 
     def config_call_bot_type(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params == 2:
             value = params[1]
-            if value in ['community', 'monolith', 'essential']:
+            if value in ['community', 'monolith', 'essential', 'cepgp']:
                 current = self.__config.guild_info.bot_type
                 if value == current:
                     return Response(ResponseStatus.SUCCESS,  BasicSuccess('Retaining current bot type').get())
@@ -1270,7 +1324,10 @@ class DKPBot:
                 new = self.__config.guild_info.bot_type
 
                 if new == value:
-                    self.__config.guild_info.filename = value.capitalize() + 'DKP.lua'
+                    if value == 'cepgp':
+                        self.__config.guild_info.filename = "CEPGP.lua"
+                    else:
+                        self.__config.guild_info.filename = value.capitalize() + 'DKP.lua'
                     self._reconfigure()
                     return Response(ResponseStatus.RELOAD, self.__guild_id)
                 else:
@@ -1407,3 +1464,8 @@ class DKPBot:
             return self.__generic_response(success, "block-response-modifier", params[1])
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
+
+    def call_dbdump(self, param, request_info):
+        import pprint
+        with open("dump.txt", "w") as fout:
+            fout.write(pprint.pformat(self.__db))

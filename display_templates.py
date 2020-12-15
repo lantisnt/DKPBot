@@ -636,7 +636,6 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
     __user = None
 
-
     def _prepare(self, data_list):
         # Prepare format string
         def get_dkp(i):
@@ -673,7 +672,6 @@ class PlayerLootMultipleResponse(MultipleResponse):
 class LootMultipleResponse(MultipleResponse):
 
     __user = None
-
 
     def _prepare(self, data_list):
         # Prepare format string
