@@ -3,13 +3,14 @@ from enum import Enum
 from dkp_bot import DKPBot, Response, ResponseStatus
 from essentialdkp_bot import EssentialDKPBot
 from player_db_models import PlayerInfoEPGP, PlayerEPGPHistory, PlayerLootEPGP
+from raidhelper import RaidHelper
 from display_templates import preformatted_block, get_bot_color, get_bot_links, SUPPORT_SERVER
 from display_templates import RawEmbed, BasicError, BasicCritical, BasicAnnouncement, BasicInfo, BasicSuccess
 from display_templates_epgp import SinglePlayerProfile, MultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
 class CEPGPBot(EssentialDKPBot):
 
     _SV = "CEPGP"
-    __BACKUP = "BOT"
+    __BACKUP = "bot"
     TRAFFIC_HOLDER = u"\u200b" # Non-printed space ^^
 
     epgp_value_regex = re.compile(".*?([EPG]{2,4})\s*\+?(-?\d+)%?.*?(?:(?: - (.*))|(?:\s*\((.*)\)))?", re.I)
@@ -60,7 +61,11 @@ class CEPGPBot(EssentialDKPBot):
                 gp = float(tmp[1])
         return PlayerInfoEPGP(player, ep, gp)
 
-    def _parse_traffic_entry(self, target, source, desc, EPB, EPA, GPB, GPA, item_link, timestamp, id, unit_guid):
+    def _parse_traffic_entry(self, target=None, source=None, desc=None, EPB=None, EPA=None, GPB=None, GPA=None, item_link=None, timestamp=None, id=None, unit_guid=None):
+        # Workaround for old / invalid traffic structure
+        if None in [target, source, desc, EPB, EPA, GPB, GPA, item_link, timestamp, id, unit_guid]:
+            return
+
         # Check for target
         if not target or target is None or len(target) < 2 or target == "":
             # Raid target is treated same as "" as we can't know who was in raid.
@@ -148,11 +153,16 @@ class CEPGPBot(EssentialDKPBot):
         if backups_list is None or not backups_list or not isinstance(backups_list, dict):
             return False
 
+        backup = None
+        for _backup in list(backups_list.keys()):
+            if _backup.lower() == self.__BACKUP:
+                backup = _backup
+
         epgp_list = []
-        if self.__BACKUP in backups_list.keys():
-            epgp_list = backups_list[self.__BACKUP]
-        else:
+        if backup is None:
             epgp_list = backups_list[list(backups_list.keys())[0]]
+        else:
+            epgp_list = backups_list[backup]
 
         if len(epgp_list) == 0:
             return False
@@ -226,15 +236,36 @@ class CEPGPBot(EssentialDKPBot):
 
         targets, aliases, original, int_list = self._parse_player_param(param)
 
+        ## Handle Raid-Helper integration
+        signed = []
+        if len(int_list) > 0:
+            for event_id in int_list:
+                if event_id > 0:
+                    raid_user_list = RaidHelper().get_event_signups(event_id)
+                    for raid_user in raid_user_list:
+                        # TODO Handles only mains for now
+                        signed.append(raid_user.main())
+
+        raid_helper_filter = (len(signed) > 0)
+
         output_result_list = []
         if 'all' in original:
             output_result_list = self._get_team_dkp(self.DEFAULT_TEAM)
         else:
-            for target in targets:
-                # Single player
-                info = self._get_dkp(target, self.DEFAULT_TEAM)
-                if isinstance(info, PlayerInfoEPGP):
-                    output_result_list.append(info)
+            if raid_helper_filter:
+                targets = signed
+
+            if self.is_premium() or raid_helper_filter:
+                for target in targets:
+                    info = self._get_dkp(target, self.DEFAULT_TEAM)
+                    if isinstance(info, PlayerInfoEPGP):
+                        output_result_list.append(info)
+            else:
+                for target in targets:
+                    info = self._get_dkp(target, self.DEFAULT_TEAM)
+                    if isinstance(info, PlayerInfoEPGP):
+                        output_result_list.append(info)
+                        break
 
         if len(output_result_list) == 1:
             data = self._build_dkp_output_single(output_result_list[0])
