@@ -81,6 +81,7 @@ class SinglePlayerProfile(BaseResponse):
 
         self._embed.add_field("Effort Points:", "`{0:.0f} EP`".format(info.ep()), True)
         self._embed.add_field("Gear Points:", "`{0:.0f} GP`".format(info.gp()), True)
+        self._embed.add_field("Priority:", "`{0:.2f} PR`".format(info.pr()), True)
         self._embed.add_field("Last EP award:",
                             generate_epgp_history_entry(info.get_latest_history_entry(), enable_icons=False, value_suffix=True), False)
         self._embed.add_field("Last received loot:",
@@ -100,17 +101,29 @@ class MultipleResponse(MultipleResponse):
         def get_gp(i):
             return i.gp()
 
+        def get_pr(i):
+            return i.pr()
+
+        data_list.sort(key=get_pr, reverse=True)
+
         data_list_ep_min = min(data_list, key=get_ep)
         data_list_ep_max = max(data_list, key=get_ep)
         data_list_gp_min = min(data_list, key=get_gp)
         data_list_gp_max = max(data_list, key=get_gp)
-        
+        data_list_pr_min = min(data_list, key=get_pr)
+        data_list_pr_max = max(data_list, key=get_pr)
+
         ep_width = max(len(str(int(data_list_ep_min.ep()))), len(str(int(data_list_ep_max.ep()))))
         gp_width = max(len(str(int(data_list_gp_min.gp()))), len(str(int(data_list_gp_max.gp()))))
+        pr_width = max(len(str(int(data_list_pr_min.pr()))), len(str(int(data_list_pr_max.pr()))))
 
-        self._value_format_string = "`{{0:{0}.0f}}{1} {{1:{2}.0f}}{3}`".format(
-            ep_width, " EP" if self._value_suffix else "",
-            gp_width, " GP" if self._value_suffix else "")
+        if self._value_suffix:
+            self._value_format_string = "`{{0:{0}.0f}}{1} {{1:{2}.0f}}{3} {{2:{4}.2f}}{5}`".format(
+                ep_width, " EP" if self._value_suffix else "",
+                gp_width, " GP" if self._value_suffix else "",
+                pr_width, " PR" if self._value_suffix else "")
+        else:
+            self._value_format_string = "`{{0:{0}.0f}}/{{1:{1}.0f}} {{2:{2}.2f}}`".format(ep_width, gp_width, pr_width)
 
     def _display_filter(self, data):
         if data and isinstance(data, PlayerInfoEPGP):
@@ -124,7 +137,7 @@ class MultipleResponse(MultipleResponse):
             #     row = "{0}".format(get_class_icon_string(data.ingame_class(), data.role().spec_id()))
             # else:
             row = ""
-            row += self._value_format_string.format(data.ep(), data.gp())
+            row += self._value_format_string.format(data.ep(), data.gp(), data.pr())
             row += " "
             if requester == data.player().name():
                 row += "**{0}**".format(data.player().name())

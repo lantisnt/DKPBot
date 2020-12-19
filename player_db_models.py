@@ -119,6 +119,12 @@ class PlayerInfoEPGP(PlayerInfo):
     def gp(self):
         return self.lifetime_gained()
 
+    def pr(self):
+        if self.gp() == 0:
+            return 0
+        else:
+            return self.ep()/self.gp()
+
     def set_latest_loot_entry(self, loot_entry):
         if loot_entry and isinstance(loot_entry, PlayerLootEPGP):
             self._latest_loot_entry = loot_entry

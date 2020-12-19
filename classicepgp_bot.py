@@ -199,7 +199,7 @@ class CEPGPBot(EssentialDKPBot):
         self._sort_player_loot()
         self._set_player_latest_loot()
         self._sort_history()
-        self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
+        self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS, False)
 
         return True
 
