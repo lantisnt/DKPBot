@@ -237,7 +237,7 @@ class LootMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_gp)
         data_list_max = max(data_list, key=get_gp)
         
-        value_width = max(len(str(int(data_list_min.gp()))),
+        gp_width = max(len(str(int(data_list_min.gp()))),
                           len(str(int(data_list_max.gp()))))
         self._value_format_string = get_loot_format_string(gp_width, self._value_suffix)
 
