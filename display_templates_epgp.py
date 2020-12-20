@@ -31,7 +31,7 @@ def get_thumbnail():
 def preformatted_block(string: str, language='swift'):
     return "```" + language + "\n" + string + "```"
 
-def generate_epgp_history_entry(history_entry, format_string=None, enable_icons=True, value_suffix=True):
+def generate_epgp_history_entry(history_entry, format_string=None, enable_icons=True, value_suffix=True, alternative_display_mode=False):
     if history_entry and isinstance(history_entry, PlayerEPGPHistory):
         if not format_string:
             format_string = "`{{0:{0}.0f}}{1} {{1:{2}.0f}}{3}`".format(

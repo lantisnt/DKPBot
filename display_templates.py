@@ -417,10 +417,11 @@ class MultipleResponse(BaseResponse):
     __multiple_columns = True
     _enable_icons = True
     _value_suffix = True
+    _alternative_display_mode = False
 
     _value_format_string = "{0:8.1f}"
 
-    def __init__(self, title, field_limit, entry_limit, response_limit, multiple_columns, enable_icons, value_suffix):
+    def __init__(self, title, field_limit, entry_limit, response_limit, multiple_columns, enable_icons, value_suffix, alternative_display_mode):
         super().__init__(title)
 
         if field_limit and isinstance(field_limit, int):
@@ -450,6 +451,8 @@ class MultipleResponse(BaseResponse):
         self._enable_icons = bool(enable_icons)
 
         self._value_suffix = bool(value_suffix)
+
+        self._alternative_display_mode = bool(alternative_display_mode)
 
     def _prepare(self, data_list): # pylint: disable=unused-argument
         pass
