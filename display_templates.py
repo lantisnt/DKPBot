@@ -4,16 +4,22 @@ from bot_config import DisplayConfig
 import build_info
 
 INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
-SUPPORT_SERVER = "[Support Server](http://{0})".format(build_info.SUPPORT_SERVER)
+SUPPORT_SERVER = "[Support Server](http://{0})".format(
+    build_info.SUPPORT_SERVER)
 DONATE = "[Donate](http://wowdkpbot.com/donate)"
+
+
 def get_bot_links():
     return INVITE + " | " + SUPPORT_SERVER + " | " + DONATE
+
 
 def get_bot_color():
     return 10204605
 
+
 def get_config_color():
     return 16553987
+
 
 def get_class_color(class_name=None):
     if not class_name:
@@ -50,11 +56,13 @@ def get_class_color(class_name=None):
 
     return 10204605
 
+
 def get_plus_minus_icon_string(plus=True):
     if plus:
         return "<:plus:782168773875728384>"
     else:
         return "<:minus:782168774035374080>"
+
 
 def get_class_icon_string(class_name=None, spec_id=0):
     if not class_name:
@@ -114,6 +122,7 @@ def get_class_icon_string(class_name=None, spec_id=0):
 
     return ""
 
+
 def get_thumbnail(class_name):
     if not class_name or not isinstance(class_name, str):
         return None
@@ -149,45 +158,51 @@ def get_thumbnail(class_name):
 
     return None
 
-def get_points_format_string(rounding=1, enable_icons=True, value_suffix=True):
-    pass
 
-def get_history_format_string(length, rounding, value_suffix):
-    return "`{{0:{0}.{1}f}}{2}`".format(length, rounding, " DKP" if value_suffix else "")
+def get_points_format_string(width, rounding, value_suffix):
+    return "`{{0:{0}.{1}f}}{2}`".format(width, rounding, " DKP" if value_suffix else "")
 
-def get_loot_format_string(rounding=1, enable_icons=True, value_suffix=True):
-    pass
+
+def get_history_format_string(width, rounding, value_suffix):
+    return get_points_format_string(width, rounding, value_suffix)
+
+
+def get_loot_format_string(width, rounding, value_suffix):
+    return get_points_format_string(width, rounding, value_suffix)
+
 
 def preformatted_block(string: str, language='swift'):
     return "```" + language + "\n" + string + "```"
+
 
 def generate_dkp_history_entry(history_entry, format_string, enable_icons, alternative_display_mode):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):
         row = ""
         if enable_icons:
             row += get_plus_minus_icon_string(history_entry.dkp() > 0) + " "
-        row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp()))
+        row += "`{0:16}` - ".format(
+            get_date_from_timestamp(history_entry.timestamp()))
         row += format_string.format(history_entry.dkp())
         row += " - {0} _by {1}_".format(history_entry.reason(),
-                                      history_entry.officer())
+                                        history_entry.officer())
         row += "\n"
         return row
     return "- No data available -"
 
-def generate_loot_entry(loot_entry, format_string=None, player=False, rounding=1, enable_icons=True, value_suffix=True):
+
+def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_display_mode, player):
     if loot_entry and isinstance(loot_entry, PlayerLoot):
-        if not format_string:
-            format_string = "`{{0:{0}.{1}f}}{2}`".format(
-                len(str(int(loot_entry.dkp()))), rounding, " DKP" if value_suffix else "")
         row = ""
-        row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
+        row += "`{0:16}` - ".format(
+            get_date_from_timestamp(loot_entry.timestamp()))
         row += format_string.format(loot_entry.dkp())
         row += " - [{0}](https://classic.wowhead.com/item={1})".format(loot_entry.item_name(),
-                                      loot_entry.item_id())
+                                                                       loot_entry.item_id())
         if player:
             row += " - "
             if enable_icons:
-                row += "{0}".format(get_class_icon_string(loot_entry.player().ingame_class(), loot_entry.player().role().spec_id()))
+                row += "{0}".format(get_class_icon_string(
+                    loot_entry.player().ingame_class(), loot_entry.player().role().spec_id()))
             row += "{0}".format(loot_entry.player().name())
         row += "\n"
         return row
@@ -260,7 +275,6 @@ class RawEmbed:
 
     def __call__(self):
         return self.get()
-#DB4006
 
 class BasicCritical(RawEmbed):
 
@@ -300,6 +314,7 @@ class BasicSuccess(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
+
 class BasicInfo(RawEmbed):
 
     def __init__(self, message):
@@ -311,6 +326,7 @@ class BasicInfo(RawEmbed):
             1735398,
             None)
         self.add_field("\u200b", get_bot_links(), False)
+
 
 class BasicAnnouncement(RawEmbed):
 
@@ -324,6 +340,7 @@ class BasicAnnouncement(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
+
 class SupporterResponse(RawEmbed):
     def __init__(self, title):
         self.build(
@@ -335,10 +352,12 @@ class SupporterResponse(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
+
 class SupporterOnlyResponse(SupporterResponse):
 
     def __init__(self):
         super().__init__("Supporter only command")
+
 
 class SupportReminder(SupporterResponse):
 
@@ -403,10 +422,14 @@ class SinglePlayerProfile(BaseResponse):
             info.lifetime_gained()), True)
         self._embed.add_field("Lifetime spent:", dkp_format.format(
             info.lifetime_spent()), True)
-        history_entry = info.get_latest_history_entry()
-        self._embed.add_field("Last DKP award:", generate_dkp_history_entry(history_entry, get_history_format_string(history_entry.length(), self._rounding, True), False, False), False)
+        history = info.get_latest_history_entry()
+        self._embed.add_field("Last DKP award:",
+                              generate_dkp_history_entry(history, get_history_format_string(
+                                0 if history is None else history.width(), self._rounding, True), False, False), False)
+        loot = info.get_latest_loot_entry()
         self._embed.add_field("Last received loot:",
-                             generate_loot_entry(info.get_latest_loot_entry(), rounding=self._rounding, enable_icons=False, value_suffix=True), False)
+                              generate_loot_entry(loot, get_loot_format_string(
+                                0 if loot is None else loot.width(), self._rounding, True), False, False, False), False)
 
         return self
 
@@ -459,19 +482,19 @@ class MultipleResponse(BaseResponse):
 
         self._alternative_display_mode = bool(alternative_display_mode)
 
-    def _prepare(self, data_list): # pylint: disable=unused-argument
+    def _prepare(self, data_list):  # pylint: disable=unused-argument
         pass
 
-    def _override_response_loop(self, response_id): # pylint: disable=unused-argument
+    def _override_response_loop(self, response_id):  # pylint: disable=unused-argument
         pass
 
-    def _override_field_loop(self, response_id, field_id): # pylint: disable=unused-argument
+    def _override_field_loop(self, response_id, field_id):  # pylint: disable=unused-argument
         pass
 
-    def _build_row(self, data, requester): # pylint: disable=unused-argument
+    def _build_row(self, data, requester):  # pylint: disable=unused-argument
         return str(data) + "\n"
 
-    def _display_filter(self, data): # pylint: disable=unused-argument
+    def _display_filter(self, data):  # pylint: disable=unused-argument
         return True
 
     def build(self, data_list_unfiltered, requester="", thumbnail=None):
@@ -483,7 +506,6 @@ class MultipleResponse(BaseResponse):
         if not isinstance(data_list_unfiltered, list):
             return None
 
-        #data_list = data_list.copy()
         data_list = []
         for data in data_list_unfiltered:
             if self._display_filter(data):
@@ -564,6 +586,7 @@ class MultipleResponse(BaseResponse):
         string += str(self.__multiple_columns)
         return string
 
+
 class DKPMultipleResponse(MultipleResponse):
 
     def _prepare(self, data_list):
@@ -573,11 +596,11 @@ class DKPMultipleResponse(MultipleResponse):
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-        
+
         float_extend = 0 if self._rounding == 0 else self._rounding + 1
         value_width = max(len(str(int(data_list_min.dkp()))),
                           len(str(int(data_list_max.dkp())))) + float_extend
-        self._value_format_string = "`{{0:{0}.{1}f}}{2}`".format(value_width, self._rounding, " DKP" if self._value_suffix else "")
+        self._value_format_string = get_points_format_string(value_width, self._rounding, self._value_suffix)
 
     def _display_filter(self, data):
         if data and isinstance(data, PlayerInfo):
@@ -588,15 +611,25 @@ class DKPMultipleResponse(MultipleResponse):
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerInfo):
             if self._enable_icons:
-                row = "{0}".format(get_class_icon_string(data.ingame_class(), data.role().spec_id()))
+                row = "{0}".format(get_class_icon_string(
+                        data.ingame_class(), data.role().spec_id()))
             else:
                 row = ""
-            row += self._value_format_string.format(data.dkp())
-            row += " "
-            if requester == data.player().name():
-                row += "**{0}**".format(data.player().name())
+        
+            if self._alternative_display_mode:
+                if requester == data.player().name():
+                    row += "**{0}**".format(data.player().name())
+                else:
+                    row += "{0}".format(data.player().name())
+                row += "\n"
+                row += self._value_format_string.format(data.dkp())
             else:
-                row += "{0}".format(data.player().name())
+                row += self._value_format_string.format(data.dkp())
+                row += " "
+                if requester == data.player().name():
+                    row += "**{0}**".format(data.player().name())
+                else:
+                    row += "{0}".format(data.player().name())
             row += "\n"
             return row
 
@@ -614,19 +647,20 @@ class HistoryMultipleResponse(MultipleResponse):
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-        
+
         float_extend = 0 if self._rounding == 0 else self._rounding + 1
         value_width = max(len(str(int(data_list_min.dkp()))),
                           len(str(int(data_list_max.dkp())))) + float_extend
         #self._value_format_string = "`{{0:{0}.{1}f}}{2}`".format(value_width, self._rounding, " DKP" if self._value_suffix else "")
-        self._value_format_string = get_history_format_string(value_width, self._rounding, self._value_suffix)
+        self._value_format_string = get_history_format_string(
+            value_width, self._rounding, self._value_suffix)
 
         for data in data_list:
             if data and isinstance(data, PlayerDKPHistory):
                 self.__user = data.player().name()
                 break
 
-    #def _override_response_loop(self, response_id):
+    # def _override_response_loop(self, response_id):
     #    self._embed.set_title(self.__user)
 
     def _override_field_loop(self, response_id, field_id):
@@ -637,10 +671,10 @@ class HistoryMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerDKPHistory):
-            #return generate_dkp_history_entry(data, self._value_format_string, enable_icons=self._enable_icons, value_suffix=self._value_suffix)
             return generate_dkp_history_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode)
 
         return ""
+
 
 class PlayerLootMultipleResponse(MultipleResponse):
 
@@ -653,18 +687,18 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-        
+
         float_extend = 0 if self._rounding == 0 else self._rounding + 1
         value_width = max(len(str(int(data_list_min.dkp()))),
                           len(str(int(data_list_max.dkp())))) + float_extend
-        self._value_format_string = "`{{0:{0}.{1}f}}{2}`".format(value_width, self._rounding, " DKP" if self._value_suffix else "")
+        self._value_format_string = get_loot_format_string(value_width, self._rounding, self._value_suffix)
 
         for data in data_list:
             if data and isinstance(data, PlayerLoot):
                 self.__user = data.player().name()
                 break
 
-    #def _override_response_loop(self, response_id):
+    # def _override_response_loop(self, response_id):
     #    self._embed.set_title(self.__user)
 
     def _override_field_loop(self, response_id, field_id):
@@ -675,9 +709,10 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerLoot):
-            return generate_loot_entry(data, self._value_format_string, enable_icons=self._enable_icons, value_suffix=self._value_suffix)
+            return generate_loot_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode, False)
 
         return ""
+
 
 class LootMultipleResponse(MultipleResponse):
 
@@ -690,18 +725,18 @@ class LootMultipleResponse(MultipleResponse):
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-        
+
         float_extend = 0 if self._rounding == 0 else self._rounding + 1
         value_width = max(len(str(int(data_list_min.dkp()))),
                           len(str(int(data_list_max.dkp())))) + float_extend
-        self._value_format_string = "`{{0:{0}.{1}f}}{2}`".format(value_width, self._rounding, " DKP" if self._value_suffix else "")
+        self._value_format_string = get_loot_format_string(value_width, self._rounding, self._value_suffix)
 
         for data in data_list:
             if data and isinstance(data, PlayerLoot):
                 self.__user = data.player().name()
                 break
 
-    #def _override_response_loop(self, response_id):
+    # def _override_response_loop(self, response_id):
     #    self._embed.set_title(self.__user)
 
     def _override_field_loop(self, response_id, field_id):
@@ -709,6 +744,6 @@ class LootMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerLoot):
-            return generate_loot_entry(data, self._value_format_string, True, enable_icons=self._enable_icons, value_suffix=self._value_suffix)
+            return generate_loot_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode, True)
 
         return ""

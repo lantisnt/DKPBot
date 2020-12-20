@@ -6,7 +6,7 @@ from player_db_models import PlayerInfoEPGP, PlayerEPGPHistory, PlayerLootEPGP
 from raidhelper import RaidHelper
 from display_templates import preformatted_block, get_bot_color, get_bot_links, SUPPORT_SERVER
 from display_templates import RawEmbed, BasicError, BasicCritical, BasicAnnouncement, BasicInfo, BasicSuccess
-from display_templates_epgp import SinglePlayerProfile, MultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
+from display_templates_epgp import SinglePlayerProfile, EPGPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
 class CEPGPBot(EssentialDKPBot):
 
     _SV = "CEPGP"
@@ -20,7 +20,7 @@ class CEPGPBot(EssentialDKPBot):
         # # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile("CEPGP Profile")
 
-        self._multiple_dkp_output_builder = MultipleResponse("EPGP values", self._get_config().dkp.fields,
+        self._multiple_dkp_output_builder = EPGPMultipleResponse("EPGP values", self._get_config().dkp.fields,
         self._get_config().dkp.entries_per_field, self._get_config().dkp.separate_messages,
         self._get_config().dkp.multiple_columns, self._get_config().dkp.enable_icons, self._get_config().dkp.value_suffix,
         self._get_config().dkp.alternative_display_mode)

@@ -1220,7 +1220,7 @@ class DKPBot:
             display_info = self.__config.get_configs_data()
             embed = RawEmbed()
             embed.build(None, "Available display settings",
-                        "Configure number of data displayed in single request. All commands and values are case insensitive.", None, 16553987, None)
+                        "Configure number of data displayed in single request. All commands and values are case insensitive. All EPGP settings are handled by DKP configurations.", None, 16553987, None)
 
             for category, data in display_info.items():
                 string = ""

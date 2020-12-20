@@ -8,7 +8,7 @@ from bot_utility import public_to_dict
 DEFAULT_CONFIG = "/var/wowdkpbot-runner/default.ini"
 
 def get_row_format():
-    return  "{0:17} | {1:5} | {2:17}"
+    return  "{0:24} | {1:5} | {2:17}"
 
 class BotConfigType(Enum):
     SPECIFIC = 0  # Server specific ini
