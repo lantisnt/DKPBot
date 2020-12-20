@@ -875,32 +875,33 @@ class DKPBot:
                 if history and isinstance(history, list):
                     dkp.set_latest_history_entry(history[0])
 
-    def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000):
+    def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000, mark_inactive=True):
         now = timestamp_now(True)
         for team, team_data in self.__db['global'].items():
-            BotLogger().get().debug(team)
-            for dkp in team_data['dkp'].values():
-                dkp.set_inactive()
-                positive_entry_count = 0
-                history = self._get_history(dkp.name(), team)
-                if history and isinstance(history, list):
-                    BotLogger().get().debug("history len {0} \n".format(len(history)))
-                    for history_entry in history:
-                        BotLogger().get().debug(
-                            "player {6} dkp: {0} | now: {1} | timestamp: {2} | diff {3} ({4}) | {5} \n".format(
-                                history_entry.dkp(), now, history_entry.timestamp(), 
-                                abs(now - history_entry.timestamp()), 
-                                inactive_time, abs(now - history_entry.timestamp()) <= inactive_time,
-                                history_entry.player().name()))
-                        if history_entry.dkp() > 0:
-                            if positive_entry_count == 0:
-                                dkp.set_latest_history_entry(history_entry)
-                            if abs(now - history_entry.timestamp()) <= inactive_time:
-                                positive_entry_count = positive_entry_count +  1
-                                if positive_entry_count >= self.__POSITIVE_ENTRY_THRESHOLD:
-                                    dkp.set_active()
+            if mark_inactive:
+                for dkp in team_data['dkp'].values():
+                    dkp.set_inactive()
+                    positive_entry_count = 0
+                    history = self._get_history(dkp.name(), team)
+                    if history and isinstance(history, list):
+                        for history_entry in history:
+                            if history_entry.dkp() > 0:
+                                if positive_entry_count == 0:
+                                    dkp.set_latest_history_entry(history_entry)
+                                if abs(now - history_entry.timestamp()) <= inactive_time:
+                                    positive_entry_count = positive_entry_count +  1
+                                    if positive_entry_count >= self.__POSITIVE_ENTRY_THRESHOLD:
+                                        dkp.set_active()
+                                        break
+                                else:
                                     break
-                            else:
+            else:
+                for dkp in team_data['dkp'].values():
+                    history = self._get_history(dkp.name(), team)
+                    if history and isinstance(history, list):
+                        for history_entry in history:
+                            if history_entry.dkp() > 0:
+                                dkp.set_latest_history_entry(history_entry)
                                 break
 
     # This method handles response differently. ERROR status is printed also
@@ -1219,7 +1220,7 @@ class DKPBot:
             display_info = self.__config.get_configs_data()
             embed = RawEmbed()
             embed.build(None, "Available display settings",
-                        "Configure number of data displayed in single request. All commands and values are case insensitive.", None, 16553987, None)
+                        "Configure number of data displayed in single request. All commands and values are case insensitive. All EPGP settings are handled by DKP configurations.", None, 16553987, None)
 
             for category, data in display_info.items():
                 string = ""

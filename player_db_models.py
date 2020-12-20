@@ -1,6 +1,9 @@
 import player_role
 from player_role import Role
 
+def get_width(value):
+    return len(str(int(value)))
+
 class PlayerInfo:
     __player = ""
     __dkp = 0
@@ -67,6 +70,9 @@ class PlayerInfo:
     def get_latest_history_entry(self):
         return self._latest_history_entry
 
+    def width(self):
+        return get_width(self.dkp())
+
     def __str__(self):
         return "{0} ({1} - {6}) {2} ({3}/{4}) DKP | Active: {5}\n".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent(), self.__active, self.__smart_role)
 
@@ -111,13 +117,25 @@ class PlayerInfo:
 class PlayerInfoEPGP(PlayerInfo):
 
     def __init__(self, player, ep, gp):
-         super().__init__(player, ep, gp, 0, None, None, None)
+         super().__init__(player, ep, gp, 0 if gp == 0 else ep/gp, None, None, None)
 
     def ep(self):
         return self.dkp()
 
     def gp(self):
         return self.lifetime_gained()
+
+    def pr(self):
+        return self.lifetime_spent()
+
+    def ep_width(self):
+        return get_width(self.ep())
+
+    def gp_width(self):
+        return get_width(self.gp())
+
+    def pr_width(self):
+        return get_width(self.pr())
 
     def set_latest_loot_entry(self, loot_entry):
         if loot_entry and isinstance(loot_entry, PlayerLootEPGP):
@@ -127,7 +145,7 @@ class PlayerInfoEPGP(PlayerInfo):
         if history_entry and isinstance(history_entry, PlayerEPGPHistory):
             self._latest_history_entry = history_entry
     def __str__(self):
-        return "{0}: {1} EP {2} GP\n".format(self.name(), self.ep(), self.gp())
+        return "{0}: {1} EP {2} GP {3} PR\n".format(self.name(), self.ep(), self.gp(), self.pr())
 
 class PlayerLoot:
     __player = ""
@@ -159,6 +177,9 @@ class PlayerLoot:
 
     def timestamp(self):
         return self.__timestamp
+
+    def width(self):
+        return get_width(self.dkp())
 
     def __str__(self):
         return "{0}: {1} {2}({3}) for {4} DKP".format(self.timestamp(), self.player().name(), self.item_name(), self.item_id(), self.dkp())
@@ -205,6 +226,9 @@ class PlayerDKPHistory:
 
     def officer(self):
         return self.__officer
+
+    def width(self):
+        return get_width(self.dkp())
 
     def __str__(self):
         return "{0}: {1} {2} DKP ({3}) by {4}".format(self.timestamp(), self.player().name(), self.dkp(), self.reason(), self.officer())
@@ -259,6 +283,12 @@ class PlayerEPGPHistory(PlayerDKPHistory):
 
     def gp(self):
         return self.__gp
+
+    def ep_width(self):
+        return get_width(self.ep())
+
+    def gp_width(self):
+        return get_width(self.gp())
 
     def is_percentage(self):
         return is_percentage

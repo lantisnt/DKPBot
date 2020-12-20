@@ -8,7 +8,7 @@ from bot_utility import public_to_dict
 DEFAULT_CONFIG = "/var/wowdkpbot-runner/default.ini"
 
 def get_row_format():
-    return  "{0:17} | {1:5} | {2:17}"
+    return  "{0:24} | {1:5} | {2:17}"
 
 class BotConfigType(Enum):
     SPECIFIC = 0  # Server specific ini
@@ -55,14 +55,16 @@ class DisplayConfig(object):
     __multiple_columns = False
     __enable_icons = True
     __value_suffix = True
+    __alternative_display_mode = False
 
-    def __init__(self, fields, entries_per_field, separate_messages, multiple_columns, enable_icons, value_suffix):
+    def __init__(self, fields, entries_per_field, separate_messages, multiple_columns, enable_icons, value_suffix, alternative_display_mode):
         self.__fields = fields
         self.__entries_per_field = entries_per_field
         self.__separate_messages = separate_messages
         self.__multiple_columns = bool(multiple_columns)
         self.__enable_icons = bool(enable_icons)
         self.__value_suffix = bool(value_suffix)
+        self.__alternative_display_mode = bool(alternative_display_mode)
 
     def __getattr__(self, name):
         if not name.startswith('__get_') and hasattr(self,'__get_' + name):
@@ -172,6 +174,22 @@ class DisplayConfig(object):
 
     value_suffix = property(__get_value_suffix, __set_value_suffix)
 
+    @staticmethod
+    def __supported_alternative_display_mode():
+        return [True, False]
+
+    def __get_alternative_display_mode(self):
+        return self.__alternative_display_mode
+
+    def __set_alternative_display_mode(self, alternative_display_mode):
+        alternative_display_mode = str(alternative_display_mode)
+        if alternative_display_mode.lower() == 'true':
+            self.__alternative_display_mode = True
+        elif alternative_display_mode.lower() == 'false':
+            self.__alternative_display_mode = False
+
+    alternative_display_mode = property(__get_alternative_display_mode, __set_alternative_display_mode)
+
     def __str__(self):
         row_format = get_row_format()
         string = ""
@@ -204,11 +222,11 @@ class BotConfig():
     __config = None
 
     guild_info = GuildInfo('essential', 0, 0, 0, 'EssentialDKP.lua', '!', False, '', '','{}', False, False, True)
-    dkp = DisplayConfig(6, 16, 5, True, True, True)
-    dkp_history = DisplayConfig(1, 10, 1, True, True, True)
-    loot_history = DisplayConfig(1, 10, 1, True, True, True)
-    latest_loot = DisplayConfig(6, 5, 1, False, True, True)
-    item_search = DisplayConfig(6, 5, 3, False, True, True)
+    dkp             = DisplayConfig(6, 16, 5, True,  True, True, False)
+    dkp_history     = DisplayConfig(1, 10, 1, True,  True, True, False)
+    loot_history    = DisplayConfig(1, 10, 1, True,  True, True, False)
+    latest_loot     = DisplayConfig(6, 5,  1, False, True, True, False)
+    item_search     = DisplayConfig(6, 5,  3, False, True, True, False)
 
     def __init__(self, filepath):
         self.__filepath = filepath
@@ -260,7 +278,8 @@ class BotConfig():
             self.__config.getint(group, 'separate_messages', fallback=1),
             self.__config.getboolean(group, 'multiple_columns', fallback=False),
             self.__config.getboolean(group, 'enable_icons', fallback=True),
-            self.__config.getboolean(group, 'value_suffix', fallback=True)
+            self.__config.getboolean(group, 'value_suffix', fallback=True),
+            self.__config.getboolean(group, 'alternative_display_mode', fallback=False)
         )
 
         group = 'DKP History Display'
@@ -270,7 +289,8 @@ class BotConfig():
             self.__config.getint(group, 'separate_messages', fallback=1),
             self.__config.getboolean(group, 'multiple_columns', fallback=False),
             self.__config.getboolean(group, 'enable_icons', fallback=True),
-            self.__config.getboolean(group, 'value_suffix', fallback=True)
+            self.__config.getboolean(group, 'value_suffix', fallback=True),
+            self.__config.getboolean(group, 'alternative_display_mode', fallback=False)
         )
 
         group = 'Loot History Display'
@@ -280,7 +300,8 @@ class BotConfig():
             self.__config.getint(group, 'separate_messages', fallback=1),
             self.__config.getboolean(group, 'multiple_columns', fallback=False),
             self.__config.getboolean(group, 'enable_icons', fallback=True),
-            self.__config.getboolean(group, 'value_suffix', fallback=True)
+            self.__config.getboolean(group, 'value_suffix', fallback=True),
+            self.__config.getboolean(group, 'alternative_display_mode', fallback=False)
         )
 
         group = 'Latest Loot Display'
@@ -290,7 +311,8 @@ class BotConfig():
             self.__config.getint(group, 'separate_messages', fallback=1),
             self.__config.getboolean(group, 'multiple_columns', fallback=False),
             self.__config.getboolean(group, 'enable_icons', fallback=True),
-            self.__config.getboolean(group, 'value_suffix', fallback=True)
+            self.__config.getboolean(group, 'value_suffix', fallback=True),
+            self.__config.getboolean(group, 'alternative_display_mode', fallback=False)
         )
 
         group = 'Item Search Display'
@@ -300,7 +322,8 @@ class BotConfig():
             self.__config.getint(group, 'separate_messages', fallback=1),
             self.__config.getboolean(group, 'multiple_columns', fallback=False),
             self.__config.getboolean(group, 'enable_icons', fallback=True),
-            self.__config.getboolean(group, 'value_suffix', fallback=True)
+            self.__config.getboolean(group, 'value_suffix', fallback=True),
+            self.__config.getboolean(group, 'alternative_display_mode', fallback=False)
         )
 
     # Store from config to dictionary

@@ -6,7 +6,7 @@ from player_db_models import PlayerInfoEPGP, PlayerEPGPHistory, PlayerLootEPGP
 from raidhelper import RaidHelper
 from display_templates import preformatted_block, get_bot_color, get_bot_links, SUPPORT_SERVER
 from display_templates import RawEmbed, BasicError, BasicCritical, BasicAnnouncement, BasicInfo, BasicSuccess
-from display_templates_epgp import SinglePlayerProfile, MultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
+from display_templates_epgp import SinglePlayerProfile, EPGPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
 class CEPGPBot(EssentialDKPBot):
 
     _SV = "CEPGP"
@@ -20,25 +20,30 @@ class CEPGPBot(EssentialDKPBot):
         # # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile("CEPGP Profile")
 
-        self._multiple_dkp_output_builder = MultipleResponse("EPGP values", self._get_config().dkp.fields,
+        self._multiple_dkp_output_builder = EPGPMultipleResponse("EPGP values", self._get_config().dkp.fields,
         self._get_config().dkp.entries_per_field, self._get_config().dkp.separate_messages,
-        self._get_config().dkp.multiple_columns, self._get_config().dkp.enable_icons, self._get_config().dkp.value_suffix)
+        self._get_config().dkp.multiple_columns, self._get_config().dkp.enable_icons, self._get_config().dkp.value_suffix,
+        self._get_config().dkp.alternative_display_mode)
 
         self._multiple_history_output_builder = HistoryMultipleResponse("Latest EPGP history", self._get_config().dkp_history.fields,
         self._get_config().dkp_history.entries_per_field, self._get_config().dkp_history.separate_messages,
-        self._get_config().dkp_history.multiple_columns, self._get_config().dkp_history.enable_icons, self._get_config().dkp_history.value_suffix)
+        self._get_config().dkp_history.multiple_columns, self._get_config().dkp_history.enable_icons, self._get_config().dkp_history.value_suffix,
+        self._get_config().dkp_history.alternative_display_mode)
 
         self._multiple_player_loot_output_builder = PlayerLootMultipleResponse("Latest loot history", self._get_config().loot_history.fields,
         self._get_config().loot_history.entries_per_field, self._get_config().loot_history.separate_messages,
-        self._get_config().loot_history.multiple_columns, self._get_config().loot_history.enable_icons, self._get_config().loot_history.value_suffix)
+        self._get_config().loot_history.multiple_columns, self._get_config().loot_history.enable_icons, self._get_config().loot_history.value_suffix,
+        self._get_config().loot_history.alternative_display_mode)
 
         self._multiple_loot_output_builder = LootMultipleResponse("Latest 30 items awarded", self._get_config().latest_loot.fields,
         self._get_config().latest_loot.entries_per_field, self._get_config().latest_loot.separate_messages,
-        self._get_config().latest_loot.multiple_columns, self._get_config().latest_loot.enable_icons, self._get_config().latest_loot.value_suffix)
+        self._get_config().latest_loot.multiple_columns, self._get_config().latest_loot.enable_icons, self._get_config().latest_loot.value_suffix,
+        self._get_config().latest_loot.alternative_display_mode)
 
         self._multiple_item_search_output_builder = LootMultipleResponse("Search results", self._get_config().item_search.fields,
         self._get_config().item_search.entries_per_field, self._get_config().item_search.separate_messages,
-        self._get_config().item_search.multiple_columns, self._get_config().item_search.enable_icons, self._get_config().item_search.value_suffix)
+        self._get_config().item_search.multiple_columns, self._get_config().item_search.enable_icons, self._get_config().item_search.value_suffix,
+        self._get_config().item_search.alternative_display_mode)
 
         self._update_views_info()
 
@@ -199,7 +204,7 @@ class CEPGPBot(EssentialDKPBot):
         self._sort_player_loot()
         self._set_player_latest_loot()
         self._sort_history()
-        self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
+        self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS, False)
 
         return True
 
