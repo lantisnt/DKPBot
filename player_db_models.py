@@ -67,6 +67,9 @@ class PlayerInfo:
     def get_latest_history_entry(self):
         return self._latest_history_entry
 
+    def length(self):
+        return len(str(int(self.dkp())))
+
     def __str__(self):
         return "{0} ({1} - {6}) {2} ({3}/{4}) DKP | Active: {5}\n".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent(), self.__active, self.__smart_role)
 
@@ -166,6 +169,9 @@ class PlayerLoot:
     def timestamp(self):
         return self.__timestamp
 
+    def length(self):
+        return len(str(int(self.dkp())))
+
     def __str__(self):
         return "{0}: {1} {2}({3}) for {4} DKP".format(self.timestamp(), self.player().name(), self.item_name(), self.item_id(), self.dkp())
 
@@ -211,6 +217,9 @@ class PlayerDKPHistory:
 
     def officer(self):
         return self.__officer
+
+    def length(self):
+        return len(str(int(self.dkp())))
 
     def __str__(self):
         return "{0}: {1} {2} DKP ({3}) by {4}".format(self.timestamp(), self.player().name(), self.dkp(), self.reason(), self.officer())

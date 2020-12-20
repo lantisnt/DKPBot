@@ -31,6 +31,15 @@ def get_thumbnail():
 def preformatted_block(string: str, language='swift'):
     return "```" + language + "\n" + string + "```"
 
+def get_points_format_string(rounding=1, enable_icons=True, value_suffix=True, alternative_display_mode=False):
+    pass
+
+def get_history_format_string(rounding=1, enable_icons=True, value_suffix=True, alternative_display_mode=False):
+    pass
+
+def get_loot_format_string(rounding=1, enable_icons=True, value_suffix=True, alternative_display_mode=False):
+    pass
+
 def generate_epgp_history_entry(history_entry, format_string=None, enable_icons=True, value_suffix=True, alternative_display_mode=False):
     if history_entry and isinstance(history_entry, PlayerEPGPHistory):
         if not format_string:

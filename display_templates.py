@@ -149,15 +149,20 @@ def get_thumbnail(class_name):
 
     return None
 
+def get_points_format_string(rounding=1, enable_icons=True, value_suffix=True):
+    pass
+
+def get_history_format_string(length, rounding, value_suffix):
+    return "`{{0:{0}.{1}f}}{2}`".format(length, rounding, " DKP" if value_suffix else "")
+
+def get_loot_format_string(rounding=1, enable_icons=True, value_suffix=True):
+    pass
+
 def preformatted_block(string: str, language='swift'):
     return "```" + language + "\n" + string + "```"
 
-def generate_dkp_history_entry(history_entry, format_string=None, rounding=1, enable_icons=True, value_suffix=True):
+def generate_dkp_history_entry(history_entry, format_string, enable_icons, alternative_display_mode):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):
-        if not format_string:
-            format_string = "`{{0:{0}.{1}f}}{2}`".format(
-                len(str(int(history_entry.dkp()))), rounding, " DKP" if value_suffix else "")
-
         row = ""
         if enable_icons:
             row += get_plus_minus_icon_string(history_entry.dkp() > 0) + " "
@@ -398,8 +403,8 @@ class SinglePlayerProfile(BaseResponse):
             info.lifetime_gained()), True)
         self._embed.add_field("Lifetime spent:", dkp_format.format(
             info.lifetime_spent()), True)
-        self._embed.add_field("Last DKP award:",
-                             generate_dkp_history_entry(info.get_latest_history_entry(), rounding=self._rounding, enable_icons=False, value_suffix=True), False)
+        history_entry = info.get_latest_history_entry()
+        self._embed.add_field("Last DKP award:", generate_dkp_history_entry(history_entry, get_history_format_string(history_entry.length(), self._rounding, True), False, False), False)
         self._embed.add_field("Last received loot:",
                              generate_loot_entry(info.get_latest_loot_entry(), rounding=self._rounding, enable_icons=False, value_suffix=True), False)
 
@@ -613,7 +618,8 @@ class HistoryMultipleResponse(MultipleResponse):
         float_extend = 0 if self._rounding == 0 else self._rounding + 1
         value_width = max(len(str(int(data_list_min.dkp()))),
                           len(str(int(data_list_max.dkp())))) + float_extend
-        self._value_format_string = "`{{0:{0}.{1}f}}{2}`".format(value_width, self._rounding, " DKP" if self._value_suffix else "")
+        #self._value_format_string = "`{{0:{0}.{1}f}}{2}`".format(value_width, self._rounding, " DKP" if self._value_suffix else "")
+        self._value_format_string = get_history_format_string(value_width, self._rounding, self._value_suffix)
 
         for data in data_list:
             if data and isinstance(data, PlayerDKPHistory):
@@ -631,7 +637,8 @@ class HistoryMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerDKPHistory):
-            return generate_dkp_history_entry(data, self._value_format_string, enable_icons=self._enable_icons, value_suffix=self._value_suffix)
+            #return generate_dkp_history_entry(data, self._value_format_string, enable_icons=self._enable_icons, value_suffix=self._value_suffix)
+            return generate_dkp_history_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode)
 
         return ""
 
