@@ -1,6 +1,6 @@
 from dkp_bot import Response, ResponseStatus, Statistics
 from bot_logger import BotLogger
-from display_templates import BasicError, BasicCritical,BasicInfo
+from display_templates import BasicError, BasicCritical, BasicInfo, BasicSuccess
 from raidhelper import RaidHelper
 
 class Superuser:
@@ -104,6 +104,27 @@ class Superuser:
         else:
             return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())
 
+    def su_display(self, param):
+        params = param.split(" ")
+        response_list = []
+        if len(params) > 0:
+            for server_id in params:
+                bot_id = None
+                try:
+                    bot_id = int(server_id)
+                except TypeError:
+                    response_list.append(BasicCritical("Invalid server id: `{0}`".format(server_id)).get())
+
+                if (bot_id is not None) and (bot_id in self.__bots):
+                    response = self.__bots[bot_id].call_display("dummy", {'is_privileged' : True})
+                    if response.status == ResponseStatus.SUCCESS:
+                        response_list.append(response.data)
+                else:
+                    response_list.append(BasicError("Server `{0}` has no bot.".format(server_id)).get())
+            return Response(ResponseStatus.SUCCESS, response_list)
+        else:
+            return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())
+
     def su_reload(self, param):
         params = param.split(" ")
         response_list = []
@@ -146,3 +167,25 @@ class Superuser:
         for raid_user in raid_user_list:
             signed.extend(raid_user.names)
         return Response(ResponseStatus.SUCCESS, BasicInfo("\n".join(signed)).get())
+
+    def su_logging(self, param): # pylint: disable=unused-argument
+        params = param.split(" ")
+        if len(params) == 1:
+            if BotLogger().set_level(params[0].upper()):
+                return Response(ResponseStatus.SUCCESS, BasicSuccess("Logging level set to: **{0}**".format(BotLogger().get_level_name())).get())
+            else:
+                return Response(ResponseStatus.SUCCESS, BasicInfo("Current logging level: **{0}**\n`STDOUT` **{1}**".format(
+                BotLogger().get_level_name(),
+                "Enabled" if BotLogger().stdout_enabled else "Disabled")).get())
+        elif len(params) == 2 and params[0].lower() == 'stdout':
+            if params[1].lower() in ['enable', 'true', 'on', '1', 1]:
+                stdout = True
+            elif params[1].lower() in ['disable', 'false', 'off', '0', 0]:
+                stdout = False
+            else:
+                return Response(ResponseStatus.SUCCESS, BasicError("Unknown `STDOUT` request. Try on/off.").get())
+
+            BotLogger().stdout(stdout)
+            return Response(ResponseStatus.SUCCESS, BasicSuccess("`STDOUT` " + "Enabled" if stdout else "Disabled").get())
+        else:
+            return Response(ResponseStatus.SUCCESS, BasicCritical("Invalid parameters").get())
