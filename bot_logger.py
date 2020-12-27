@@ -28,8 +28,6 @@ class BotLogger():
                 else:
                     self.logger.removeHandler(self.stdout_handler)
                 self.stdout_enabled = enable
-                return True
-            return False
 
         def set_level(self, level):
             if logging._levelToName.get(level) is not None:

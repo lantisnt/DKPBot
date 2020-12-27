@@ -60,7 +60,6 @@ async def discord_update_activity():
         await client.change_presence(activity=activity.next())
         await asyncio.sleep(30)
 
-
 def get_config(filepath):
     config = ConfigParser()
     config.read(filepath)
@@ -81,14 +80,20 @@ def get_config(filepath):
 
 # Main
 def main(control: ScriptControl):
+    # Get Config
     (token, config_dir, storage_dir, in_memory_objects_limit, log_dir, su_id, raidhelper_api_endpoint, raidhelper_api_token) = get_config(sys.argv[1])
     control.initialize(token, config_dir, storage_dir, in_memory_objects_limit)
+    # Initialize Logs
     BotLogger().initialize(log_dir)
+    # Initialize super user
     super_user.initialize(su_id, bots)
+    # Initialize Memory Manager
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
+    # Initialize Raid Helper Integration
     raidhelper.RaidHelper().initialize(raidhelper_api_endpoint, raidhelper_api_token)
-
+    # Create inifite task
     client.loop.create_task(discord_update_activity())
+    # Run client listener
     client.run(control.token)
 
 # Utility
@@ -116,12 +121,14 @@ def handle_exception(note, exception):
 def pickle_data(uid, data):
     with open("{0}/pickle.{1}.bin".format(script_control.storage_dir, uid), "wb") as file_pointer:
         pickle.dump(data, file_pointer)
+        BotLogger().get().info("Pickle %d to %s", uid, file_pointer.name())
 
 
 def unpickle_data(uid):
     data = None
     with open("{0}/pickle.{1}.bin".format(script_control.storage_dir, uid), "rb") as file_pointer:
         data = pickle.load(file_pointer)
+        BotLogger().get().info("Unpickle %d from %s", uid, file_pointer.name())
     return data
 
 # Discord related
@@ -191,17 +198,16 @@ async def discord_get_response_channel(message, direct_message: bool):
             BotLogger().get().error('Unable to create DM channel with {0}'.format(
                     message.author))
         else:
+            BotLogger().get().debug("Responding on DM channel")
             return dm_channel
-
+    BotLogger().get().debug('Responding on guild channel')
     return response_channel
 
 async def discord_build_embed(data):
     return discord.Embed().from_dict(data)
 
-
 async def discord_build_file(data):
     return discord.File(data)
-
 
 async def discord_respond(channel, responses, self_call=False):
     try:
@@ -216,26 +222,40 @@ async def discord_respond(channel, responses, self_call=False):
 
         for response in response_list:
             if isinstance(response, str):
+                BotLogger().get().debug("Responding on channel %d with message: %s", channel.id, response)
                 await channel.send(response)
             elif isinstance(response, dict):
+                BotLogger().get().debug("Responding on channel %d with embed: %s", channel.id, response)
                 await channel.send(embed=await discord_build_embed(response))
             elif isinstance(response, io.IOBase):
+                BotLogger().get().debug("Responding on channel %d with file", channel.id)
                 await channel.send(file=await discord_build_file(response))
             elif isinstance(response, tuple):
                 message = response[0]
                 extra = response[1]
                 if isinstance(message, str):
                     if isinstance(extra, dict):
+                        BotLogger().get().debug("Responding on channel %d with message: %s and embed %s", channel.id, message, extra)
                         await channel.send(message, embed=await discord_build_embed(extra))
                     elif isinstance(extra, io.IOBase):
+                        BotLogger().get().debug("Responding on channel %d with message: %s and file", channel.id, message)
                         await channel.send(message, file=await discord_build_file(extra))
     except discord.HTTPException as exception:
         exception = str(exception).lower()
         if (exception.find("size exceeds maximum") != -1) or (exception.find("or fewer in length") != -1) and not self_call:
             embed = BasicError("Response data exceeded Discord limits. Please limit the response in `display` configuration.")
+            BotLogger().get().debug("Response data exceeded Discord limits for response on channel %d", channel.id)
             await discord_respond(channel, embed.get(), True)
         else:
             BotLogger().get().error(str(exception))
+
+async def discord_delete(handle):
+    try:
+        if isinstance(handle, discord.Message):
+            BotLogger().get().debug("Removing message (%d) from channel [%s (%d)]", handle.id, handle.channel.name, handle.channel.id)
+            await handle.delete()    
+    except (discord.errors.Forbidden, discord.errors.NotFound, discord.errors.HTTPException) as exception:
+        BotLogger().get().error(str(exception))
 
 async def discord_announce(bot: dkp_bot.DKPBot, channels):
     announcement_channel = None
@@ -245,6 +265,9 @@ async def discord_announce(bot: dkp_bot.DKPBot, channels):
             break
     if announcement_channel is not None:
         await discord_respond(announcement_channel, bot.get_announcement())
+        return
+
+    BotLogger().get().debug("Announcement channel not found")
 
 async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message, normalized_author: str, announce: bool):
     if len(message.attachments) > 0:
@@ -252,11 +275,10 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
             if bot.check_attachment_name(attachment.filename) and attachment.size < MAX_ATTACHMENT_BYTES:
                 attachment_bytes = await attachment.read()
                 info = {
-                    'comment': discord.utils.escape_markdown(message.clean_content)[:50],
+                    'comment': discord.utils.escape_markdown(message.clean_content)[:75],
                     'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
                     'author': normalized_author
                 }
-
                 response = bot.build_database(attachment_bytes.decode('utf-8', errors='replace'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     if announce and bot.is_announcement_channel_registered(): # announce
@@ -265,7 +287,10 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
                 elif response.status == dkp_bot.ResponseStatus.ERROR:
                     await discord_respond(message.channel, response.data)
                 return response.status
-
+            else:
+                BotLogger().get().info("Ignoring file [%s] with size [%dB] on channel [%s (%d)] in [%s (%d)]", 
+                attachment.name, attachment.size, message.channel.name, message.channel.id,
+                message.guild.name, message.guild.id)
     return dkp_bot.ResponseStatus.IGNORE
 
 ## Discord + Bot interactions
@@ -276,6 +301,7 @@ async def spawn_bot(guild):
         bot = bot_factory.new(guild.id, BotConfig(config_filename))
         if bot:
             if guild.id in bots.keys():
+                BotLogger().get().info("Bot for %s (%d) already exists. Recreating.", guild.name, guild.id)
                 del bots[guild.id]
             bots[guild.id] = bot
             for channel in guild.text_channels:
@@ -289,8 +315,8 @@ async def spawn_bot(guild):
                     continue
             # We call it here so we will have it tracked from beginning
             bot_memory_manager.Manager().Handle(guild.id, True)
-            BotLogger().get().info("Bot for server {0} total footprint: {1} B".format(
-                        guild.name.encode('ascii', 'ignore').decode(), footprint.total_size(bot)))
+            BotLogger().get().info("Bot for server [{0} ({1})] total footprint: {2}B".format(
+                        guild.name.encode('ascii', 'ignore').decode(), guild.id, footprint.total_size(bot)))
             return True
 
     except (SystemExit, Exception) as exception:
@@ -305,7 +331,7 @@ async def handle_bot_response(message: discord.Message, request_info: dict, resp
             if response.direct_message:
                 if isinstance(response_channel, discord.DMChannel):
                     await discord_respond(response_channel, response.data)
-                    await message.delete()
+                    await discord_delete(message)
                 else:
                     embed = BasicError("Unable to respond to DM request.")
                     await discord_respond(response_channel, embed.get())
@@ -329,7 +355,7 @@ async def handle_bot_response(message: discord.Message, request_info: dict, resp
                 else:
                     await discord_respond(response_channel, BasicCritical("Unable to reload bot. Please report this issue to the author. Previous one will continue to be usable.").get())
             else:
-                BotLogger().get().error("Reload invalid bot id: {0}".format(response.data))
+                BotLogger().get().error("Reload invalid bot id %s on channel [%s (%d)]", response.data, message.channel.name, message.channel.id)
         ## DELEGATE
         elif (response.status == dkp_bot.ResponseStatus.DELEGATE):
             return super_user.handle(response.data[0], response.data[1], request_info)
@@ -389,9 +415,11 @@ async def on_message(message):
         # Check if we have proper bot for the requester
         bot = bots.get(message.guild.id)
         if not isinstance(bot, dkp_bot.DKPBot):
+            BotLogger().get().critical("Missing bot for %s (%d)", message.guild.name, message.guild.id)
             return
 
         request_info = get_request_info(message)
+        BotLogger().get().debug("Request from user [%s(%d)] in [%s (%d)] info %s", message.author, message.author.id, message.guild.name, message.guild.id, request_info)
 
         response = None
         if client.user in message.mentions:
