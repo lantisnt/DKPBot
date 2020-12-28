@@ -7,6 +7,9 @@ from raidhelper import RaidHelper
 from display_templates import preformatted_block, get_bot_color, get_bot_links, SUPPORT_SERVER
 from display_templates import RawEmbed, BasicError, BasicCritical, BasicAnnouncement, BasicInfo, BasicSuccess
 from display_templates_epgp import SinglePlayerProfile, EPGPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
+from bot_logger import BotLogger, trace, for_all_methods
+
+@for_all_methods(trace)
 class CEPGPBot(EssentialDKPBot):
 
     _SV = "CEPGP"
@@ -49,11 +52,11 @@ class CEPGPBot(EssentialDKPBot):
 
     ### Database - Variables parsing ###
 
-    def _generate_player_info(self, player, data):
-        if not player or not data:
+    def _generate_player_info(self, player_entry, data):
+        if not player_entry or not data:
             return None
 
-        player = player.split("-")[0]
+        player = player_entry.split("-")[0]
         if len(player) == 0:
             return None
 
@@ -64,11 +67,18 @@ class CEPGPBot(EssentialDKPBot):
             if len(tmp) == 2:
                 ep = float(tmp[0])
                 gp = float(tmp[1])
+            else:
+                BotLogger().get().debug("Invalid backup entry %s", player_entry)
+        else:
+            BotLogger().get().debug("Invalid backup entry %s", player_entry)
+
         return PlayerInfoEPGP(player, ep, gp)
 
     def _parse_traffic_entry(self, target=None, source=None, desc=None, EPB=None, EPA=None, GPB=None, GPA=None, item_link=None, timestamp=None, id=None, unit_guid=None):
         # Workaround for old / invalid traffic structure
-        if None in [target, source, desc, EPB, EPA, GPB, GPA, item_link, timestamp, id, unit_guid]:
+        param_list = [target, source, desc, EPB, EPA, GPB, GPA, item_link, timestamp, id, unit_guid]
+        if None in param_list:
+            BotLogger().get().debug("Old traffic structure %s", param_list)
             return
 
         # Check for target
@@ -140,6 +150,10 @@ class CEPGPBot(EssentialDKPBot):
                 history = PlayerEPGPHistory(target, ep, gp, is_percentage, timestamp, reason, source)
                 self._add_history(target, history, self.DEFAULT_TEAM)
 
+            return
+    
+        BotLogger().get().debug("Unknown way to parse entry %s", param_list)
+        
     # Called 1st
     def _build_config_database(self, saved_variable):  # pylint: disable=unused-argument
         self._set_addon_config({})
@@ -148,6 +162,7 @@ class CEPGPBot(EssentialDKPBot):
     # Called 2nd
     def _build_dkp_database(self, saved_variable):
         if saved_variable is None:
+            BotLogger().get().debug("Missing saved_variable")
             return False
 
         addon_data = saved_variable.get(self._SV)

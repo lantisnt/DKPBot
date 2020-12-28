@@ -4,9 +4,10 @@ from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from player_role import RoleFilter
 from display_templates import SupporterOnlyResponse, BasicError, BasicInfo, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
-from bot_logger import BotLogger
+from bot_logger import BotLogger, trace, for_all_methods
 from raidhelper import RaidHelper
 
+@for_all_methods(trace)
 class EssentialDKPBot(DKPBot):
 
     _CONFIG_SV = "MonDKP_DB"

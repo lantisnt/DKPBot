@@ -6,7 +6,7 @@ from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
-from bot_logger import BotLogger
+from bot_logger import BotLogger, trace, for_all_methods
 from bot_utility import timestamp_now, public_to_dict
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
@@ -203,6 +203,7 @@ class Statistics():
         string += self.print_commands()
         return string
 
+@for_all_methods(trace)
 class DKPBot:
     DEFAULT_TEAM = "0"
     REMINDER_FREQUENCY = 25
@@ -238,6 +239,7 @@ class DKPBot:
     __direct_message_response = False
     __block_response_modifier = False
     __smart_roles = True
+
 
     def __init__(self, guild_id: int, config: BotConfig):
         self.__config = config
@@ -533,9 +535,9 @@ class DKPBot:
             method = 'call_' + sanitized_command
         else:
             return Response(ResponseStatus.IGNORE)
-
         callback = getattr(self, method, None)
         if callback and callable(callback):
+            BotLogger().get().debug("Calling [%s] with param [%s] for [%d]", sanitized_command, param, self.__guild_id)
             bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
             start = timestamp_now()
             response = callback(param, request_info)  # pylint: disable=not-callable
@@ -546,6 +548,7 @@ class DKPBot:
         elif sanitized_command.startswith('su_'):
             return Response(ResponseStatus.DELEGATE, (sanitized_command, param))
         else:
+            BotLogger().get().debug("Unknown command [%s] for [%d]", sanitized_command, self.__guild_id)
             return Response(ResponseStatus.IGNORE)
 
     def handle(self, message, request_info):
@@ -584,14 +587,18 @@ class DKPBot:
         return
 
     def _get_dkp(self, player, team):
-            team_data = self.__db['global'].get(team)
-            if team_data is None:
-                return None
-            return team_data['dkp'].get(player.lower())
+        team_data = self.__db['global'].get(team)
+        if team_data is None:
+            BotLogger().get().debug("Unknown team")
+            return None
+        dkp = team_data['dkp'].get(player.lower())
+        BotLogger().get().debug("%s", dkp)
+        return dkp
 
     def _get_team_dkp(self, team):
             team_data = self.__db['global'].get(team)
             if team_data is None:
+                BotLogger().get().debug("Unknown team")
                 return None
             team_dkp_data = []
             for entry in team_data['dkp'].values():
@@ -599,8 +606,10 @@ class DKPBot:
             return team_dkp_data
 
     def _search_dkp(self, player, team):
+        BotLogger().get().debug("search_dkp")
         team_data = self.__db['global'].get(team)
         if team_data is None:
+            BotLogger().get().debug("Unknown team")
             return None
         players = team_data['dkp'].keys()
         players = [p for p in players if p.lower().startswith(player)]
@@ -906,8 +915,6 @@ class DKPBot:
 
     # This method handles response differently. ERROR status is printed also
     def build_database(self, input_string, info):
-        BotLogger().get().info('Building database for server {0}'.format(self.__guild_id))
-
         start = timestamp_now()
 
         saved_variable = None
@@ -1179,7 +1186,7 @@ class DKPBot:
             string = "Change bot prefix\n"
             string += preformatted_block("Usage:     {0}config prefix *".format(self.__prefix))
             string += preformatted_block("Current:   {0}\n".format(self.__prefix))
-            string += preformatted_block("Supported: {0}\n".format(' '.join(self.get_supported_prefixes())))
+            string += preformatted_block("Supported: {0}\n".format(' '.join(type(self).get_supported_prefixes())))
             embed.add_field("prefix", string, False)
             # dm-response
             string = "Swap default response channel to DM (direct message)\n"
@@ -1341,7 +1348,7 @@ class DKPBot:
     def config_call_prefix(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params == 2:
             value = params[1]
-            if value in self.get_supported_prefixes():
+            if value in type(self).get_supported_prefixes():
                 self.__config.guild_info.prefix = value
                 new = self.__config.guild_info.prefix
                 if new == value:

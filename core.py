@@ -12,7 +12,7 @@ import dkp_bot
 import bot_factory
 import bot_memory_manager
 from bot_config import BotConfig
-from bot_logger import BotLogger
+from bot_logger import BotLogger, trace
 from display_templates import BasicSuccess, BasicError, BasicInfo, BasicCritical
 from loop_activity import LoopActivity
 from bot_utility import SPLIT_DELIMITERS
@@ -118,21 +118,20 @@ def handle_exception(note, exception):
 
 
 # Data related
+@trace
 def pickle_data(uid, data):
     with open("{0}/pickle.{1}.bin".format(script_control.storage_dir, uid), "wb") as file_pointer:
         pickle.dump(data, file_pointer)
-        BotLogger().get().info("Pickle %d to %s", uid, file_pointer.name())
 
-
+@trace
 def unpickle_data(uid):
     data = None
     with open("{0}/pickle.{1}.bin".format(script_control.storage_dir, uid), "rb") as file_pointer:
         data = pickle.load(file_pointer)
-        BotLogger().get().info("Unpickle %d from %s", uid, file_pointer.name())
     return data
 
 # Discord related
-
+@trace
 def normalize_author(author):
     if isinstance(author, discord.Member):
         if author.nick:
@@ -148,6 +147,7 @@ def normalize_author(author):
 
     return normalized
 
+@trace
 def get_request_info(message: discord.Message):
     # Normalize author
     author = normalize_author(message.author)
@@ -190,6 +190,7 @@ def get_request_info(message: discord.Message):
 
     return request_info
 
+@trace
 async def discord_get_response_channel(message, direct_message: bool):
     response_channel = message.channel
     if direct_message:
@@ -203,12 +204,15 @@ async def discord_get_response_channel(message, direct_message: bool):
     BotLogger().get().debug('Responding on guild channel')
     return response_channel
 
+@trace
 async def discord_build_embed(data):
     return discord.Embed().from_dict(data)
 
+@trace
 async def discord_build_file(data):
     return discord.File(data)
 
+@trace
 async def discord_respond(channel, responses, self_call=False):
     try:
         if not responses:
@@ -249,6 +253,7 @@ async def discord_respond(channel, responses, self_call=False):
         else:
             BotLogger().get().error(str(exception))
 
+@trace
 async def discord_delete(handle):
     try:
         if isinstance(handle, discord.Message):
@@ -257,6 +262,7 @@ async def discord_delete(handle):
     except (discord.errors.Forbidden, discord.errors.NotFound, discord.errors.HTTPException) as exception:
         BotLogger().get().error(str(exception))
 
+@trace
 async def discord_announce(bot: dkp_bot.DKPBot, channels):
     announcement_channel = None
     for channel in channels:
@@ -269,6 +275,7 @@ async def discord_announce(bot: dkp_bot.DKPBot, channels):
 
     BotLogger().get().debug("Announcement channel not found")
 
+@trace
 async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message, normalized_author: str, announce: bool):
     if len(message.attachments) > 0:
         for attachment in message.attachments:
@@ -279,6 +286,7 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
                     'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
                     'author': normalized_author
                 }
+                BotLogger().get().info('Building database for server [%s (%d)]', message.guild.name, message.guild.id)
                 response = bot.build_database(attachment_bytes.decode('utf-8', errors='replace'), info)
                 if response.status == dkp_bot.ResponseStatus.SUCCESS:
                     if announce and bot.is_announcement_channel_registered(): # announce
@@ -294,7 +302,7 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
     return dkp_bot.ResponseStatus.IGNORE
 
 ## Discord + Bot interactions
-
+@trace
 async def spawn_bot(guild):
     try:
         config_filename = "{0}/{1}.ini".format(script_control.config_dir, guild.id)
@@ -315,7 +323,7 @@ async def spawn_bot(guild):
                     continue
             # We call it here so we will have it tracked from beginning
             bot_memory_manager.Manager().Handle(guild.id, True)
-            BotLogger().get().info("Bot for server [{0} ({1})] total footprint: {2}B".format(
+            BotLogger().get().info("Bot for server [{0} ({1})] total footprint: {2} B".format(
                         guild.name.encode('ascii', 'ignore').decode(), guild.id, footprint.total_size(bot)))
             return True
 
@@ -323,6 +331,7 @@ async def spawn_bot(guild):
         handle_exception("spawn_bot()", exception)
         return False
 
+@trace
 async def handle_bot_response(message: discord.Message, request_info: dict, response: dkp_bot.Response):
     if response and isinstance(response, dkp_bot.Response):
         ## SUCCESS
@@ -363,7 +372,7 @@ async def handle_bot_response(message: discord.Message, request_info: dict, resp
     return None
 
 # Discord API
-
+@trace
 @client.event
 async def on_guild_join(guild):
     try:
@@ -372,13 +381,17 @@ async def on_guild_join(guild):
     except (SystemExit, Exception) as exception:
         handle_exception("on_guild_join()", exception)
 
+@trace
 @client.event
 async def on_connect():
     BotLogger().get().info("Connected to discord gateway")
 
+@trace
+@client.event
 async def on_disconnect():
     BotLogger().get().info("Disconnected from discord gateway")
 
+@trace
 @client.event
 async def on_ready():
     try:
@@ -398,7 +411,7 @@ async def on_ready():
     except (SystemExit, Exception) as exception:
         handle_exception("on_ready()", exception)
 
-
+@trace
 @client.event
 async def on_message(message):
     try:
@@ -419,7 +432,7 @@ async def on_message(message):
             return
 
         request_info = get_request_info(message)
-        BotLogger().get().debug("Request from user [%s(%d)] in [%s (%d)] info %s", message.author, message.author.id, message.guild.name, message.guild.id, request_info)
+        BotLogger().get().debug("Request from user [%s (%d)] in [%s (%d)] info %s", message.author, message.author.id, message.guild.name, message.guild.id, request_info)
 
         response = None
         if client.user in message.mentions:

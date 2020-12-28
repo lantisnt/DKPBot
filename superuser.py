@@ -1,8 +1,9 @@
 from dkp_bot import Response, ResponseStatus, Statistics
-from bot_logger import BotLogger
+from bot_logger import BotLogger, trace, for_all_methods
 from display_templates import BasicError, BasicCritical, BasicInfo, BasicSuccess
 from raidhelper import RaidHelper
 
+@for_all_methods(trace)
 class Superuser:
     __su_id = 0
     __bots = {}
@@ -174,18 +175,27 @@ class Superuser:
             if BotLogger().set_level(params[0].upper()):
                 return Response(ResponseStatus.SUCCESS, BasicSuccess("Logging level set to: **{0}**".format(BotLogger().get_level_name())).get())
             else:
-                return Response(ResponseStatus.SUCCESS, BasicInfo("Current logging level: **{0}**\n`STDOUT` **{1}**".format(
+                return Response(ResponseStatus.SUCCESS, BasicInfo("Current logging level: **{0}**\n`STDOUT` **{1}**\n`TRACE` **{2}**".format(
                 BotLogger().get_level_name(),
-                "Enabled" if BotLogger().stdout_enabled else "Disabled")).get())
-        elif len(params) == 2 and params[0].lower() == 'stdout':
-            if params[1].lower() in ['enable', 'true', 'on', '1', 1]:
-                stdout = True
-            elif params[1].lower() in ['disable', 'false', 'off', '0', 0]:
-                stdout = False
+                "Enabled" if BotLogger().stdout_enabled else "Disabled",
+                "Enabled" if BotLogger().trace_enabled else "Disabled")).get())
+        elif len(params) == 2:
+            config = params[0].lower()
+            request = params[1].lower()
+            if request in ['enable', 'true', 'on', '1', 1]:
+                enable = True
+            elif request in ['disable', 'false', 'off', '0', 0]:
+                enable = False
             else:
-                return Response(ResponseStatus.SUCCESS, BasicError("Unknown `STDOUT` request. Try on/off.").get())
+                return Response(ResponseStatus.SUCCESS, BasicError("Unknown request. Try on/off.").get())
 
-            BotLogger().stdout(stdout)
-            return Response(ResponseStatus.SUCCESS, BasicSuccess("`STDOUT` " + "Enabled" if stdout else "Disabled").get())
+            if config == 'stdout':
+                BotLogger().config_stdout(enable)
+            elif config == 'trace':
+                BotLogger().config_trace(enable)
+            else:
+                return Response(ResponseStatus.SUCCESS, BasicError("Unknown config. Try stdout/trace.").get())
+
+            return Response(ResponseStatus.SUCCESS, BasicSuccess("`" + config.upper() + "` " + "Enabled" if enable else "Disabled").get())
         else:
             return Response(ResponseStatus.SUCCESS, BasicCritical("Invalid parameters").get())

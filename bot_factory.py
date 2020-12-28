@@ -3,6 +3,7 @@ import essentialdkp_bot
 import monolithdkp_bot
 import communitydkp_bot
 import classicepgp_bot
+from bot_logger import BotLogger
 
 def new(guild_id, config: bot_config.BotConfig):
     if not isinstance(config, bot_config.BotConfig):

@@ -1,9 +1,11 @@
 import player_role
 from player_role import Role
+from bot_logger import trace, for_all_methods
 
 def get_width(value):
     return len(str(int(value)))
 
+#@for_all_methods(trace)
 class PlayerInfo:
     __player = ""
     __dkp = 0
@@ -74,7 +76,7 @@ class PlayerInfo:
         return get_width(self.dkp())
 
     def __str__(self):
-        return "{0} ({1} - {6}) {2} ({3}/{4}) DKP | Active: {5}\n".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent(), self.__active, self.__smart_role)
+        return "{0} ({1} - {6}) {2} ({3}/{4}) DKP | Active: {5}".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent(), self.__active, self.__smart_role)
 
     def __repr__(self):
         return self.__str__()
@@ -114,6 +116,7 @@ class PlayerInfo:
             other = other.dkp()
         return self.dkp() >= other
 
+#@for_all_methods(trace)
 class PlayerInfoEPGP(PlayerInfo):
 
     def __init__(self, player, ep, gp):
@@ -145,8 +148,9 @@ class PlayerInfoEPGP(PlayerInfo):
         if history_entry and isinstance(history_entry, PlayerEPGPHistory):
             self._latest_history_entry = history_entry
     def __str__(self):
-        return "{0}: {1} EP {2} GP {3} PR\n".format(self.name(), self.ep(), self.gp(), self.pr())
+        return "{0}: {1} EP {2} GP {3} PR".format(self.name(), self.ep(), self.gp(), self.pr())
 
+#@for_all_methods(trace)
 class PlayerLoot:
     __player = ""
     __item_id = 0
@@ -190,11 +194,13 @@ class PlayerLoot:
     def __hash__(self):
         return hash(str(self))
 
+#@for_all_methods(trace)
 class PlayerLootEPGP(PlayerLoot):
     
     def gp(self):
         return self.dkp()
 
+#@for_all_methods(trace)
 class PlayerDKPHistory:
     __player = ""
     __dkp = 0
@@ -271,7 +277,7 @@ class PlayerDKPHistory:
     #         other = other.dkp()
     #     return self.dkp() >= other
 
-
+#@for_all_methods(trace)
 class PlayerEPGPHistory(PlayerDKPHistory):
     def __init__(self, player, ep, gp, is_percentage, timestamp, reason, officer):
         super().__init__(player, ep, timestamp, reason, officer)
