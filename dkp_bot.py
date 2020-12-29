@@ -535,9 +535,10 @@ class DKPBot:
             method = 'call_' + sanitized_command
         else:
             return Response(ResponseStatus.IGNORE)
+
         callback = getattr(self, method, None)
         if callback and callable(callback):
-            BotLogger().get().debug("Calling [%s] with param [%s] for [%d]", sanitized_command, param, self.__guild_id)
+            BotLogger().get().info("Calling [%s] with param [%s] for [%d]", sanitized_command, param, self.__guild_id)
             bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
             start = timestamp_now()
             response = callback(param, request_info)  # pylint: disable=not-callable
@@ -589,7 +590,7 @@ class DKPBot:
     def _get_dkp(self, player, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            BotLogger().get().debug("Unknown team")
+            BotLogger().get().debug("Unknown team %s", team)
             return None
         dkp = team_data['dkp'].get(player.lower())
         BotLogger().get().debug("%s", dkp)
@@ -598,7 +599,7 @@ class DKPBot:
     def _get_team_dkp(self, team):
             team_data = self.__db['global'].get(team)
             if team_data is None:
-                BotLogger().get().debug("Unknown team")
+                BotLogger().get().debug("Unknown team %s", team)
                 return None
             team_dkp_data = []
             for entry in team_data['dkp'].values():
@@ -609,7 +610,7 @@ class DKPBot:
         BotLogger().get().debug("search_dkp")
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            BotLogger().get().debug("Unknown team")
+            BotLogger().get().debug("Unknown team %s", team)
             return None
         players = team_data['dkp'].keys()
         players = [p for p in players if p.lower().startswith(player)]
@@ -618,18 +619,21 @@ class DKPBot:
     def _get_player_loot(self, player, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
+            BotLogger().get().debug("Unknown team %s", team)
             return None
         return team_data['player_loot'].get(player.lower())
 
     def _get_loot(self, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
+            BotLogger().get().debug("Unknown team %s", team)
             return None
         return team_data['loot']
 
     def _get_history(self, player, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
+            BotLogger().get().debug("Unknown team %s", team)
             return None
         return team_data['history'].get(player.lower())
 
@@ -724,6 +728,7 @@ class DKPBot:
 
         team_data = self.__db['global'].get(team)
         if team_data is None:
+            BotLogger().get().debug("Unknown team %s", team)
             return list()
 
         loot_pattern = re.compile(keyword.strip(), flags=re.IGNORECASE)
@@ -754,6 +759,7 @@ class DKPBot:
 
         team_data = self.__db['global'].get(team)
         if team_data is None:
+            BotLogger().get().debug("Unknown team %s", team)
             return None
 
         player = player.lower()
@@ -924,11 +930,11 @@ class DKPBot:
                 raise AttributeError
         except AttributeError :
             BotLogger().get().error("Error Parsing .lua file.")
-            return Response(ResponseStatus.ERROR, BasicCritical("Error Parsing .lua file. Check if you have provided proper savedvariable file.").get())
+            return Response(ResponseStatus.SUCCESS, BasicCritical("Error Parsing .lua file. Check if you have provided proper savedvariable file.").get())
 
         if not isinstance(saved_variable, dict):
             BotLogger().get().error("No SavedVariables found in .lua file.")
-            return Response(ResponseStatus.ERROR, BasicCritical("No SavedVariables found in .lua file. Check if you have provided proper savedvariable file.").get())
+            return Response(ResponseStatus.SUCCESS, BasicCritical("No SavedVariables found in .lua file. Check if you have provided proper savedvariable file.").get())
 
         self.__init_db_structure()
 
@@ -938,16 +944,16 @@ class DKPBot:
 
         if not self._build_config_database(saved_variable):
             BotLogger().get().error("Configuration Database building failed. Please validate your settings.")
-            return Response(ResponseStatus.ERROR, BasicError("Configuration Database building failed. Please validate your settings.").get())
+            return Response(ResponseStatus.SUCCESS, BasicError("Configuration Database building failed. Please validate your settings.").get())
         if not self._build_dkp_database(saved_variable):
             BotLogger().get().error("DKP Database building failed.")
-            return Response(ResponseStatus.ERROR, BasicError("DKP Database building failed. Please check your `server-side` and `guild-name` settings.").get())
+            return Response(ResponseStatus.SUCCESS, BasicError("DKP Database building failed. Please check your `server-side` and `guild-name` settings.").get())
         if not self._build_loot_database(saved_variable):
             BotLogger().get().error("Loot Database building failed.")
-            return Response(ResponseStatus.ERROR, BasicError("Loot Database building failed. Please check your `server-side` and `guild-name` settings.").get())
+            return Response(ResponseStatus.SUCCESS, BasicError("Loot Database building failed. Please check your `server-side` and `guild-name` settings.").get())
         if not self._build_history_database(saved_variable):
             BotLogger().get().error("DKP History Database building failed.")
-            return Response(ResponseStatus.ERROR, BasicError("DKP History Database building failed. Please check your `server-side` and `guild-name` settings.").get())
+            return Response(ResponseStatus.SUCCESS, BasicError("DKP History Database building failed. Please check your `server-side` and `guild-name` settings.").get())
 
         self._finalize_database()
 
@@ -960,12 +966,12 @@ class DKPBot:
             for table in team:
                 if len(table) <= 0:
                     BotLogger().get().error("Global Database building failed.")
-                    return Response(ResponseStatus.ERROR, BasicError("Global Database building failed.").get())
+                    return Response(ResponseStatus.SUCCESS, BasicError("Global Database building failed.").get())
 
         for team in self.__db['group']:
             if len(team) <= 0:
                 BotLogger().get().error("Group Database building failed.")
-                return Response(ResponseStatus.ERROR, BasicError("Group Database building failed.").get())
+                return Response(ResponseStatus.SUCCESS, BasicError("Group Database building failed.").get())
 
         self.__db_loaded = True
 
@@ -1101,6 +1107,7 @@ class DKPBot:
 
     def call_config(self, param, request_info):
         if not request_info['is_privileged']:
+            BotLogger().get().warning("Unprivileged access to config: %s", request_info)
             return Response(ResponseStatus.IGNORE)
 
         params = self._parse_param(param)
@@ -1217,6 +1224,7 @@ class DKPBot:
 
     def call_display(self, param, request_info):
         if not request_info['is_privileged']:
+            BotLogger().get().warning("Unprivileged access to display: %s", request_info)
             return Response(ResponseStatus.IGNORE)
 
         param = self._parse_param(param)
@@ -1316,6 +1324,7 @@ class DKPBot:
 
             return Response(ResponseStatus.SUCCESS, self._help_handler_internal("Administration", help_string))
         else:
+            BotLogger().get().warning("Unprivileged access to help administration: %s", request_info)
             return Response(ResponseStatus.IGNORE)
 
     ### Config handlers ###
@@ -1339,7 +1348,8 @@ class DKPBot:
                     self._reconfigure()
                     return Response(ResponseStatus.RELOAD, self.__guild_id)
                 else:
-                    return Response(ResponseStatus.ERROR, 'Unexpected error during bot type setup')
+                    BotLogger().get().error("Unexpected error during bot type setup: %s", request_info)
+                    return Response(ResponseStatus.SUCCESS, BasicCritical('Unexpected error during bot type setup').get())
             else:
                 return Response(ResponseStatus.SUCCESS, BasicError('Unsupported bot type').get())
         else:
@@ -1355,7 +1365,8 @@ class DKPBot:
                     self._reconfigure()
                     return Response(ResponseStatus.SUCCESS, BasicSuccess('Set prefix to `{0}`'.format(value)).get())
                 else:
-                    return Response(ResponseStatus.ERROR, 'Unexpected error during prefix change')
+                    BotLogger().get().error("Unexpected error during prefix change: %s", request_info)
+                    return Response(ResponseStatus.SUCCESS, BasicCritical('Unexpected error during prefix change').get())
             else:
                 return Response(ResponseStatus.SUCCESS, BasicError('Unsupported prefix').get())
         else:
@@ -1400,7 +1411,7 @@ class DKPBot:
 
             value = "{0}-{1}".format(server, side)
             if len(value) > 50:
-                return Response(ResponseStatus.SUCCESS, BasicError('Data is too long.').get())
+                return Response(ResponseStatus.SUCCESS, BasicError('Data should not exceed 50 characters.').get())
 
             self.__config.guild_info.server_side = value
             new = self.__config.guild_info.server_side
@@ -1408,7 +1419,8 @@ class DKPBot:
                 self._reconfigure()
                 return Response(ResponseStatus.SUCCESS, BasicSuccess('Server-side data set to `{0} {1}`'.format(server, side)).get())
             else:
-                return Response(ResponseStatus.ERROR, 'Unexpected error during server-side change.')
+                BotLogger().get().error("Unexpected error during server-side change: %s", request_info)
+                return Response(ResponseStatus.SUCCESS, BasicCritical('Unexpected error during server-side change').get())
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
@@ -1416,7 +1428,7 @@ class DKPBot:
         if num_params >= 2:
             value = ' '.join(params[1:]).lower()
             if len(value) > 50:
-                return Response(ResponseStatus.ERROR, BasicError('Data is too long.').get())
+                return Response(ResponseStatus.SUCCESS, BasicError('Data should not exceed 50 characters.').get())
 
             self.__config.guild_info.guild_name = value
             new = self.__config.guild_info.guild_name
@@ -1424,7 +1436,7 @@ class DKPBot:
                 self._reconfigure()
                 return Response(ResponseStatus.SUCCESS, BasicSuccess('Guild Name set to `{0}`'.format(value)).get())
             else:
-                return Response(ResponseStatus.ERROR, 'Unexpected error during guild name change.')
+                return Response(ResponseStatus.SUCCESS, 'Unexpected error during guild name change.')
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
@@ -1472,8 +1484,3 @@ class DKPBot:
             return self.__generic_response(success, "block-response-modifier", params[1])
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
-
-    def call_dbdump(self, param, request_info):
-        import pprint
-        with open("dump.txt", "w") as fout:
-            fout.write(pprint.pformat(self.__db))

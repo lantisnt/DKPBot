@@ -1,6 +1,7 @@
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp
 from bot_config import DisplayConfig
+from bot_logger import trace, for_all_methods
 import build_info
 
 INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
@@ -8,19 +9,19 @@ SUPPORT_SERVER = "[Support Server](http://{0})".format(
     build_info.SUPPORT_SERVER)
 DONATE = "[Donate](http://wowdkpbot.com/donate)"
 
-
+@trace
 def get_bot_links():
     return INVITE + " | " + SUPPORT_SERVER + " | " + DONATE
 
-
+@trace
 def get_bot_color():
     return 10204605
 
-
+@trace
 def get_config_color():
     return 16553987
 
-
+@trace
 def get_class_color(class_name=None):
     if not class_name:
         return 10204605
@@ -56,14 +57,14 @@ def get_class_color(class_name=None):
 
     return 10204605
 
-
+@trace
 def get_plus_minus_icon_string(plus=True):
     if plus:
         return "<:plus:782168773875728384>"
     else:
         return "<:minus:782168774035374080>"
 
-
+@trace
 def get_class_icon_string(class_name=None, spec_id=0):
     if not class_name:
         return ""
@@ -122,7 +123,7 @@ def get_class_icon_string(class_name=None, spec_id=0):
 
     return ""
 
-
+@trace
 def get_thumbnail(class_name):
     if not class_name or not isinstance(class_name, str):
         return None
@@ -158,23 +159,23 @@ def get_thumbnail(class_name):
 
     return None
 
-
+@trace
 def get_points_format_string(width, rounding, value_suffix):
     return "`{{0:{0}.{1}f}}{2}`".format(width, rounding, " DKP" if value_suffix else "")
 
-
+@trace
 def get_history_format_string(width, rounding, value_suffix):
     return get_points_format_string(width, rounding, value_suffix)
 
-
+@trace
 def get_loot_format_string(width, rounding, value_suffix):
     return get_points_format_string(width, rounding, value_suffix)
 
-
+@trace
 def preformatted_block(string: str, language='swift'):
     return "```" + language + "\n" + string + "```"
 
-
+@trace
 def generate_dkp_history_entry(history_entry, format_string, enable_icons, alternative_display_mode):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):
         row = ""
@@ -189,7 +190,7 @@ def generate_dkp_history_entry(history_entry, format_string, enable_icons, alter
         return row
     return "- No data available -"
 
-
+@trace
 def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_display_mode, player):
     if loot_entry and isinstance(loot_entry, PlayerLoot):
         row = ""
@@ -208,7 +209,7 @@ def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_dis
         return row
     return "- No data available -"
 
-
+@for_all_methods(trace)
 class RawEmbed:
     _d = {}
     __is_built = False
@@ -276,6 +277,7 @@ class RawEmbed:
     def __call__(self):
         return self.get()
 
+@for_all_methods(trace)
 class BasicCritical(RawEmbed):
 
     def __init__(self, message):
@@ -314,7 +316,7 @@ class BasicSuccess(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-
+@for_all_methods(trace)
 class BasicInfo(RawEmbed):
 
     def __init__(self, message):
@@ -327,7 +329,7 @@ class BasicInfo(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-
+@for_all_methods(trace)
 class BasicAnnouncement(RawEmbed):
 
     def __init__(self, message):
@@ -340,7 +342,7 @@ class BasicAnnouncement(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-
+@for_all_methods(trace)
 class SupporterResponse(RawEmbed):
     def __init__(self, title):
         self.build(
@@ -352,19 +354,19 @@ class SupporterResponse(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-
+@for_all_methods(trace)
 class SupporterOnlyResponse(SupporterResponse):
 
     def __init__(self):
         super().__init__("Supporter only command")
 
-
+@for_all_methods(trace)
 class SupportReminder(SupporterResponse):
 
     def __init__(self):
         super().__init__("Unlock access to supporter commands for your server")
 
-
+@for_all_methods(trace)
 class BaseResponse:
     _embed = None
     _title = ""
@@ -397,7 +399,7 @@ class BaseResponse:
         if isinstance(rounding, int) and rounding >= 0 and rounding <= 7:
             self._rounding = rounding
 
-
+@for_all_methods(trace)
 class SinglePlayerProfile(BaseResponse):
 
     def build(self, info, thumbnail=None):
@@ -436,7 +438,7 @@ class SinglePlayerProfile(BaseResponse):
     def get(self):
         return self._embed.get()
 
-
+@for_all_methods(trace)
 class MultipleResponse(BaseResponse):
     __response_list = []
     __field_limit = 6
@@ -586,7 +588,7 @@ class MultipleResponse(BaseResponse):
         string += str(self.__multiple_columns)
         return string
 
-
+@for_all_methods(trace)
 class DKPMultipleResponse(MultipleResponse):
 
     def _prepare(self, data_list):
@@ -635,7 +637,7 @@ class DKPMultipleResponse(MultipleResponse):
 
         return ""
 
-
+@for_all_methods(trace)
 class HistoryMultipleResponse(MultipleResponse):
 
     __user = None
@@ -675,7 +677,7 @@ class HistoryMultipleResponse(MultipleResponse):
 
         return ""
 
-
+@for_all_methods(trace)
 class PlayerLootMultipleResponse(MultipleResponse):
 
     __user = None
@@ -713,7 +715,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
         return ""
 
-
+@for_all_methods(trace)
 class LootMultipleResponse(MultipleResponse):
 
     __user = None

@@ -214,11 +214,11 @@ class EssentialDKPBot(DKPBot):
         item_info = self._get_item_id_name(loot)
 
         if not item_info or not isinstance(item_info, list) or len(item_info) != 1:
-            BotLogger().get().warning("ERROR in entry: " + str(player.player()) + " " + str(date) + " " + str(cost) + " " + str(loot))
+            BotLogger().get().warning("ERROR in loot entry: " + str(player.player()) + " " + str(date) + " " + str(cost) + " " + str(loot) + " " + str(item_info))
             return None
 
         if not item_info[0] or not isinstance(item_info[0], tuple) or len(item_info[0]) != 2:
-            BotLogger().get().warning("ERROR in item_info[0] " + str(item_info[0]))
+            BotLogger().get().warning("ERROR in loot item_info[0] " + str(item_info[0]))
             return None
 
         return PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date)
@@ -490,7 +490,7 @@ class EssentialDKPBot(DKPBot):
             if not self.is_premium():
                 return Response(ResponseStatus.SUCCESS, SupporterOnlyResponse().get())
             else:
-                return Response(ResponseStatus.ERROR, BasicError("Unable to find data for {0}.".format(param)).get())
+                return Response(ResponseStatus.SUCCESS, BasicError("Unable to find data for {0}.".format(param)).get())
 
         if len(output_result_list) == 1:
             data = self._build_dkp_output_single(output_result_list[0])
@@ -519,7 +519,7 @@ class EssentialDKPBot(DKPBot):
                     output_result_list = info
                     break  # Yes single only
         else:
-            return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
+            return Response(ResponseStatus.SUCCESS, BasicError("Unable to find data for {0}.".format(param)).get())
 
         if len(output_result_list) > 0:
             data = self._build_history_output_multiple(output_result_list)
@@ -545,7 +545,7 @@ class EssentialDKPBot(DKPBot):
                     output_result_list = info
                     break  # Yes single only
         else:
-            return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
+            return Response(ResponseStatus.SUCCESS, BasicError("Unable to find data for {0}.".format(param)).get())
 
         if len(output_result_list) > 0:
             data = self._build_player_loot_output_multiple(output_result_list)

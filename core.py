@@ -258,7 +258,7 @@ async def discord_delete(handle):
     try:
         if isinstance(handle, discord.Message):
             BotLogger().get().debug("Removing message (%d) from channel [%s (%d)]", handle.id, handle.channel.name, handle.channel.id)
-            await handle.delete()    
+            await handle.delete()  
     except (discord.errors.Forbidden, discord.errors.NotFound, discord.errors.HTTPException) as exception:
         BotLogger().get().error(str(exception))
 
@@ -342,8 +342,8 @@ async def handle_bot_response(message: discord.Message, request_info: dict, resp
                     await discord_respond(response_channel, response.data)
                     await discord_delete(message)
                 else:
-                    embed = BasicError("Unable to respond to DM request.")
-                    await discord_respond(response_channel, embed.get())
+                    BotLogger().get().warning("Unable to respond on DM to message %s", message)
+                    await discord_respond(response_channel, BasicError("Unable to respond to DM request.").get())
             else:
                 await discord_respond(response_channel, response.data)
         ## ERROR

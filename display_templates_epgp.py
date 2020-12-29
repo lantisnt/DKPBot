@@ -1,16 +1,20 @@
 from player_db_models import PlayerInfoEPGP, PlayerEPGPHistory, PlayerLootEPGP
 from bot_utility import get_date_from_timestamp
 from bot_config import DisplayConfig
+from bot_logger import trace, for_all_methods
 from display_templates import BaseResponse, MultipleResponse
 from display_templates import get_bot_links, get_bot_color, get_config_color, get_plus_minus_icon_string, preformatted_block
 import build_info
 
+@trace
 def get_epgp_color():
     return 10204605
 
+@trace
 def get_thumbnail():
     return "https://cdn.discordapp.com/attachments/765089790295015425/784450070945857626/CEPGP.png"
 
+@trace
 def get_points_format_string(ep_width, gp_width, pr_width, value_suffix):
     if value_suffix:
         return "`{{0:{0}.0f}}{1} {{1:{2}.0f}}{3} {{2:{4}.2f}}{5}`".format(
@@ -20,14 +24,17 @@ def get_points_format_string(ep_width, gp_width, pr_width, value_suffix):
     else:
         return "`{{0:{0}.0f}}/{{1:{1}.0f}} {{2:{2}.2f}}`".format(ep_width, gp_width, pr_width)
 
+@trace
 def get_history_format_string(ep_width, gp_width, value_suffix):
     return "`{{0:{0}.0f}}{1} {{1:{2}.0f}}{3}`".format(
             ep_width, " EP" if value_suffix else "",
             gp_width, " GP" if value_suffix else "")
 
+@trace
 def get_loot_format_string(ep_width, value_suffix):
     return "`{{0:{0}.0f}}{1}`".format(ep_width, " GP" if value_suffix else "")
 
+@trace
 def generate_epgp_history_entry(history_entry, format_string, enable_icons, alternative_display_mode):
     if history_entry and isinstance(history_entry, PlayerEPGPHistory):
         row = ""
@@ -41,6 +48,7 @@ def generate_epgp_history_entry(history_entry, format_string, enable_icons, alte
         return row
     return "- No data available -"
 
+@trace
 def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_display_mode, player):
     if loot_entry and isinstance(loot_entry, PlayerLootEPGP):
         row = ""
@@ -55,6 +63,7 @@ def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_dis
         return row
     return "- No data available -"
 
+@for_all_methods(trace)
 class SinglePlayerProfile(BaseResponse):
 
     def build(self, info, thumbnail=None):
@@ -147,6 +156,7 @@ class EPGPMultipleResponse(MultipleResponse):
 
         return ""
 
+@for_all_methods(trace)
 class HistoryMultipleResponse(MultipleResponse):
 
     __user = None
@@ -189,6 +199,7 @@ class HistoryMultipleResponse(MultipleResponse):
 
         return ""
 
+@for_all_methods(trace)
 class PlayerLootMultipleResponse(MultipleResponse):
 
     __user = None
@@ -225,6 +236,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
         return ""
 
+@for_all_methods(trace)
 class LootMultipleResponse(MultipleResponse):
 
     __user = None
