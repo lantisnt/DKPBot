@@ -33,33 +33,34 @@ class EssentialDKPBot(DKPBot):
 
     def _configure(self):
         super()._configure()
+        config = self._get_config()
         # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile("Essential DKP Profile")
 
-        self._multiple_dkp_output_builder = DKPMultipleResponse("DKP values", self._get_config().dkp.fields,
-        self._get_config().dkp.entries_per_field, self._get_config().dkp.separate_messages,
-        self._get_config().dkp.multiple_columns, self._get_config().dkp.enable_icons, self._get_config().dkp.value_suffix,
-        self._get_config().dkp.alternative_display_mode)
+        self._multiple_dkp_output_builder = DKPMultipleResponse("DKP values", config.dkp.fields,
+        config.dkp.entries_per_field, config.dkp.separate_messages,
+        config.dkp.multiple_columns, config.dkp.enable_icons, config.dkp.value_suffix,
+        config.dkp.alternative_display_mode)
 
-        self._multiple_history_output_builder = HistoryMultipleResponse("Latest DKP history", self._get_config().dkp_history.fields,
-        self._get_config().dkp_history.entries_per_field, self._get_config().dkp_history.separate_messages,
-        self._get_config().dkp_history.multiple_columns, self._get_config().dkp_history.enable_icons, self._get_config().dkp_history.value_suffix,
-        self._get_config().dkp_history.alternative_display_mode)
+        self._multiple_history_output_builder = HistoryMultipleResponse("Latest DKP history", config.dkp_history.fields,
+        config.dkp_history.entries_per_field, config.dkp_history.separate_messages,
+        config.dkp_history.multiple_columns, config.dkp_history.enable_icons, config.dkp_history.value_suffix,
+        config.dkp_history.alternative_display_mode)
 
-        self._multiple_player_loot_output_builder = PlayerLootMultipleResponse("Latest loot history", self._get_config().loot_history.fields,
-        self._get_config().loot_history.entries_per_field, self._get_config().loot_history.separate_messages,
-        self._get_config().loot_history.multiple_columns, self._get_config().loot_history.enable_icons, self._get_config().loot_history.value_suffix,
-        self._get_config().loot_history.alternative_display_mode)
+        self._multiple_player_loot_output_builder = PlayerLootMultipleResponse("Latest loot history", config.loot_history.fields,
+        config.loot_history.entries_per_field, config.loot_history.separate_messages,
+        config.loot_history.multiple_columns, config.loot_history.enable_icons, config.loot_history.value_suffix,
+        config.loot_history.alternative_display_mode)
 
-        self._multiple_loot_output_builder = LootMultipleResponse("Latest 30 items awarded", self._get_config().latest_loot.fields,
-        self._get_config().latest_loot.entries_per_field, self._get_config().latest_loot.separate_messages,
-        self._get_config().latest_loot.multiple_columns, self._get_config().latest_loot.enable_icons, self._get_config().latest_loot.value_suffix,
-        self._get_config().latest_loot.alternative_display_mode)
+        self._multiple_loot_output_builder = LootMultipleResponse("Latest 30 items awarded", config.latest_loot.fields,
+        config.latest_loot.entries_per_field, config.latest_loot.separate_messages,
+        config.latest_loot.multiple_columns, config.latest_loot.enable_icons, config.latest_loot.value_suffix,
+        config.latest_loot.alternative_display_mode)
 
-        self._multiple_item_search_output_builder = LootMultipleResponse("Search results", self._get_config().item_search.fields,
-        self._get_config().item_search.entries_per_field, self._get_config().item_search.separate_messages,
-        self._get_config().item_search.multiple_columns, self._get_config().item_search.enable_icons, self._get_config().item_search.value_suffix,
-        self._get_config().item_search.alternative_display_mode)
+        self._multiple_item_search_output_builder = LootMultipleResponse("Search results", config.item_search.fields,
+        config.item_search.entries_per_field, config.item_search.separate_messages,
+        config.item_search.multiple_columns, config.item_search.enable_icons, config.item_search.value_suffix,
+        config.item_search.alternative_display_mode)
 
         self._update_views_info()
 

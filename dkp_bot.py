@@ -592,9 +592,7 @@ class DKPBot:
         if team_data is None:
             BotLogger().get().debug("Unknown team %s", team)
             return None
-        dkp = team_data['dkp'].get(player.lower())
-        BotLogger().get().debug("%s", dkp)
-        return dkp
+        return team_data['dkp'].get(player.lower())
 
     def _get_team_dkp(self, team):
             team_data = self.__db['global'].get(team)

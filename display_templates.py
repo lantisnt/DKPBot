@@ -484,6 +484,8 @@ class MultipleResponse(BaseResponse):
 
         self._alternative_display_mode = bool(alternative_display_mode)
 
+        self._enable_filtering = False
+
     def _prepare(self, data_list):  # pylint: disable=unused-argument
         pass
 
@@ -508,10 +510,13 @@ class MultipleResponse(BaseResponse):
         if not isinstance(data_list_unfiltered, list):
             return None
 
-        data_list = []
-        for data in data_list_unfiltered:
-            if self._display_filter(data):
-                data_list.append(data)
+        if self._enable_filtering:
+            data_list = []
+            for data in data_list_unfiltered:
+                if self._display_filter(data):
+                    data_list.append(data)
+        else:
+            data_list = data_list_unfiltered
 
         requester = requester.strip().capitalize()
 
@@ -592,6 +597,9 @@ class MultipleResponse(BaseResponse):
 class DKPMultipleResponse(MultipleResponse):
 
     def _prepare(self, data_list):
+
+        self._enable_filtering = True
+
         # Prepare format string
         def get_dkp(i):
             return i.dkp()

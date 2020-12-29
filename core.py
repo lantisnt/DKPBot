@@ -276,7 +276,7 @@ async def discord_announce(bot: dkp_bot.DKPBot, channels):
     BotLogger().get().debug("Announcement channel not found")
 
 @trace
-async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message, normalized_author: str, announce: bool):
+async def discord_attachment_check(bot: dkp_bot.DKPBot, message: discord.Message, author: str, announce: bool):
     if len(message.attachments) > 0:
         for attachment in message.attachments:
             if bot.check_attachment_name(attachment.filename) and attachment.size < MAX_ATTACHMENT_BYTES:
@@ -284,7 +284,7 @@ async def discord_attachment_parse(bot: dkp_bot.DKPBot, message: discord.Message
                 info = {
                     'comment': discord.utils.escape_markdown(message.clean_content)[:75],
                     'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
-                    'author': normalized_author
+                    'author': normalize_author(author)
                 }
                 BotLogger().get().info('Building database for server [%s (%d)]', message.guild.name, message.guild.id)
                 response = bot.build_database(attachment_bytes.decode('utf-8', errors='replace'), info)
@@ -316,7 +316,7 @@ async def spawn_bot(guild):
                 try:  # in case we dont have access we still want to check other channels not die here
                     if (bot.is_channel_registered() and bot.check_channel(channel.id)) or not bot.is_channel_registered():
                         async for message in channel.history(limit=50):
-                            status = await discord_attachment_parse(bot, message, normalize_author(message.author), False)
+                            status = await discord_attachment_check(bot, message, message.author, False)
                             if status in [dkp_bot.ResponseStatus.SUCCESS, dkp_bot.ResponseStatus.ERROR]:
                                 break
                 except discord.Forbidden:
@@ -450,7 +450,7 @@ async def on_message(message):
         # No command response
         # Check if we have attachment on registered channel
         if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
-            await discord_attachment_parse(bot, message, normalize_author(message.author), True)
+            await discord_attachment_check(bot, message, message.author, True)
 
     except (SystemExit, Exception) as exception:
         handle_exception(message.content, exception)

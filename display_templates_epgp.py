@@ -100,6 +100,9 @@ class SinglePlayerProfile(BaseResponse):
 class EPGPMultipleResponse(MultipleResponse):
 
     def _prepare(self, data_list):
+
+        self._enable_filtering = True
+
         # Prepare format string
         def get_ep(i):
             return i.ep()
