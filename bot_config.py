@@ -16,19 +16,6 @@ class BotConfigType(Enum):
     HARDCODED = 2  # Hardcoded
 
 class GuildInfo():
-    bot_type = ''
-    file_upload_channel = 0
-    announcement_channel = 0
-    announcement_mention_role = 0
-    filename = ''
-    prefix = "!"
-    premium = False
-    server_side = ''
-    guild_name = ''
-    channel_team_map = '{}'
-    direct_message_response = False
-    block_response_modifier = False
-    smart_roles = True
 
     def __init__(self, bot_type, file_upload_channel, announcement_channel, 
                 announcement_mention_role, filename, prefix, premium, server_side, 
@@ -49,13 +36,6 @@ class GuildInfo():
         self.smart_roles = smart_roles
 
 class DisplayConfig(object):
-    __fields = 0
-    __entries_per_field = 0
-    __separate_messages = 0
-    __multiple_columns = False
-    __enable_icons = True
-    __value_suffix = True
-    __alternative_display_mode = False
 
     def __init__(self, fields, entries_per_field, separate_messages, multiple_columns, enable_icons, value_suffix, alternative_display_mode):
         self.__fields = fields

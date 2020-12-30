@@ -1,7 +1,7 @@
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp
 from bot_config import DisplayConfig
-from bot_logger import trace, for_all_methods
+from bot_logger import trace, trace_func_only, for_all_methods
 import build_info
 
 INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
@@ -209,7 +209,7 @@ def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_dis
         return row
     return "- No data available -"
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class RawEmbed:
     _d = {}
     __is_built = False
@@ -277,7 +277,7 @@ class RawEmbed:
     def __call__(self):
         return self.get()
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class BasicCritical(RawEmbed):
 
     def __init__(self, message):
@@ -316,7 +316,7 @@ class BasicSuccess(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class BasicInfo(RawEmbed):
 
     def __init__(self, message):
@@ -329,7 +329,7 @@ class BasicInfo(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class BasicAnnouncement(RawEmbed):
 
     def __init__(self, message):
@@ -342,7 +342,7 @@ class BasicAnnouncement(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class SupporterResponse(RawEmbed):
     def __init__(self, title):
         self.build(
@@ -354,19 +354,19 @@ class SupporterResponse(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class SupporterOnlyResponse(SupporterResponse):
 
     def __init__(self):
         super().__init__("Supporter only command")
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class SupportReminder(SupporterResponse):
 
     def __init__(self):
         super().__init__("Unlock access to supporter commands for your server")
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class BaseResponse:
     _embed = None
     _title = ""
@@ -399,7 +399,7 @@ class BaseResponse:
         if isinstance(rounding, int) and rounding >= 0 and rounding <= 7:
             self._rounding = rounding
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class SinglePlayerProfile(BaseResponse):
 
     def build(self, info, thumbnail=None):
@@ -438,21 +438,15 @@ class SinglePlayerProfile(BaseResponse):
     def get(self):
         return self._embed.get()
 
-@for_all_methods(trace)
-class MultipleResponse(BaseResponse):
-    __response_list = []
-    __field_limit = 6
-    __entry_limit = 32
-    __response_limit = 0
-    __multiple_columns = True
-    _enable_icons = True
-    _value_suffix = True
-    _alternative_display_mode = False
-
-    _value_format_string = "{0:8.1f}"
+@for_all_methods(trace, trace_func_only)
+class MultipleResponse(BaseResponse): 
 
     def __init__(self, title, field_limit, entry_limit, response_limit, multiple_columns, enable_icons, value_suffix, alternative_display_mode):
         super().__init__(title)
+
+        self._value_format_string = "{0:8.1f}"
+
+        self.__response_list = []
 
         if field_limit and isinstance(field_limit, int):
             if field_limit > 16:
@@ -593,7 +587,7 @@ class MultipleResponse(BaseResponse):
         string += str(self.__multiple_columns)
         return string
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class DKPMultipleResponse(MultipleResponse):
 
     def _prepare(self, data_list):
@@ -645,7 +639,7 @@ class DKPMultipleResponse(MultipleResponse):
 
         return ""
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class HistoryMultipleResponse(MultipleResponse):
 
     __user = None
@@ -661,7 +655,7 @@ class HistoryMultipleResponse(MultipleResponse):
         float_extend = 0 if self._rounding == 0 else self._rounding + 1
         value_width = max(len(str(int(data_list_min.dkp()))),
                           len(str(int(data_list_max.dkp())))) + float_extend
-        #self._value_format_string = "`{{0:{0}.{1}f}}{2}`".format(value_width, self._rounding, " DKP" if self._value_suffix else "")
+
         self._value_format_string = get_history_format_string(
             value_width, self._rounding, self._value_suffix)
 
@@ -685,10 +679,8 @@ class HistoryMultipleResponse(MultipleResponse):
 
         return ""
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class PlayerLootMultipleResponse(MultipleResponse):
-
-    __user = None
 
     def _prepare(self, data_list):
         # Prepare format string
@@ -723,10 +715,8 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
         return ""
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class LootMultipleResponse(MultipleResponse):
-
-    __user = None
 
     def _prepare(self, data_list):
         # Prepare format string

@@ -1,9 +1,9 @@
 from dkp_bot import Response, ResponseStatus, Statistics
-from bot_logger import BotLogger, trace, for_all_methods
+from bot_logger import BotLogger, trace, trace_func_only, for_all_methods
 from display_templates import BasicError, BasicCritical, BasicInfo, BasicSuccess
 from raidhelper import RaidHelper
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class Superuser:
     __su_id = 0
     __bots = {}

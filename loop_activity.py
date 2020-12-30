@@ -1,8 +1,8 @@
 import collections
 from discord import Game
-from bot_logger import trace, for_all_methods
+from bot_logger import trace, trace_func_only, for_all_methods
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class LoopActivity(Game):
 
     __activities = None

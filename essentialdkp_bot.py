@@ -4,10 +4,10 @@ from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from player_role import RoleFilter
 from display_templates import SupporterOnlyResponse, BasicError, BasicInfo, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
-from bot_logger import BotLogger, trace, for_all_methods
+from bot_logger import BotLogger, trace, trace_func_only, for_all_methods
 from raidhelper import RaidHelper
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class EssentialDKPBot(DKPBot):
 
     _CONFIG_SV = "MonDKP_DB"
@@ -16,18 +16,11 @@ class EssentialDKPBot(DKPBot):
     _HISTORY_SV = "MonDKP_DKPHistory"
     _45_DAYS_SECONDS = 3888000
 
-    __item_id_name_find = None
-
-    __singleDkpOutputBuilder = None
-    _multiple_dkp_output_builder = None
-    _multiple_history_output_builder = None
-    _multiple_player_loot_output_builder = None
-    _multiple_loot_output_builder = None
+    # Matches either a,b,c,d or A / B or A \ B
+    __item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)", re.I)  # pylint: disable=anomalous-backslash-in-string
 
     def __init__(self, guild_id, config):
         super().__init__(guild_id, config)
-        # Matches either a,b,c,d or A / B or A \ B
-        self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)", re.I)  # pylint: disable=anomalous-backslash-in-string
         self._configure()
     ###
 
@@ -106,7 +99,7 @@ class EssentialDKPBot(DKPBot):
     ### Database - Variables parsing ###
 
     def _get_item_id_name(self, loot):
-        return list(filter(None, self.__item_id_name_find.findall(loot)))  # [0] -> id [1] -> name
+        return list(filter(None, type(self).__item_id_name_find.findall(loot)))  # [0] -> id [1] -> name
 
     def _fill_history(self, players, dkp, timestamp, reason, index, team):
         if not players:

@@ -1,7 +1,7 @@
 from player_db_models import PlayerInfoEPGP, PlayerEPGPHistory, PlayerLootEPGP
 from bot_utility import get_date_from_timestamp
 from bot_config import DisplayConfig
-from bot_logger import trace, for_all_methods
+from bot_logger import trace, trace_func_only, for_all_methods
 from display_templates import BaseResponse, MultipleResponse
 from display_templates import get_bot_links, get_bot_color, get_config_color, get_plus_minus_icon_string, preformatted_block
 import build_info
@@ -63,7 +63,7 @@ def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_dis
         return row
     return "- No data available -"
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class SinglePlayerProfile(BaseResponse):
 
     def build(self, info, thumbnail=None):
@@ -159,10 +159,8 @@ class EPGPMultipleResponse(MultipleResponse):
 
         return ""
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class HistoryMultipleResponse(MultipleResponse):
-
-    __user = None
 
     def _prepare(self, data_list):
         # Prepare format string
@@ -202,10 +200,8 @@ class HistoryMultipleResponse(MultipleResponse):
 
         return ""
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class PlayerLootMultipleResponse(MultipleResponse):
-
-    __user = None
 
     def _prepare(self, data_list):
         # Prepare format string
@@ -239,10 +235,8 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
         return ""
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class LootMultipleResponse(MultipleResponse):
-
-    __user = None
 
     def _prepare(self, data_list):
         # Prepare format string

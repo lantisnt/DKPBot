@@ -6,7 +6,7 @@ from enum import Enum
 
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
-from bot_logger import BotLogger, trace, for_all_methods
+from bot_logger import BotLogger, trace, trace_func_only, for_all_methods
 from bot_utility import timestamp_now, public_to_dict
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
@@ -35,7 +35,8 @@ class Response:
         self.data = data
         self.direct_message = bool(direct_message)
 
-class Statistics():
+@for_all_methods(trace, trace_func_only)
+class Statistics:
 
     INDENT_OFFSET = 2
 
@@ -203,21 +204,14 @@ class Statistics():
         string += self.print_commands()
         return string
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class DKPBot:
     DEFAULT_TEAM = "0"
     REMINDER_FREQUENCY = 25
     __POSITIVE_ENTRY_THRESHOLD = 2
-    statistics = None
-    __config = None
-    __guild_id = 0
-    __input_file_name = ""
-    __channel = 0
-    __prefix = '!'
-    __premium = False
-    __enabled = False
+
     __parser = None
-    __param_parser = None
+    __param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^'\"]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
     _classes = [
         'warrior',
         'druid',
@@ -232,22 +226,15 @@ class DKPBot:
     _aliases = [
         'tank', 'tanks', 'healer', 'healers', 'dps', 'caster', 'casters', 'physical', 'range', 'ranged', 'melee'
     ]
-    __db = {}
-
-    __server_side = ''
-    __guild_name = ''
-    __direct_message_response = False
-    __block_response_modifier = False
-    __smart_roles = True
 
 
     def __init__(self, guild_id: int, config: BotConfig):
+        self.__db = {}
         self.__config = config
         self.__guild_id = int(guild_id)
         self.__channel = 0
         self.__announcement_channel = 0
         self.__announcement_mention_role = 0
-        self.__param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^'\"]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
         self._channel_team_map = collections.OrderedDict()
         self.__db_loaded = False
         self.__reminder_command_count = self.REMINDER_FREQUENCY
@@ -451,13 +438,13 @@ class DKPBot:
 
     def _parse_param(self, param):
         # Remove empty strings
-        targets = list(filter(None, self.__param_parser.findall(param)))
+        targets = list(filter(None, type(self).__param_parser.findall(param)))
         # Lowercase all
         return list(map(lambda x: x.strip().lower(), targets))
 
     def _parse_player_param(self, param):
         # Remove empty strings
-        original = list(filter(None, self.__param_parser.findall(param)))
+        original = list(filter(None, type(self).__param_parser.findall(param)))
         # Remove duplicates from input
         original = list(dict.fromkeys(original))
         # Decode aliases
@@ -485,16 +472,16 @@ class DKPBot:
         return int_list
 
     def __get_command_parser(self):
-        if not(self.__parser and isinstance(self.__parser, argparse.ArgumentParser)):
-            self.__parser = argparse.ArgumentParser(
+        if not isinstance(type(self).__parser, argparse.ArgumentParser):
+            type(self).__parser = argparse.ArgumentParser(
                 description='Process commands.')
-            self.__parser.add_argument(
+            type(self).__parser.add_argument(
                 'command', metavar='command', type=str, help='Actual command', nargs='?', default=None)
-            self.__parser.add_argument(
+            type(self).__parser.add_argument(
                 'param', metavar='param', type=str, help='Command parameter', nargs='*', default=None)
-#            self.__parser.add_argument('varargs', metavar='varargs', type=str,
+#            type(self).__parser.add_argument('varargs', metavar='varargs', type=str,
 #                                       help='All other string values will be put here', nargs='*', default=None)
-        return self.__parser
+        return type(self).__parser
 
     def __reminder_injection(self, response: Response):
         if self.is_premium():
@@ -516,7 +503,7 @@ class DKPBot:
         return response
 
     def __parse_command(self, string):
-        if string:
+        if isinstance(string, str):
             return self.__get_command_parser().parse_args(string.split())
         else:
             return None

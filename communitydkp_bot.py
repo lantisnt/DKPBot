@@ -1,9 +1,9 @@
 from dkp_bot import DKPBot
 from essentialdkp_bot import EssentialDKPBot
 from display_templates import SinglePlayerProfile
-from bot_logger import trace, for_all_methods
+from bot_logger import trace, trace_func_only, for_all_methods
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class CommunityDKPBot(EssentialDKPBot):
 
     _CONFIG_SV = "CommDKP_DB"

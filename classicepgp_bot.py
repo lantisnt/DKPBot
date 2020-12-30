@@ -7,9 +7,9 @@ from raidhelper import RaidHelper
 from display_templates import preformatted_block, get_bot_color, get_bot_links, SUPPORT_SERVER
 from display_templates import RawEmbed, BasicError, BasicCritical, BasicAnnouncement, BasicInfo, BasicSuccess
 from display_templates_epgp import SinglePlayerProfile, EPGPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
-from bot_logger import BotLogger, trace, for_all_methods
+from bot_logger import BotLogger, trace, trace_func_only, for_all_methods
 
-@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class CEPGPBot(EssentialDKPBot):
 
     _SV = "CEPGP"

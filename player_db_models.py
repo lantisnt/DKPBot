@@ -1,62 +1,55 @@
 import player_role
 from player_role import Role
-from bot_logger import trace, for_all_methods
+from bot_logger import trace, trace_func_only, for_all_methods
 
 def get_width(value):
     return len(str(int(value)))
 
-#@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class PlayerInfo:
-    __player = ""
-    __dkp = 0
-    __lifetime_gained = 0
-    __lifetime_spent = 0
-    __ingame_class = ""
-    __smart_role = None
-    _latest_loot_entry = None
-    _latest_history_entry = None
-    __active = True
-
     def __init__(self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role, spec):
-        self.__player = str(player).lower().capitalize()
-        self.__dkp = float(dkp)
-        self.__lifetime_gained = abs(float(lifetime_gained))
-        self.__lifetime_spent = abs(float(lifetime_spent))
-        self.__ingame_class = str(ingame_class).lower().capitalize()
+        self._player = str(player).lower().capitalize()
+        self._dkp = float(dkp)
+        self._lifetime_gained = abs(float(lifetime_gained))
+        self._lifetime_spent = abs(float(lifetime_spent))
+        self._ingame_class = str(ingame_class).lower().capitalize()
         if ingame_class is None or spec is None:
-            self.__smart_role = Role(True, True, True, True, True, 0)
+            self._smart_role = Role(True, True, True, True, True, 0)
         else:
-            self.__smart_role = player_role.get(ingame_class, spec)
+            self._smart_role = player_role.get(ingame_class, spec)
+        self._active = True
+        self._latest_loot_entry = None
+        self._latest_history_entry = None
 
     def name(self):
-        return self.__player
+        return self._player
 
     def player(self):
         return self
 
     def dkp(self):
-        return self.__dkp
+        return self._dkp
 
     def lifetime_gained(self):
-        return self.__lifetime_gained
+        return self._lifetime_gained
 
     def lifetime_spent(self):
-        return self.__lifetime_spent
+        return self._lifetime_spent
 
     def ingame_class(self):
-        return self.__ingame_class
+        return self._ingame_class
 
     def role(self):
-        return self.__smart_role
+        return self._smart_role
 
     def set_inactive(self):
-        self.__active = False
+        self._active = False
 
     def set_active(self):
-        self.__active = True
+        self._active = True
 
     def is_active(self):
-        return self.__active
+        return self._active
 
     def set_latest_loot_entry(self, loot_entry):
         if loot_entry and isinstance(loot_entry, PlayerLoot):
@@ -76,10 +69,11 @@ class PlayerInfo:
         return get_width(self.dkp())
 
     def __str__(self):
-        return "{0} ({1} - {6}) {2} ({3}/{4}) DKP | Active: {5}".format(self.name(), self.ingame_class(), self.dkp(), self.lifetime_gained(), self.lifetime_spent(), self.__active, self.__smart_role)
+        return "{0} ({1} - {6}) {2} ({3}/{4}) DKP | Active: {5}".format(
+            self._player, self._ingame_class, self._dkp, self._lifetime_gained, self._lifetime_spent,
+            self._active, self._smart_role)
 
-    def __repr__(self):
-        return self.__str__()
+    __repr__ = __str__
 
     def __hash__(self):
         return hash(str(self))
@@ -116,7 +110,7 @@ class PlayerInfo:
             other = other.dkp()
         return self.dkp() >= other
 
-#@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class PlayerInfoEPGP(PlayerInfo):
 
     def __init__(self, player, ep, gp):
@@ -147,100 +141,95 @@ class PlayerInfoEPGP(PlayerInfo):
     def set_latest_history_entry(self, history_entry):
         if history_entry and isinstance(history_entry, PlayerEPGPHistory):
             self._latest_history_entry = history_entry
-    def __str__(self):
-        return "{0}: {1} EP {2} GP {3} PR".format(self.name(), self.ep(), self.gp(), self.pr())
 
-#@for_all_methods(trace)
+    def __str__(self):
+        return "{0}: {1} EP {2} GP {3} PR".format(self._name, self._dkp, self._lifetime_gained, self._lifetime_spent)
+
+@for_all_methods(trace, trace_func_only)
 class PlayerLoot:
-    __player = ""
-    __item_id = 0
-    __item_name = ""
-    __dkp = 0
-    __timestamp = 0
 
     def __init__(self, player, item_id, item_name, dkp, timestamp):
         if not isinstance(player, (PlayerInfo, PlayerInfoEPGP)): #Workaround as we expect player to be connected to the Player
            player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
-        self.__player = player
-        self.__item_id = int(item_id)
-        self.__item_name = str(item_name)
-        self.__dkp = float(abs(dkp))
-        self.__timestamp = int(timestamp)
+        self._player = player
+        self._item_id = int(item_id)
+        self._item_name = str(item_name)
+        self._dkp = float(abs(dkp))
+        self._timestamp = int(timestamp)
 
     def player(self):
-        return self.__player
+        return self._player
 
     def item_id(self):
-        return self.__item_id
+        return self._item_id
 
     def item_name(self):
-        return self.__item_name
+        return self._item_name
 
     def dkp(self):
-        return self.__dkp
+        return self._dkp
 
     def timestamp(self):
-        return self.__timestamp
+        return self._timestamp
 
     def width(self):
         return get_width(self.dkp())
 
     def __str__(self):
-        return "{0}: {1} {2}({3}) for {4} DKP".format(self.timestamp(), self.player().name(), self.item_name(), self.item_id(), self.dkp())
+        return "{0}: {1} {2}({3}) for {4} DKP".format(
+            self._timestamp, self._player.name(), self._item_name, self._item_id, self._dkp)
 
-    def __repr__(self):
-        return self.__str__()
+    __repr__ = __str__
 
     def __hash__(self):
         return hash(str(self))
 
-#@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class PlayerLootEPGP(PlayerLoot):
     
     def gp(self):
         return self.dkp()
 
-#@for_all_methods(trace)
+    def __str__(self):
+        return "{0}: {1} {2}({3}) for {4} GP".format(
+            self._timestamp, self._player.name(), self._item_name, self._item_id, self._dkp)
+
+#@for_all_methods(trace, trace_func_only)
 class PlayerDKPHistory:
-    __player = ""
-    __dkp = 0
-    __timestamp = ""
-    __reason = ""
-    __officer = ""
 
     def __init__(self, player, dkp, timestamp, reason, index):
         if not isinstance(player, (PlayerInfo, PlayerInfoEPGP)): #Workaround as we expect player to be connected to the Player DKP
             player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
-        self.__player = player
-        self.__dkp = float(dkp)
-        self.__timestamp = int(timestamp)
-        self.__reason = str(reason)
+        self._player = player
+        self._dkp = float(dkp)
+        self._timestamp = int(timestamp)
+        self._reason = str(reason)
         officer = str(index.split("-")[0])
-        self.__officer = officer.lower().capitalize()
+        self._officer = officer.lower().capitalize()
 
     def player(self):
-        return self.__player
+        return self._player
 
     def dkp(self):
-        return self.__dkp
+        return self._dkp
 
     def timestamp(self):
-        return self.__timestamp
+        return self._timestamp
 
     def reason(self):
-        return self.__reason
+        return self._reason
 
     def officer(self):
-        return self.__officer
+        return self._officer
 
     def width(self):
         return get_width(self.dkp())
 
     def __str__(self):
-        return "{0}: {1} {2} DKP ({3}) by {4}".format(self.timestamp(), self.player().name(), self.dkp(), self.reason(), self.officer())
+        return "{0}: {1} {2} DKP ({3}) by {4}".format(
+            self._timestamp, self._player.name(), self._dkp, self._reason, self._officer)
 
-    def __repr__(self):
-        return self.__str__()
+    __repr__ = __str__
 
     def __hash__(self):
         return hash(str(self))
@@ -277,18 +266,18 @@ class PlayerDKPHistory:
     #         other = other.dkp()
     #     return self.dkp() >= other
 
-#@for_all_methods(trace)
+@for_all_methods(trace, trace_func_only)
 class PlayerEPGPHistory(PlayerDKPHistory):
     def __init__(self, player, ep, gp, is_percentage, timestamp, reason, officer):
         super().__init__(player, ep, timestamp, reason, officer)
-        self.__gp = float(gp)
-        self.__is_percentage = bool(is_percentage)
+        self._gp = float(gp)
+        self._is_percentage = bool(is_percentage)
 
     def ep(self):
         return self.dkp()
 
     def gp(self):
-        return self.__gp
+        return self._gp
 
     def ep_width(self):
         return get_width(self.ep())
@@ -298,3 +287,7 @@ class PlayerEPGPHistory(PlayerDKPHistory):
 
     def is_percentage(self):
         return is_percentage
+
+    def __str__(self):
+        return "{0}: {1} {2} EP {3} GP ({4}) by {5}".format(
+            self._timestamp, self._player.name(), self._dkp, self._gp, self._reason, self._officer)
