@@ -385,6 +385,7 @@ class EssentialDKPBot(DKPBot):
             self._db_get_info())
         self._multiple_dkp_output_builder.set_database_info(
             self._db_get_info())
+        self._multiple_dkp_output_builder.config_filtering(True)
         self._multiple_history_output_builder.set_database_info(
             self._db_get_info())
         self._multiple_player_loot_output_builder.set_database_info(

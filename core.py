@@ -20,7 +20,7 @@ import footprint
 import superuser
 import raidhelper
 
-MAX_ATTACHMENT_BYTES = 3145728 # 3MB
+MAX_ATTACHMENT_BYTES = 5*1024*1024#5MB #3145728 # 3MB
 
 class ScriptControl():
     __initialized = False
@@ -297,7 +297,7 @@ async def discord_attachment_check(bot: dkp_bot.DKPBot, message: discord.Message
                 return response.status
             else:
                 BotLogger().get().info("Ignoring file [%s] with size [%dB] on channel [%s (%d)] in [%s (%d)]", 
-                attachment.name, attachment.size, message.channel.name, message.channel.id,
+                attachment.filename, attachment.size, message.channel.name, message.channel.id,
                 message.guild.name, message.guild.id)
     return dkp_bot.ResponseStatus.IGNORE
 

@@ -875,33 +875,24 @@ class DKPBot:
                 if history and isinstance(history, list):
                     dkp.set_latest_history_entry(history[0])
 
-    def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000, mark_inactive=True):
+    def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000):
         now = timestamp_now(True)
         for team, team_data in self.__db['global'].items():
-            if mark_inactive:
-                for dkp in team_data['dkp'].values():
-                    dkp.set_inactive()
-                    positive_entry_count = 0
-                    history = self._get_history(dkp.name(), team)
-                    if history and isinstance(history, list):
-                        for history_entry in history:
-                            if history_entry.dkp() > 0:
-                                if positive_entry_count == 0:
-                                    dkp.set_latest_history_entry(history_entry)
-                                if abs(now - history_entry.timestamp()) <= inactive_time:
-                                    positive_entry_count = positive_entry_count +  1
-                                    if positive_entry_count >= self.__POSITIVE_ENTRY_THRESHOLD:
-                                        dkp.set_active()
-                                        break
-                                else:
-                                    break
-            else:
-                for dkp in team_data['dkp'].values():
-                    history = self._get_history(dkp.name(), team)
-                    if history and isinstance(history, list):
-                        for history_entry in history:
-                            if history_entry.dkp() > 0:
+            for dkp in team_data['dkp'].values():
+                dkp.set_inactive()
+                positive_entry_count = 0
+                history = self._get_history(dkp.name(), team)
+                if history and isinstance(history, list):
+                    for history_entry in history:
+                        if history_entry.dkp() > 0:
+                            if positive_entry_count == 0:
                                 dkp.set_latest_history_entry(history_entry)
+                            if abs(now - history_entry.timestamp()) <= inactive_time:
+                                positive_entry_count = positive_entry_count +  1
+                                if positive_entry_count >= self.__POSITIVE_ENTRY_THRESHOLD:
+                                    dkp.set_active()
+                                    break
+                            else:
                                 break
 
     # This method handles response differently. ERROR status is printed also

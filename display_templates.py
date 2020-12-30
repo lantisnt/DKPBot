@@ -1,7 +1,7 @@
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp
 from bot_config import DisplayConfig
-from bot_logger import trace, trace_func_only, for_all_methods
+from bot_logger import trace, trace_func_only, for_all_methods, BotLogger
 import build_info
 
 INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
@@ -499,17 +499,21 @@ class MultipleResponse(BaseResponse):
         self._embed.clear()
 
         if not requester or not isinstance(requester, str):
+            BotLogger().get().debug("Empty requester")
             requester = ""
 
         if not isinstance(data_list_unfiltered, list):
+            BotLogger().get().debug("Empty data_list_unfiltered")
             return None
 
         if self._enable_filtering:
+            BotLogger().get().debug("Filtering enabled")
             data_list = []
             for data in data_list_unfiltered:
                 if self._display_filter(data):
                     data_list.append(data)
         else:
+            BotLogger().get().debug("Filtering disabled")
             data_list = data_list_unfiltered
 
         requester = requester.strip().capitalize()
@@ -579,6 +583,9 @@ class MultipleResponse(BaseResponse):
     def get(self):
         return self.__response_list
 
+    def config_filtering(self, mode):
+        self._enable_filtering = bool(mode)
+
     def __str__(self):
         string = ""
         string += str(self.__field_limit) + " | "
@@ -591,8 +598,6 @@ class MultipleResponse(BaseResponse):
 class DKPMultipleResponse(MultipleResponse):
 
     def _prepare(self, data_list):
-
-        self._enable_filtering = True
 
         # Prepare format string
         def get_dkp(i):

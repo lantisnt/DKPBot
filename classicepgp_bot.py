@@ -155,6 +155,17 @@ class CEPGPBot(EssentialDKPBot):
     
         BotLogger().get().debug("Unknown way to parse entry %s", param_list)
         
+    def _set_player_latest_positive_history_and_activity(self, inactive_time=200000000000):
+            for dkp in self._get_team_dkp(self.DEFAULT_TEAM):
+                if dkp.dkp() <= 0:
+                    dkp.set_inactive()
+                history = self._get_history(dkp.name(), self.DEFAULT_TEAM)
+                if history and isinstance(history, list):
+                    for history_entry in history:
+                        if history_entry.dkp() > 0:
+                            dkp.set_latest_history_entry(history_entry)
+                            break
+
     # Called 1st
     def _build_config_database(self, saved_variable):  # pylint: disable=unused-argument
         self._set_addon_config({})
@@ -220,7 +231,7 @@ class CEPGPBot(EssentialDKPBot):
         self._sort_player_loot()
         self._set_player_latest_loot()
         self._sort_history()
-        self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS, False)
+        #self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
 
         return True
 
