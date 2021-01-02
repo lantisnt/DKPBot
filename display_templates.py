@@ -1,6 +1,7 @@
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp
 from bot_config import DisplayConfig
+from bot_logger import trace, trace_func_only, for_all_methods, BotLogger
 import build_info
 
 INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
@@ -8,19 +9,19 @@ SUPPORT_SERVER = "[Support Server](http://{0})".format(
     build_info.SUPPORT_SERVER)
 DONATE = "[Donate](http://wowdkpbot.com/donate)"
 
-
+@trace
 def get_bot_links():
     return INVITE + " | " + SUPPORT_SERVER + " | " + DONATE
 
-
+@trace
 def get_bot_color():
     return 10204605
 
-
+@trace
 def get_config_color():
     return 16553987
 
-
+@trace
 def get_class_color(class_name=None):
     if not class_name:
         return 10204605
@@ -56,14 +57,14 @@ def get_class_color(class_name=None):
 
     return 10204605
 
-
+@trace
 def get_plus_minus_icon_string(plus=True):
     if plus:
         return "<:plus:782168773875728384>"
     else:
         return "<:minus:782168774035374080>"
 
-
+@trace
 def get_class_icon_string(class_name=None, spec_id=0):
     if not class_name:
         return ""
@@ -122,7 +123,7 @@ def get_class_icon_string(class_name=None, spec_id=0):
 
     return ""
 
-
+@trace
 def get_thumbnail(class_name):
     if not class_name or not isinstance(class_name, str):
         return None
@@ -158,23 +159,23 @@ def get_thumbnail(class_name):
 
     return None
 
-
+@trace
 def get_points_format_string(width, rounding, value_suffix):
     return "`{{0:{0}.{1}f}}{2}`".format(width, rounding, " DKP" if value_suffix else "")
 
-
+@trace
 def get_history_format_string(width, rounding, value_suffix):
     return get_points_format_string(width, rounding, value_suffix)
 
-
+@trace
 def get_loot_format_string(width, rounding, value_suffix):
     return get_points_format_string(width, rounding, value_suffix)
 
-
+@trace
 def preformatted_block(string: str, language='swift'):
     return "```" + language + "\n" + string + "```"
 
-
+@trace
 def generate_dkp_history_entry(history_entry, format_string, enable_icons, alternative_display_mode):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):
         row = ""
@@ -189,7 +190,7 @@ def generate_dkp_history_entry(history_entry, format_string, enable_icons, alter
         return row
     return "- No data available -"
 
-
+@trace
 def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_display_mode, player):
     if loot_entry and isinstance(loot_entry, PlayerLoot):
         row = ""
@@ -208,7 +209,7 @@ def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_dis
         return row
     return "- No data available -"
 
-
+@for_all_methods(trace, trace_func_only)
 class RawEmbed:
     _d = {}
     __is_built = False
@@ -276,6 +277,7 @@ class RawEmbed:
     def __call__(self):
         return self.get()
 
+@for_all_methods(trace, trace_func_only)
 class BasicCritical(RawEmbed):
 
     def __init__(self, message):
@@ -314,7 +316,7 @@ class BasicSuccess(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-
+@for_all_methods(trace, trace_func_only)
 class BasicInfo(RawEmbed):
 
     def __init__(self, message):
@@ -327,7 +329,7 @@ class BasicInfo(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-
+@for_all_methods(trace, trace_func_only)
 class BasicAnnouncement(RawEmbed):
 
     def __init__(self, message):
@@ -340,7 +342,7 @@ class BasicAnnouncement(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-
+@for_all_methods(trace, trace_func_only)
 class SupporterResponse(RawEmbed):
     def __init__(self, title):
         self.build(
@@ -352,19 +354,19 @@ class SupporterResponse(RawEmbed):
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
-
+@for_all_methods(trace, trace_func_only)
 class SupporterOnlyResponse(SupporterResponse):
 
     def __init__(self):
         super().__init__("Supporter only command")
 
-
+@for_all_methods(trace, trace_func_only)
 class SupportReminder(SupporterResponse):
 
     def __init__(self):
         super().__init__("Unlock access to supporter commands for your server")
 
-
+@for_all_methods(trace, trace_func_only)
 class BaseResponse:
     _embed = None
     _title = ""
@@ -397,7 +399,7 @@ class BaseResponse:
         if isinstance(rounding, int) and rounding >= 0 and rounding <= 7:
             self._rounding = rounding
 
-
+@for_all_methods(trace, trace_func_only)
 class SinglePlayerProfile(BaseResponse):
 
     def build(self, info, thumbnail=None):
@@ -436,21 +438,15 @@ class SinglePlayerProfile(BaseResponse):
     def get(self):
         return self._embed.get()
 
-
-class MultipleResponse(BaseResponse):
-    __response_list = []
-    __field_limit = 6
-    __entry_limit = 32
-    __response_limit = 0
-    __multiple_columns = True
-    _enable_icons = True
-    _value_suffix = True
-    _alternative_display_mode = False
-
-    _value_format_string = "{0:8.1f}"
+@for_all_methods(trace, trace_func_only)
+class MultipleResponse(BaseResponse): 
 
     def __init__(self, title, field_limit, entry_limit, response_limit, multiple_columns, enable_icons, value_suffix, alternative_display_mode):
         super().__init__(title)
+
+        self._value_format_string = "{0:8.1f}"
+
+        self.__response_list = []
 
         if field_limit and isinstance(field_limit, int):
             if field_limit > 16:
@@ -482,6 +478,8 @@ class MultipleResponse(BaseResponse):
 
         self._alternative_display_mode = bool(alternative_display_mode)
 
+        self._enable_filtering = False
+
     def _prepare(self, data_list):  # pylint: disable=unused-argument
         pass
 
@@ -501,15 +499,22 @@ class MultipleResponse(BaseResponse):
         self._embed.clear()
 
         if not requester or not isinstance(requester, str):
+            BotLogger().get().debug("Empty requester")
             requester = ""
 
         if not isinstance(data_list_unfiltered, list):
+            BotLogger().get().debug("Empty data_list_unfiltered")
             return None
 
-        data_list = []
-        for data in data_list_unfiltered:
-            if self._display_filter(data):
-                data_list.append(data)
+        if self._enable_filtering:
+            BotLogger().get().debug("Filtering enabled")
+            data_list = []
+            for data in data_list_unfiltered:
+                if self._display_filter(data):
+                    data_list.append(data)
+        else:
+            BotLogger().get().debug("Filtering disabled")
+            data_list = data_list_unfiltered
 
         requester = requester.strip().capitalize()
 
@@ -578,6 +583,9 @@ class MultipleResponse(BaseResponse):
     def get(self):
         return self.__response_list
 
+    def config_filtering(self, mode):
+        self._enable_filtering = bool(mode)
+
     def __str__(self):
         string = ""
         string += str(self.__field_limit) + " | "
@@ -586,10 +594,11 @@ class MultipleResponse(BaseResponse):
         string += str(self.__multiple_columns)
         return string
 
-
+@for_all_methods(trace, trace_func_only)
 class DKPMultipleResponse(MultipleResponse):
 
     def _prepare(self, data_list):
+
         # Prepare format string
         def get_dkp(i):
             return i.dkp()
@@ -635,7 +644,7 @@ class DKPMultipleResponse(MultipleResponse):
 
         return ""
 
-
+@for_all_methods(trace, trace_func_only)
 class HistoryMultipleResponse(MultipleResponse):
 
     __user = None
@@ -651,7 +660,7 @@ class HistoryMultipleResponse(MultipleResponse):
         float_extend = 0 if self._rounding == 0 else self._rounding + 1
         value_width = max(len(str(int(data_list_min.dkp()))),
                           len(str(int(data_list_max.dkp())))) + float_extend
-        #self._value_format_string = "`{{0:{0}.{1}f}}{2}`".format(value_width, self._rounding, " DKP" if self._value_suffix else "")
+
         self._value_format_string = get_history_format_string(
             value_width, self._rounding, self._value_suffix)
 
@@ -675,10 +684,8 @@ class HistoryMultipleResponse(MultipleResponse):
 
         return ""
 
-
+@for_all_methods(trace, trace_func_only)
 class PlayerLootMultipleResponse(MultipleResponse):
-
-    __user = None
 
     def _prepare(self, data_list):
         # Prepare format string
@@ -713,10 +720,8 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
         return ""
 
-
+@for_all_methods(trace, trace_func_only)
 class LootMultipleResponse(MultipleResponse):
-
-    __user = None
 
     def _prepare(self, data_list):
         # Prepare format string

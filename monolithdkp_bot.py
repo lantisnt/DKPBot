@@ -1,7 +1,9 @@
 from dkp_bot import Response, ResponseStatus
 from essentialdkp_bot import EssentialDKPBot
 from display_templates import BasicInfo, SinglePlayerProfile
+from bot_logger import trace, trace_func_only, for_all_methods
 
+@for_all_methods(trace, trace_func_only)
 class MonolithDKPBot(EssentialDKPBot):
 
     def _configure(self):

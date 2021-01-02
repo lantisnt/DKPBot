@@ -4,9 +4,10 @@ from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from player_role import RoleFilter
 from display_templates import SupporterOnlyResponse, BasicError, BasicInfo, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
-from bot_logger import BotLogger
+from bot_logger import BotLogger, trace, trace_func_only, for_all_methods
 from raidhelper import RaidHelper
 
+@for_all_methods(trace, trace_func_only)
 class EssentialDKPBot(DKPBot):
 
     _CONFIG_SV = "MonDKP_DB"
@@ -15,50 +16,44 @@ class EssentialDKPBot(DKPBot):
     _HISTORY_SV = "MonDKP_DKPHistory"
     _45_DAYS_SECONDS = 3888000
 
-    __item_id_name_find = None
-
-    __singleDkpOutputBuilder = None
-    _multiple_dkp_output_builder = None
-    _multiple_history_output_builder = None
-    _multiple_player_loot_output_builder = None
-    _multiple_loot_output_builder = None
+    # Matches either a,b,c,d or A / B or A \ B
+    __item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)", re.I)  # pylint: disable=anomalous-backslash-in-string
 
     def __init__(self, guild_id, config):
         super().__init__(guild_id, config)
-        # Matches either a,b,c,d or A / B or A \ B
-        self.__item_id_name_find = re.compile("^[^:]*:*(\d*).*\[([^\]]*)", re.I)  # pylint: disable=anomalous-backslash-in-string
         self._configure()
     ###
 
     def _configure(self):
         super()._configure()
+        config = self._get_config()
         # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile("Essential DKP Profile")
 
-        self._multiple_dkp_output_builder = DKPMultipleResponse("DKP values", self._get_config().dkp.fields,
-        self._get_config().dkp.entries_per_field, self._get_config().dkp.separate_messages,
-        self._get_config().dkp.multiple_columns, self._get_config().dkp.enable_icons, self._get_config().dkp.value_suffix,
-        self._get_config().dkp.alternative_display_mode)
+        self._multiple_dkp_output_builder = DKPMultipleResponse("DKP values", config.dkp.fields,
+        config.dkp.entries_per_field, config.dkp.separate_messages,
+        config.dkp.multiple_columns, config.dkp.enable_icons, config.dkp.value_suffix,
+        config.dkp.alternative_display_mode)
 
-        self._multiple_history_output_builder = HistoryMultipleResponse("Latest DKP history", self._get_config().dkp_history.fields,
-        self._get_config().dkp_history.entries_per_field, self._get_config().dkp_history.separate_messages,
-        self._get_config().dkp_history.multiple_columns, self._get_config().dkp_history.enable_icons, self._get_config().dkp_history.value_suffix,
-        self._get_config().dkp_history.alternative_display_mode)
+        self._multiple_history_output_builder = HistoryMultipleResponse("Latest DKP history", config.dkp_history.fields,
+        config.dkp_history.entries_per_field, config.dkp_history.separate_messages,
+        config.dkp_history.multiple_columns, config.dkp_history.enable_icons, config.dkp_history.value_suffix,
+        config.dkp_history.alternative_display_mode)
 
-        self._multiple_player_loot_output_builder = PlayerLootMultipleResponse("Latest loot history", self._get_config().loot_history.fields,
-        self._get_config().loot_history.entries_per_field, self._get_config().loot_history.separate_messages,
-        self._get_config().loot_history.multiple_columns, self._get_config().loot_history.enable_icons, self._get_config().loot_history.value_suffix,
-        self._get_config().loot_history.alternative_display_mode)
+        self._multiple_player_loot_output_builder = PlayerLootMultipleResponse("Latest loot history", config.loot_history.fields,
+        config.loot_history.entries_per_field, config.loot_history.separate_messages,
+        config.loot_history.multiple_columns, config.loot_history.enable_icons, config.loot_history.value_suffix,
+        config.loot_history.alternative_display_mode)
 
-        self._multiple_loot_output_builder = LootMultipleResponse("Latest 30 items awarded", self._get_config().latest_loot.fields,
-        self._get_config().latest_loot.entries_per_field, self._get_config().latest_loot.separate_messages,
-        self._get_config().latest_loot.multiple_columns, self._get_config().latest_loot.enable_icons, self._get_config().latest_loot.value_suffix,
-        self._get_config().latest_loot.alternative_display_mode)
+        self._multiple_loot_output_builder = LootMultipleResponse("Latest 30 items awarded", config.latest_loot.fields,
+        config.latest_loot.entries_per_field, config.latest_loot.separate_messages,
+        config.latest_loot.multiple_columns, config.latest_loot.enable_icons, config.latest_loot.value_suffix,
+        config.latest_loot.alternative_display_mode)
 
-        self._multiple_item_search_output_builder = LootMultipleResponse("Search results", self._get_config().item_search.fields,
-        self._get_config().item_search.entries_per_field, self._get_config().item_search.separate_messages,
-        self._get_config().item_search.multiple_columns, self._get_config().item_search.enable_icons, self._get_config().item_search.value_suffix,
-        self._get_config().item_search.alternative_display_mode)
+        self._multiple_item_search_output_builder = LootMultipleResponse("Search results", config.item_search.fields,
+        config.item_search.entries_per_field, config.item_search.separate_messages,
+        config.item_search.multiple_columns, config.item_search.enable_icons, config.item_search.value_suffix,
+        config.item_search.alternative_display_mode)
 
         self._update_views_info()
 
@@ -104,13 +99,15 @@ class EssentialDKPBot(DKPBot):
     ### Database - Variables parsing ###
 
     def _get_item_id_name(self, loot):
-        return list(filter(None, self.__item_id_name_find.findall(loot)))  # [0] -> id [1] -> name
+        return list(filter(None, type(self).__item_id_name_find.findall(loot)))  # [0] -> id [1] -> name
 
     def _fill_history(self, players, dkp, timestamp, reason, index, team):
         if not players:
+            BotLogger().get().debug("Empty players")
             return
 
         if not dkp:
+            BotLogger().get().debug("Empty DKP data")
             return
 
         if isinstance(players, str) and isinstance(dkp, (int, float)):
@@ -143,6 +140,7 @@ class EssentialDKPBot(DKPBot):
 
     def _generate_player_info(self, entry):
         if entry is None:
+            BotLogger().get().debug("Player entry is None")
             return None
 
         player = entry.get("player")
@@ -177,10 +175,8 @@ class EssentialDKPBot(DKPBot):
                           lifetime_spent, ingame_class, role, spec)
 
     def _generate_player_loot(self, entry, team):
-        if entry is None:
-            return None
-
         if not isinstance(entry, dict):
+            BotLogger().get().debug("Loot entry is not a dict")
             return None
 
         player = entry.get("player")
@@ -213,11 +209,11 @@ class EssentialDKPBot(DKPBot):
         item_info = self._get_item_id_name(loot)
 
         if not item_info or not isinstance(item_info, list) or len(item_info) != 1:
-            BotLogger().get().warning("ERROR in entry: " + str(player.player()) + " " + str(date) + " " + str(cost) + " " + str(loot))
+            BotLogger().get().warning("ERROR in loot entry: " + str(player.player()) + " " + str(date) + " " + str(cost) + " " + str(loot) + " " + str(item_info))
             return None
 
         if not item_info[0] or not isinstance(item_info[0], tuple) or len(item_info[0]) != 2:
-            BotLogger().get().warning("ERROR in item_info[0] " + str(item_info[0]))
+            BotLogger().get().warning("ERROR in loot item_info[0] " + str(item_info[0]))
             return None
 
         return PlayerLoot(player, item_info[0][0], item_info[0][1], cost, date)
@@ -270,6 +266,7 @@ class EssentialDKPBot(DKPBot):
             if len(dkp) == 1:  # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
                 return None
         elif not isinstance(dkp, (int, float)):
+            BotLogger().get().debug("DKP data is not a numeric value [%s]", dkp)
             return None
 
         self._fill_history(players, dkp, date, reason, index, team)
@@ -279,12 +276,14 @@ class EssentialDKPBot(DKPBot):
         super()._build_config_database(None)
 
         if saved_variable is None:
+            BotLogger().get().debug("Saved variable missing")
             return False
 
         team = DKPBot.DEFAULT_TEAM
 
         config_list = saved_variable.get(self._CONFIG_SV)
         if not config_list:
+            BotLogger().get().debug("Config missing")
             return False
 
         self._set_addon_config(config_list)
@@ -296,17 +295,20 @@ class EssentialDKPBot(DKPBot):
         super()._build_dkp_database(None)
 
         if saved_variable is None:
+            BotLogger().get().debug("Saved variable missing")
             return False
 
         team = DKPBot.DEFAULT_TEAM
 
         dkp_list = saved_variable.get(self._DKP_SV)
         if not dkp_list:
+            BotLogger().get().debug("DKP variable missing")
             return False
 
         if isinstance(dkp_list, dict): # dict because there may be ["seed"] field...
             dkp_list = dkp_list.values()
         elif not isinstance(dkp_list, list):
+            BotLogger().get().debug("DKP variable is not a list")
             return False
 
         for entry in dkp_list:
@@ -324,6 +326,7 @@ class EssentialDKPBot(DKPBot):
         super()._build_loot_database(None)
 
         if saved_variable is None:
+            BotLogger().get().debug("Saved variable missing")
             return False
 
         team = DKPBot.DEFAULT_TEAM
@@ -331,11 +334,13 @@ class EssentialDKPBot(DKPBot):
         loot_list = saved_variable.get(self._LOOT_SV)
 
         if not loot_list:
+            BotLogger().get().debug("Loot variable missing")
             return False
 
         if isinstance(loot_list, dict): # dict because there is ["seed"] field...
             loot_list = loot_list.values()
         elif not isinstance(loot_list, list):
+            BotLogger().get().debug("Loot variable is not a list")
             return False
 
         for entry in loot_list:
@@ -357,6 +362,7 @@ class EssentialDKPBot(DKPBot):
         super()._build_history_database(None)
 
         if saved_variable is None:
+            BotLogger().get().debug("Saved variable missing")
             return False
 
         team = DKPBot.DEFAULT_TEAM
@@ -364,11 +370,13 @@ class EssentialDKPBot(DKPBot):
         history = saved_variable.get(self._HISTORY_SV)
 
         if not history:
+            BotLogger().get().debug("History variable missing")
             return False
 
         if isinstance(history, dict): # dict because there is ["seed"] field...
             history = history.values()
         elif not isinstance(history, list):
+            BotLogger().get().debug("History variable is not a list")
             return False
 
         for entry in history:
@@ -390,6 +398,7 @@ class EssentialDKPBot(DKPBot):
             self._db_get_info())
         self._multiple_dkp_output_builder.set_database_info(
             self._db_get_info())
+        self._multiple_dkp_output_builder.config_filtering(True)
         self._multiple_history_output_builder.set_database_info(
             self._db_get_info())
         self._multiple_player_loot_output_builder.set_database_info(
@@ -489,8 +498,9 @@ class EssentialDKPBot(DKPBot):
             if not self.is_premium():
                 return Response(ResponseStatus.SUCCESS, SupporterOnlyResponse().get())
             else:
-                return Response(ResponseStatus.ERROR, BasicError("Unable to find data for {0}.".format(param)).get())
+                return Response(ResponseStatus.SUCCESS, BasicError("Unable to find data for {0}.".format(param)).get())
 
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) == 1:
             data = self._build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
@@ -518,8 +528,9 @@ class EssentialDKPBot(DKPBot):
                     output_result_list = info
                     break  # Yes single only
         else:
-            return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
+            return Response(ResponseStatus.SUCCESS, BasicError("Unable to find data for {0}.".format(param)).get())
 
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) > 0:
             data = self._build_history_output_multiple(output_result_list)
         else:
@@ -544,8 +555,9 @@ class EssentialDKPBot(DKPBot):
                     output_result_list = info
                     break  # Yes single only
         else:
-            return Response(ResponseStatus.ERROR, "Unable to find data for {0}.".format(param))
+            return Response(ResponseStatus.SUCCESS, BasicError("Unable to find data for {0}.".format(param)).get())
 
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) > 0:
             data = self._build_player_loot_output_multiple(output_result_list)
         else:
@@ -563,6 +575,7 @@ class EssentialDKPBot(DKPBot):
 
         output_result_list = self._get_loot(self._get_channel_team_mapping(request_info['channel']['id']))
 
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) > 0:
             data = self._build_loot_output_multiple(output_result_list)
         else:
@@ -582,6 +595,7 @@ class EssentialDKPBot(DKPBot):
 
         output_result_list = self._find_loot(param, self._get_channel_team_mapping(request_info['channel']['id']))
 
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) > 0:
             data = self._build_item_search_output_multiple(output_result_list)
         else:
