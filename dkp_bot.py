@@ -34,7 +34,6 @@ class Response:
         self.data = data
         self.direct_message = bool(direct_message)
 
-@for_all_methods(trace, trace_func_only)
 class Statistics:
 
     INDENT_OFFSET = 2

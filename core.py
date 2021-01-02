@@ -298,7 +298,7 @@ async def discord_attachment_check(bot: dkp_bot.DKPBot, message: discord.Message
                     await discord_respond(message.channel, response.data)
                 return response.status
             else:
-                BotLogger().get().info("Ignoring file [%s] with size [%d B] on channel [%s (%d)] in [%s (%d)]", 
+                BotLogger().get().debug("Ignoring file [%s] with size [%d B] on channel [%s (%d)] in [%s (%d)]", 
                 attachment.filename, attachment.size, message.channel.name, message.channel.id,
                 message.guild.name, message.guild.id)
     return dkp_bot.ResponseStatus.IGNORE
@@ -325,8 +325,7 @@ async def spawn_bot(guild):
                     continue
             # We call it here so we will have it tracked from beginning
             bot_memory_manager.Manager().Handle(guild.id, True)
-            BotLogger().get().info("Bot for server [{0} ({1})] total footprint: {2} B".format(
-                        guild.name.encode('ascii', 'ignore').decode(), guild.id, footprint.total_size(bot)))
+            BotLogger().get().info("Bot for server [{0} ({1})] total footprint: {2} B".format(guild.name, guild.id, footprint.total_size(bot)))
             return True
 
     except (SystemExit, Exception) as exception:
