@@ -22,13 +22,16 @@ class CommunityDKPBot(EssentialDKPBot):
         guild_name = self._get_config().guild_info.guild_name
 
         if not (server_side and guild_name):
+            BotLogger().get().debug("server_side [%s] guild_name [%s]", server_side, guild_name)
             return None
 
         # Decode server-side first
         if not server_list:
+            BotLogger().get().debug("Missing server_list")
             return None
 
         if not isinstance(server_list, dict):
+            BotLogger().get().debug("Server_list is not a Dict")
             return None
 
         server_side_key = None
@@ -38,11 +41,13 @@ class CommunityDKPBot(EssentialDKPBot):
                 break
 
         if server_side_key is None:
+            BotLogger().get().debug("Server-Side not found in file")
             return None
 
         # Decode guilds
         guilds = server_list.get(server_side_key)
         if not guilds:
+            BotLogger().get().debug("No Guilds")
             return None
 
         guild_name_key = None
@@ -52,6 +57,7 @@ class CommunityDKPBot(EssentialDKPBot):
                 break
 
         if guild_name_key is None:
+            BotLogger().get().debug("Guild not found in file")
             return None
 
         return guilds.get(guild_name_key)
@@ -61,6 +67,7 @@ class CommunityDKPBot(EssentialDKPBot):
         super()._build_loot_database(None)
         config_list = self.__get_configured_teams(saved_variable.get(self._CONFIG_SV))
         if config_list is None:
+            BotLogger().get().debug("Config not found in file")
             return False
 
         self._set_addon_config(config_list)
@@ -78,6 +85,7 @@ class CommunityDKPBot(EssentialDKPBot):
             if isinstance(dkp_list, dict): # dict because there may be ["seed"] field...
                 dkp_list = dkp_list.values()
             elif not isinstance(dkp_list, list):
+                BotLogger().get().debug("DKP data is not a list")
                 return False
 
             for entry in dkp_list:
@@ -101,6 +109,7 @@ class CommunityDKPBot(EssentialDKPBot):
             if isinstance(loot_list, dict): # dict because there is ["seed"] field...
                 loot_list = loot_list.values()
             elif not isinstance(loot_list, list):
+                BotLogger().get().debug("Loot data is not a list")
                 return False
 
             for entry in loot_list:
@@ -128,6 +137,7 @@ class CommunityDKPBot(EssentialDKPBot):
             if isinstance(history, dict): # dict because there is ["seed"] field...
                 history = history.values()
             elif not isinstance(history, list):
+                BotLogger().get().debug("History data is not a list")
                 return False
 
             for entry in history:

@@ -179,10 +179,12 @@ class CEPGPBot(EssentialDKPBot):
 
         addon_data = saved_variable.get(self._SV)
         if addon_data is None or not addon_data or not isinstance(addon_data, dict):
+            BotLogger().get().debug("Missing %s", self._SV)
             return False
 
         backups_list = addon_data.get("Backups")
         if backups_list is None or not backups_list or not isinstance(backups_list, dict):
+            BotLogger().get().debug("Missing Backups")
             return False
 
         backup = None
@@ -193,10 +195,12 @@ class CEPGPBot(EssentialDKPBot):
         epgp_list = []
         if backup is None:
             epgp_list = backups_list[list(backups_list.keys())[0]]
+            BotLogger().get().warning("Missing `bot` backup. Using first found.")
         else:
             epgp_list = backups_list[backup]
 
         if len(epgp_list) == 0:
+            BotLogger().get().debug("Empty backup.")
             return False
 
         for player, data in epgp_list.items():
@@ -238,6 +242,17 @@ class CEPGPBot(EssentialDKPBot):
     # Called 4th
     def _build_history_database(self, saved_variable):
         return True # This is being handled within loot database as all is based on traffic
+
+    ### Parent commands ###
+
+    def config_call_server_side(self, params, num_params, request_info):
+        return Response(ResponseStatus.SUCCESS, BasicInfo("Server and Side setting are not used in `cepgp` mode.").get())
+
+    def config_call_guild_name(self, params, num_params, request_info):
+        return Response(ResponseStatus.SUCCESS, BasicInfo("Guild Name setting is not used in `cepgp` mode.").get())
+
+    def config_call_team(self, params, num_params, request_info):
+        return Response(ResponseStatus.SUCCESS, BasicInfo("Multiple teams are not used in `cepgp` mode.").get())
 
     ### CEPGP commands ###
 

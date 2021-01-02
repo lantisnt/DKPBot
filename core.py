@@ -244,6 +244,8 @@ async def discord_respond(channel, responses, self_call=False):
                     elif isinstance(extra, io.IOBase):
                         BotLogger().get().debug("Responding on channel %d with message: %s and file", channel.id, message)
                         await channel.send(message, file=await discord_build_file(extra))
+    except (discord.errors.Forbidden, discord.errors.NotFound) as exception:
+        BotLogger().get().warning(str(exception))
     except discord.HTTPException as exception:
         exception = str(exception).lower()
         if (exception.find("size exceeds maximum") != -1) or (exception.find("or fewer in length") != -1) and not self_call:
@@ -251,7 +253,7 @@ async def discord_respond(channel, responses, self_call=False):
             BotLogger().get().debug("Response data exceeded Discord limits for response on channel %d", channel.id)
             await discord_respond(channel, embed.get(), True)
         else:
-            BotLogger().get().error(str(exception))
+            BotLogger().get().warning(str(exception))
 
 @trace
 async def discord_delete(handle):
@@ -260,7 +262,7 @@ async def discord_delete(handle):
             BotLogger().get().debug("Removing message (%d) from channel [%s (%d)]", handle.id, handle.channel.name, handle.channel.id)
             await handle.delete()  
     except (discord.errors.Forbidden, discord.errors.NotFound, discord.errors.HTTPException) as exception:
-        BotLogger().get().error(str(exception))
+        BotLogger().get().warning(str(exception))
 
 @trace
 async def discord_announce(bot: dkp_bot.DKPBot, channels):
@@ -296,7 +298,7 @@ async def discord_attachment_check(bot: dkp_bot.DKPBot, message: discord.Message
                     await discord_respond(message.channel, response.data)
                 return response.status
             else:
-                BotLogger().get().info("Ignoring file [%s] with size [%dB] on channel [%s (%d)] in [%s (%d)]", 
+                BotLogger().get().info("Ignoring file [%s] with size [%d B] on channel [%s (%d)] in [%s (%d)]", 
                 attachment.filename, attachment.size, message.channel.name, message.channel.id,
                 message.guild.name, message.guild.id)
     return dkp_bot.ResponseStatus.IGNORE

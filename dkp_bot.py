@@ -210,7 +210,6 @@ class DKPBot:
     REMINDER_FREQUENCY = 25
     __POSITIVE_ENTRY_THRESHOLD = 2
 
-    __parser = None
     __param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^'\"]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
     _classes = [
         'warrior',
@@ -425,7 +424,8 @@ class DKPBot:
         # Limit to 8
         in_limit = True
         if (len(self._channel_team_map) == 8) and (str(channel_id) not in self._channel_team_map):
-            self._channel_team_map.popitem(False)
+            (channel, team) = self._channel_team_map.popitem(False)
+            BotLogger().get().info("Removing mapping of team %s from channel %s", team, channel)
             in_limit = False
 
         self._channel_team_map[str(channel_id)] = str(team)
@@ -440,7 +440,9 @@ class DKPBot:
         # Remove empty strings
         targets = list(filter(None, type(self).__param_parser.findall(param)))
         # Lowercase all
-        return list(map(lambda x: x.strip().lower(), targets))
+        params = list(map(lambda x: x.strip().lower(), targets))
+        BotLogger().get().debug("Parse param result: %s", params)
+        return params
 
     def _parse_player_param(self, param):
         # Remove empty strings
@@ -458,7 +460,7 @@ class DKPBot:
         aliases = list(map(lambda x: x.strip().lower(), aliases))
         # Int list
         int_list = self._get_int_list(original)
-
+        BotLogger().get().debug("Parse player param results. [targets: %s] [aliases: %s] [original: %s] [int_list: %s]", targets, aliases, original, int_list)
         return (targets, aliases, original, int_list)
 
     def _get_int_list(self, original: list):
@@ -470,18 +472,6 @@ class DKPBot:
             except ValueError:
                 continue
         return int_list
-
-    def __get_command_parser(self):
-        if not isinstance(type(self).__parser, argparse.ArgumentParser):
-            type(self).__parser = argparse.ArgumentParser(
-                description='Process commands.')
-            type(self).__parser.add_argument(
-                'command', metavar='command', type=str, help='Actual command', nargs='?', default=None)
-            type(self).__parser.add_argument(
-                'param', metavar='param', type=str, help='Command parameter', nargs='*', default=None)
-#            type(self).__parser.add_argument('varargs', metavar='varargs', type=str,
-#                                       help='All other string values will be put here', nargs='*', default=None)
-        return type(self).__parser
 
     def __reminder_injection(self, response: Response):
         if self.is_premium():
@@ -499,12 +489,23 @@ class DKPBot:
             if not isinstance(response.data, list):
                 response.data = [response.data]
             response.data.append(SupportReminder().get())
+            BotLogger().get().info("Injecting reminder for server %s", self.__guild_id)
 
         return response
 
     def __parse_command(self, string):
         if isinstance(string, str):
-            return self.__get_command_parser().parse_args(string.split())
+            args = string.split(" ")
+            if len(args) > 1:
+                command = args[0]
+                params = " ".join(args[1:])
+                return (command, params)
+            elif len(args) == 1:
+                command = args[0]
+                params = None
+                return (command, params)
+            else:
+                return None
         else:
             return None
 
@@ -541,13 +542,11 @@ class DKPBot:
 
     def handle(self, message, request_info):
         if len(message) > 0 and message[0] == self.__prefix:
-            args = self.__parse_command(message)
-            if args:
-                if args.command:
-                    if not args.param:
-                        args.param = [request_info['author']['name']]
-                    args.param = " ".join(args.param)
-                    return self.__handle_command(args.command.lower(), args.param.lower(), request_info)
+            (command, param) = self.__parse_command(message)
+            if command is not None:
+                if param is None:
+                    param = request_info['author']['name']
+                return self.__handle_command(command.lower(), param.lower(), request_info)
         # Empty message, attachement only probably
         return Response(ResponseStatus.IGNORE)
 
@@ -577,14 +576,14 @@ class DKPBot:
     def _get_dkp(self, player, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            BotLogger().get().debug("Unknown team %s", team)
+            BotLogger().get().warning("Unknown team %s", team)
             return None
         return team_data['dkp'].get(player.lower())
 
     def _get_team_dkp(self, team):
             team_data = self.__db['global'].get(team)
             if team_data is None:
-                BotLogger().get().debug("Unknown team %s", team)
+                BotLogger().get().warning("Unknown team %s", team)
                 return None
             team_dkp_data = []
             for entry in team_data['dkp'].values():
@@ -592,10 +591,9 @@ class DKPBot:
             return team_dkp_data
 
     def _search_dkp(self, player, team):
-        BotLogger().get().debug("search_dkp")
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            BotLogger().get().debug("Unknown team %s", team)
+            BotLogger().get().warning("Unknown team %s", team)
             return None
         players = team_data['dkp'].keys()
         players = [p for p in players if p.lower().startswith(player)]
@@ -604,21 +602,21 @@ class DKPBot:
     def _get_player_loot(self, player, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            BotLogger().get().debug("Unknown team %s", team)
+            BotLogger().get().warning("Unknown team %s", team)
             return None
         return team_data['player_loot'].get(player.lower())
 
     def _get_loot(self, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            BotLogger().get().debug("Unknown team %s", team)
+            BotLogger().get().warning("Unknown team %s", team)
             return None
         return team_data['loot']
 
     def _get_history(self, player, team):
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            BotLogger().get().debug("Unknown team %s", team)
+            BotLogger().get().warning("Unknown team %s", team)
             return None
         return team_data['history'].get(player.lower())
 
@@ -713,7 +711,7 @@ class DKPBot:
 
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            BotLogger().get().debug("Unknown team %s", team)
+            BotLogger().get().warning("Unknown team %s", team)
             return list()
 
         loot_pattern = re.compile(keyword.strip(), flags=re.IGNORECASE)
@@ -744,7 +742,7 @@ class DKPBot:
 
         team_data = self.__db['global'].get(team)
         if team_data is None:
-            BotLogger().get().debug("Unknown team %s", team)
+            BotLogger().get().warning("Unknown team %s", team)
             return None
 
         player = player.lower()
@@ -922,14 +920,14 @@ class DKPBot:
             BotLogger().get().error("Configuration Database building failed. Please validate your settings.")
             return Response(ResponseStatus.SUCCESS, BasicError("Configuration Database building failed. Please validate your settings.").get())
         if not self._build_dkp_database(saved_variable):
-            BotLogger().get().error("DKP Database building failed.")
-            return Response(ResponseStatus.SUCCESS, BasicError("DKP Database building failed. Please check your `server-side` and `guild-name` settings.").get())
+            BotLogger().get().error("Profile Database building failed.")
+            return Response(ResponseStatus.SUCCESS, BasicError("Profile Database building failed. Please validate your settings.").get())
         if not self._build_loot_database(saved_variable):
             BotLogger().get().error("Loot Database building failed.")
-            return Response(ResponseStatus.SUCCESS, BasicError("Loot Database building failed. Please check your `server-side` and `guild-name` settings.").get())
+            return Response(ResponseStatus.SUCCESS, BasicError("Loot Database building failed. Please validate your settings.").get())
         if not self._build_history_database(saved_variable):
-            BotLogger().get().error("DKP History Database building failed.")
-            return Response(ResponseStatus.SUCCESS, BasicError("DKP History Database building failed. Please check your `server-side` and `guild-name` settings.").get())
+            BotLogger().get().error("History Database building failed.")
+            return Response(ResponseStatus.SUCCESS, BasicError("History Database building failed. Please validate your settings.").get())
 
         self._finalize_database()
 
@@ -960,6 +958,7 @@ class DKPBot:
             if hasattr(internal_group, config):
                 setattr(internal_group, config, value)
                 new_value = getattr(internal_group, config)
+                BotLogger().get().debug("Setting %s %s to %s. New value: %s", group, config, value, new_value)
                 if isinstance(new_value, bool):
                     return (new_value and (value in ['true', True])) or (not new_value and (value in ['false', False]))
                 elif isinstance(new_value, int):
@@ -980,6 +979,8 @@ class DKPBot:
             value_sanitized = False
         else:
             return False
+
+        BotLogger().get().debug("Setting boolean %s %s to %s", group, config, value_sanitized)
 
         if self.__set_config(group, config, value_sanitized):
             self.__config.store()
@@ -1327,6 +1328,7 @@ class DKPBot:
                     BotLogger().get().error("Unexpected error during bot type setup: %s", request_info)
                     return Response(ResponseStatus.SUCCESS, BasicCritical('Unexpected error during bot type setup').get())
             else:
+                BotLogger().get().warning("Unsupported bot type %s", value)
                 return Response(ResponseStatus.SUCCESS, BasicError('Unsupported bot type').get())
         else:
             return Response(ResponseStatus.SUCCESS, BasicSuccess("Invalid number of parameters").get())
@@ -1344,6 +1346,7 @@ class DKPBot:
                     BotLogger().get().error("Unexpected error during prefix change: %s", request_info)
                     return Response(ResponseStatus.SUCCESS, BasicCritical('Unexpected error during prefix change').get())
             else:
+                BotLogger().get().warning("Unsupported prefix %s", value)
                 return Response(ResponseStatus.SUCCESS, BasicError('Unsupported prefix').get())
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
@@ -1412,6 +1415,7 @@ class DKPBot:
                 self._reconfigure()
                 return Response(ResponseStatus.SUCCESS, BasicSuccess('Guild Name set to `{0}`'.format(value)).get())
             else:
+                BotLogger().get().error("Unexpected error during guild name change to %s", value)
                 return Response(ResponseStatus.SUCCESS, 'Unexpected error during guild name change.')
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())

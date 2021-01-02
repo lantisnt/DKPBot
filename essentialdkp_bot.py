@@ -103,9 +103,11 @@ class EssentialDKPBot(DKPBot):
 
     def _fill_history(self, players, dkp, timestamp, reason, index, team):
         if not players:
+            BotLogger().get().debug("Empty players")
             return
 
         if not dkp:
+            BotLogger().get().debug("Empty DKP data")
             return
 
         if isinstance(players, str) and isinstance(dkp, (int, float)):
@@ -138,6 +140,7 @@ class EssentialDKPBot(DKPBot):
 
     def _generate_player_info(self, entry):
         if entry is None:
+            BotLogger().get().debug("Player entry is None")
             return None
 
         player = entry.get("player")
@@ -172,10 +175,8 @@ class EssentialDKPBot(DKPBot):
                           lifetime_spent, ingame_class, role, spec)
 
     def _generate_player_loot(self, entry, team):
-        if entry is None:
-            return None
-
         if not isinstance(entry, dict):
+            BotLogger().get().debug("Loot entry is not a dict")
             return None
 
         player = entry.get("player")
@@ -265,6 +266,7 @@ class EssentialDKPBot(DKPBot):
             if len(dkp) == 1:  # Some weird old MonolithDKP -X% only entry that I have no idea how to parse
                 return None
         elif not isinstance(dkp, (int, float)):
+            BotLogger().get().debug("DKP data is not a numeric value [%s]", dkp)
             return None
 
         self._fill_history(players, dkp, date, reason, index, team)
@@ -274,12 +276,14 @@ class EssentialDKPBot(DKPBot):
         super()._build_config_database(None)
 
         if saved_variable is None:
+            BotLogger().get().debug("Saved variable missing")
             return False
 
         team = DKPBot.DEFAULT_TEAM
 
         config_list = saved_variable.get(self._CONFIG_SV)
         if not config_list:
+            BotLogger().get().debug("Config missing")
             return False
 
         self._set_addon_config(config_list)
@@ -291,17 +295,20 @@ class EssentialDKPBot(DKPBot):
         super()._build_dkp_database(None)
 
         if saved_variable is None:
+            BotLogger().get().debug("Saved variable missing")
             return False
 
         team = DKPBot.DEFAULT_TEAM
 
         dkp_list = saved_variable.get(self._DKP_SV)
         if not dkp_list:
+            BotLogger().get().debug("DKP variable missing")
             return False
 
         if isinstance(dkp_list, dict): # dict because there may be ["seed"] field...
             dkp_list = dkp_list.values()
         elif not isinstance(dkp_list, list):
+            BotLogger().get().debug("DKP variable is not a list")
             return False
 
         for entry in dkp_list:
@@ -319,6 +326,7 @@ class EssentialDKPBot(DKPBot):
         super()._build_loot_database(None)
 
         if saved_variable is None:
+            BotLogger().get().debug("Saved variable missing")
             return False
 
         team = DKPBot.DEFAULT_TEAM
@@ -326,11 +334,13 @@ class EssentialDKPBot(DKPBot):
         loot_list = saved_variable.get(self._LOOT_SV)
 
         if not loot_list:
+            BotLogger().get().debug("Loot variable missing")
             return False
 
         if isinstance(loot_list, dict): # dict because there is ["seed"] field...
             loot_list = loot_list.values()
         elif not isinstance(loot_list, list):
+            BotLogger().get().debug("Loot variable is not a list")
             return False
 
         for entry in loot_list:
@@ -352,6 +362,7 @@ class EssentialDKPBot(DKPBot):
         super()._build_history_database(None)
 
         if saved_variable is None:
+            BotLogger().get().debug("Saved variable missing")
             return False
 
         team = DKPBot.DEFAULT_TEAM
@@ -359,11 +370,13 @@ class EssentialDKPBot(DKPBot):
         history = saved_variable.get(self._HISTORY_SV)
 
         if not history:
+            BotLogger().get().debug("History variable missing")
             return False
 
         if isinstance(history, dict): # dict because there is ["seed"] field...
             history = history.values()
         elif not isinstance(history, list):
+            BotLogger().get().debug("History variable is not a list")
             return False
 
         for entry in history:
@@ -487,6 +500,7 @@ class EssentialDKPBot(DKPBot):
             else:
                 return Response(ResponseStatus.SUCCESS, BasicError("Unable to find data for {0}.".format(param)).get())
 
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) == 1:
             data = self._build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
@@ -516,6 +530,7 @@ class EssentialDKPBot(DKPBot):
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Unable to find data for {0}.".format(param)).get())
 
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) > 0:
             data = self._build_history_output_multiple(output_result_list)
         else:
@@ -542,6 +557,7 @@ class EssentialDKPBot(DKPBot):
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Unable to find data for {0}.".format(param)).get())
 
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) > 0:
             data = self._build_player_loot_output_multiple(output_result_list)
         else:
@@ -559,6 +575,7 @@ class EssentialDKPBot(DKPBot):
 
         output_result_list = self._get_loot(self._get_channel_team_mapping(request_info['channel']['id']))
 
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) > 0:
             data = self._build_loot_output_multiple(output_result_list)
         else:
@@ -578,6 +595,7 @@ class EssentialDKPBot(DKPBot):
 
         output_result_list = self._find_loot(param, self._get_channel_team_mapping(request_info['channel']['id']))
 
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) > 0:
             data = self._build_item_search_output_multiple(output_result_list)
         else:
