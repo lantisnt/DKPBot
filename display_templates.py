@@ -514,7 +514,7 @@ class MultipleResponse(BaseResponse):
                     data_list.append(data)
         else:
             BotLogger().get().debug("Filtering disabled")
-            data_list = data_list_unfiltered
+            data_list = data_list_unfiltered.copy()
 
         requester = requester.strip().capitalize()
 
