@@ -1445,20 +1445,20 @@ class DKPBot:
     def config_call_smart_roles(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params == 2:
             success = self.__set_config_boolean('guild_info', 'smart_roles', params[1])
-            return self.__generic_response(success, "smart-roles", params[1])
+            return type(self).__generic_response(success, "smart-roles", params[1])
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_dm_response(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params == 2:
             success = self.__set_config_boolean('guild_info', 'direct_message_response', params[1])
-            return self.__generic_response(success, "dm-response", params[1])
+            return type(self).__generic_response(success, "dm-response", params[1])
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_block_response_modifier(self, params, num_params, request_info): #pylint: disable=unused-argument
         if num_params == 2:
             success = self.__set_config_boolean('guild_info', 'block_response_modifier', params[1])
-            return self.__generic_response(success, "block-response-modifier", params[1])
+            return type(self).__generic_response(success, "block-response-modifier", params[1])
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())

@@ -429,7 +429,8 @@ async def on_message(message):
         # Check if we have proper bot for the requester
         bot = bots.get(message.guild.id)
         if not isinstance(bot, dkp_bot.DKPBot):
-            BotLogger().get().critical("Missing bot for %s (%d)", message.guild.name, message.guild.id)
+            if script_control.is_initialized():
+                BotLogger().get().critical("Missing bot for %s (%d)", message.guild.name, message.guild.id)
             return
 
         request_info = get_request_info(message)
