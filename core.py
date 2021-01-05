@@ -307,6 +307,7 @@ async def discord_attachment_check(bot: dkp_bot.DKPBot, message: discord.Message
 @trace
 async def spawn_bot(guild):
     try:
+        BotLogger().get().info("Spawn bot for %s (%d).", guild.name, guild.id)
         config_filename = "{0}/{1}.ini".format(script_control.config_dir, guild.id)
         bot = bot_factory.new(guild.id, BotConfig(config_filename))
         if bot:
