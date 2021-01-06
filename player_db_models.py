@@ -115,6 +115,8 @@ class PlayerInfoEPGP(PlayerInfo):
 
     def __init__(self, player, ep, gp):
          super().__init__(player, ep, gp, 0 if gp == 0 else ep/gp, None, None, None)
+         self._alts = []
+         self._main = None
 
     def ep(self):
         return self.dkp()
@@ -124,6 +126,15 @@ class PlayerInfoEPGP(PlayerInfo):
 
     def pr(self):
         return self.lifetime_spent()
+
+    def alts(self):
+        return self._alts
+
+    def main(self):
+        return self._main
+
+    def is_alt(self):
+        return self._main is not None
 
     def ep_width(self):
         return get_width(self.ep())
@@ -142,8 +153,23 @@ class PlayerInfoEPGP(PlayerInfo):
         if history_entry and isinstance(history_entry, PlayerEPGPHistory):
             self._latest_history_entry = history_entry
 
+    def set_main(self, main):
+        self._main = main
+
+    def link_alts(self, alt_list):
+        if isinstance(alt_list, list):
+            for alt in alt_list:
+                if not isinstance(alt, PlayerInfoEPGP):
+                    self._alts.append(PlayerInfoEPGP(alt, 0, 0)) # Create dummy object for not existing alts
+                else:
+                    self._alts.append(alt)
+
+
     def __str__(self):
-        return "{0}: {1} EP {2} GP {3} PR".format(self._name, self._dkp, self._lifetime_gained, self._lifetime_spent)
+        if self._main is None:
+            return "{0}: {1} EP {2} GP {3} PR Alts: {4}".format(self._name, self._dkp, self._lifetime_gained, self._lifetime_spent, str(self._alts))
+        else:
+            return "{0}: {1} EP {2} GP {3} PR Alt of {4}".format(self._name, self._dkp, self._lifetime_gained, self._lifetime_spent, self._main.name())
 
 @for_all_methods(trace, trace_func_only)
 class PlayerLoot:
