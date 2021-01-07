@@ -1,5 +1,6 @@
 import sys
 import io
+import atexit
 import pickle
 import asyncio
 import pytz
@@ -78,6 +79,13 @@ def get_config(filepath):
 
     return (token, config_dir, storage_dir, in_memory_objects_limit, log_dir, su_id, raidhelper_api_endpoint, raidhelper_api_token)
 
+# Cleanup
+def cleanup():
+    for bot in bots.values():
+        if isinstance(bot, dkp_bot.DKPBot):
+            bot.shutdown()
+    BotLogger().get().info("Bye Bye!")
+
 # Main
 def main(control: ScriptControl):
     # Get Config
@@ -91,6 +99,8 @@ def main(control: ScriptControl):
     bot_memory_manager.Manager().initialize(control.in_memory_objects_limit, bots, pickle_data, unpickle_data)
     # Initialize Raid Helper Integration
     raidhelper.RaidHelper().initialize(raidhelper_api_endpoint, raidhelper_api_token)
+    # Register atexit script
+    atexit.register(cleanup)
     # Create inifite task
     client.loop.create_task(discord_update_activity())
     # Run client listener
@@ -329,7 +339,7 @@ async def spawn_bot(guild):
             BotLogger().get().info("Bot for server [{0} ({1})] total footprint: {2} B".format(guild.name, guild.id, footprint.total_size(bot)))
             return True
 
-    except (SystemExit, Exception) as exception:
+    except Exception as exception:
         handle_exception("spawn_bot()", exception)
         return False
 
@@ -370,6 +380,8 @@ async def handle_bot_response(message: discord.Message, request_info: dict, resp
         ## DELEGATE
         elif (response.status == dkp_bot.ResponseStatus.DELEGATE):
             return super_user.handle(response.data[0], response.data[1], request_info)
+#        elif (response.status == dkp_bot.ResponseStatus.SHUTDOWN):
+#            cleanup()
 
     return None
 
@@ -380,7 +392,7 @@ async def on_guild_join(guild):
     try:
         await spawn_bot(guild)
         update_activity_data()
-    except (SystemExit, Exception) as exception:
+    except Exception as exception:
         handle_exception("on_guild_join()", exception)
 
 @trace
@@ -399,6 +411,7 @@ async def on_ready():
     try:
         if script_control.is_initialized():
             return
+
         BotLogger().get().info("Starting initializing bot for {0} servers".format(len(client.guilds)))
 
         for guild in client.guilds:
@@ -410,7 +423,7 @@ async def on_ready():
         script_control.set_initialized()
         BotLogger().get().info("Ready!")
 
-    except (SystemExit, Exception) as exception:
+    except Exception as exception:
         handle_exception("on_ready()", exception)
 
 @trace
@@ -455,7 +468,7 @@ async def on_message(message):
         if (bot.is_channel_registered() and bot.check_channel(message.channel.id)) or not bot.is_channel_registered():
             await discord_attachment_check(bot, message, message.author, True)
 
-    except (SystemExit, Exception) as exception:
+    except Exception as exception:
         handle_exception(message.content, exception)
 
 

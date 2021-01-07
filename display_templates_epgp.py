@@ -1,5 +1,5 @@
 from player_db_models import PlayerInfoEPGP, PlayerEPGPHistory, PlayerLootEPGP
-from bot_utility import get_date_from_timestamp
+from bot_utility import get_date_from_timestamp, get_width
 from bot_config import DisplayConfig
 from bot_logger import trace, trace_func_only, for_all_methods
 from display_templates import BaseResponse, MultipleResponse
@@ -34,6 +34,13 @@ def get_history_format_string(ep_width, gp_width, value_suffix):
 def get_loot_format_string(ep_width, value_suffix):
     return "`{{0:{0}.0f}}{1}`".format(ep_width, " GP" if value_suffix else "")
 
+@trace 
+def get_item_value_format_string(min_width, max_width, avg_width, num_width, value_suffix, alternative_display_mode):
+    if alternative_display_mode:
+        return "`Min:     {{0:{0}.0f}}{4}`\n`Max:     {{1:{1}.0f}}{4}`\n`Average: {{2:{2}.0f}}{4}`\n`Total:   {{3:{3}.0f}}`\n".format(min_width, max_width, avg_width, num_width, " GP" if value_suffix else "")
+    else:
+        return "`Min: {{0:{0}.0f}}{4}` `Max: {{1:{1}.0f}}{4}` `Average: {{2:{2}.0f}}{4}` `Total: {{3:{3}.0f}}`\n".format(min_width, max_width, avg_width, num_width, " GP" if value_suffix else "")
+
 @trace
 def generate_epgp_history_entry(history_entry, format_string, enable_icons, alternative_display_mode, timezone):
     if history_entry and isinstance(history_entry, PlayerEPGPHistory):
@@ -63,9 +70,21 @@ def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_dis
         return row
     return "- No data available -"
 
+@trace
+def generate_item_value_entry(entry, format_string, enable_icons, alternative_display_mode, player, timezone):
+    if isinstance(entry, tuple) and len(entry) == 3:
+        (id, name, value) = entry
+        row = ""
+        row += "[{0}](https://classic.wowhead.com/item={1})".format(name, id)
+        row += "\n"
+        row += format_string.format(value.min, value.max, value.avg, value.num)
+        row += "\n"
+        return row
+    else:
+        return "- No data available -"
+
 @for_all_methods(trace, trace_func_only)
 class SinglePlayerProfile(BaseResponse):
-
     def build(self, info, thumbnail=None):
         self._embed.clear()
 
@@ -103,7 +122,6 @@ class SinglePlayerProfile(BaseResponse):
         return self._embed.get()
 
 class EPGPMultipleResponse(MultipleResponse):
-
     def _prepare(self, data_list):
 
         self._enable_filtering = True
@@ -127,9 +145,9 @@ class EPGPMultipleResponse(MultipleResponse):
         data_list_pr_min = min(data_list, key=get_pr)
         data_list_pr_max = max(data_list, key=get_pr)
 
-        ep_width = max(len(str(int(data_list_ep_min.ep()))), len(str(int(data_list_ep_max.ep()))))
-        gp_width = max(len(str(int(data_list_gp_min.gp()))), len(str(int(data_list_gp_max.gp()))))
-        pr_width = max(len(str(int(data_list_pr_min.pr()))), len(str(int(data_list_pr_max.pr()))))
+        ep_width = max(get_width(data_list_ep_min.ep()), get_width(data_list_ep_max.ep()))
+        gp_width = max(get_width(data_list_gp_min.gp()), get_width(data_list_gp_max.gp()))
+        pr_width = max(get_width(data_list_pr_min.pr()), get_width(data_list_pr_max.pr()))
 
         self._value_format_string = get_points_format_string(ep_width, gp_width, pr_width, self._value_suffix)
 
@@ -166,7 +184,6 @@ class EPGPMultipleResponse(MultipleResponse):
 
 @for_all_methods(trace, trace_func_only)
 class HistoryMultipleResponse(MultipleResponse):
-
     def _prepare(self, data_list):
         # Prepare format string
         def get_ep(i):
@@ -180,8 +197,8 @@ class HistoryMultipleResponse(MultipleResponse):
         data_list_gp_min = min(data_list, key=get_gp)
         data_list_gp_max = max(data_list, key=get_gp)
         
-        ep_width = max(len(str(int(data_list_ep_min.ep()))), len(str(int(data_list_ep_max.ep()))))
-        gp_width = max(len(str(int(data_list_gp_min.gp()))), len(str(int(data_list_gp_max.gp()))))
+        ep_width = max(get_width(data_list_ep_min.ep()), get_width(data_list_ep_max.ep()))
+        gp_width = max(get_width(data_list_gp_min.gp()), get_width(data_list_gp_max.gp()))
         
         self._value_format_string = get_history_format_string(ep_width, gp_width, self._value_suffix)
 
@@ -216,8 +233,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_gp)
         data_list_max = max(data_list, key=get_gp)
         
-        gp_width = max(len(str(int(data_list_min.gp()))),
-                          len(str(int(data_list_max.gp()))))
+        gp_width = max(get_width(data_list_min.gp()), get_width(data_list_max.gp()))
         self._value_format_string = get_loot_format_string(gp_width, self._value_suffix)
 
         for data in data_list:
@@ -242,7 +258,6 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
 @for_all_methods(trace, trace_func_only)
 class LootMultipleResponse(MultipleResponse):
-
     def _prepare(self, data_list):
         # Prepare format string
         def get_gp(i):
@@ -251,8 +266,7 @@ class LootMultipleResponse(MultipleResponse):
         data_list_min = min(data_list, key=get_gp)
         data_list_max = max(data_list, key=get_gp)
         
-        gp_width = max(len(str(int(data_list_min.gp()))),
-                          len(str(int(data_list_max.gp()))))
+        gp_width = max(get_width(data_list_min.gp()), get_width(data_list_max.gp()))
         self._value_format_string = get_loot_format_string(gp_width, self._value_suffix)
 
         for data in data_list:
@@ -268,6 +282,55 @@ class LootMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerLootEPGP):
-            return generate_loot_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode, True)
+            return generate_loot_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode, True, self._timezone)
+
+        return ""
+
+class ItemValueMultipleResponse(MultipleResponse):
+    def _prepare(self, data_list):
+        # Prepare format string
+        def get_min(i):
+            return i[2].min
+
+        def get_max(i):
+            return i[2].max
+
+        def get_avg(i):
+            return i[2].avg
+
+        def get_num(i):
+            return i[2].num
+
+        data_list_min_min = get_min(min(data_list, key=get_min))
+        data_list_min_max = get_min(max(data_list, key=get_min))
+
+        data_list_max_min = get_max(min(data_list, key=get_max))
+        data_list_max_max = get_max(max(data_list, key=get_max))
+
+        data_list_avg_min = get_avg(min(data_list, key=get_avg))
+        data_list_avg_max = get_avg(max(data_list, key=get_avg))
+
+        data_list_num_min = get_num(min(data_list, key=get_num))
+        data_list_num_max = get_num(max(data_list, key=get_num))
+        
+        min_width = max(get_width(data_list_min_min), get_width(data_list_min_max))
+        max_width = max(get_width(data_list_max_min), get_width(data_list_max_max))
+        avg_width = max(get_width(data_list_avg_min), get_width(data_list_avg_max))
+        num_width = max(get_width(data_list_num_min), get_width(data_list_num_max))
+
+        if self._alternative_display_mode:
+            min_width = max_width = avg_width = num_width = max(min_width, max_width, avg_width, num_width)
+
+        self._value_format_string = get_item_value_format_string(min_width, max_width, avg_width, num_width, self._value_suffix, self._alternative_display_mode)
+
+    #def _override_response_loop(self, response_id):
+    #    self._embed.set_title(self.__user)
+
+    def _override_field_loop(self, response_id, field_id):
+        self._embed.edit_field(field_id, name="\u200b")
+
+    def _build_row(self, data, requester):
+        if data:
+            return generate_item_value_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode, True, self._timezone)
 
         return ""

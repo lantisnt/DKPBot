@@ -7,17 +7,19 @@ import pytz
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
 from bot_logger import BotLogger, trace, trace_func_only, for_all_methods
-from bot_utility import timestamp_now, public_to_dict
+from bot_utility import timestamp_now
+from statistics import Statistics
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
 from display_templates import get_bot_color, get_bot_links, preformatted_block
-from display_templates import SupportReminder, RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement, BasicInfo
+from display_templates import SupportReminder, RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement, BasicInfo, BotDisabledResponse
 
 class ResponseStatus(Enum):
     SUCCESS = 0
     ERROR = 1
     DELEGATE = 2
     RELOAD = 3
+    SHUTDOWN = 90
     IGNORE = 99
 
 
@@ -34,174 +36,6 @@ class Response:
         self.status = status
         self.data = data
         self.direct_message = bool(direct_message)
-
-class Statistics:
-
-    INDENT_OFFSET = 2
-
-    class Commands(dict):
-        class Instrumentation:
-            min = None
-            max = None
-            avg = None
-            num = None
-
-            def __init__(self, value=None):
-                if not isinstance(value, (int, float)):
-                    self.min = float("inf")
-                    self.max = 0
-                    self.avg = 0
-                    self.num = 0
-                else:
-                    self.min = value
-                    self.max = value
-                    self.avg = value
-                    self.num = 1
-
-            def update(self, value):
-                if not isinstance(value, (int, float)):
-                    raise TypeError
-
-                if value < self.min:
-                    self.min = value
-
-                if value > self.max:
-                    self.max = value
-
-                tmp_sum = (self.avg * self.num) + value
-
-                self.num =  self.num + 1
-
-                self.avg = tmp_sum / self.num
-
-            def override(self, other):
-                if isinstance(other, type(self)):
-                    self.min = other.min
-                    self.max = other.max
-                    self.avg = other.avg
-                    self.num = other.num
-                else:
-                    raise TypeError
-
-            def __add__(self, other):
-                if isinstance(other, type(self)):
-                    tmp = Statistics.Commands.Instrumentation()
-
-                    tmp.min = self.min if self.min < other.min else other.min
-                    tmp.max = self.max if self.max > other.max else other.max
-
-                    tmp.num = self.num + other.num
-
-                    total = (self.avg * self.num) + (other.avg * other.num)
-                    tmp.avg = total/tmp.num
-
-                    return tmp
-                else:
-                    raise TypeError
-
-        ### End Internal class Instrumentation
-
-        def __setitem__(self, key, item):
-            if key not in self:
-                super().__setitem__(key, self.Instrumentation(item))
-            else:
-                self[key].update(item)
-
-        def __add__(self, other):
-            if isinstance(self, type(other)):
-                command_list = list(dict.fromkeys(list(self.keys()) + list(other.keys())))
-                commands = Statistics.Commands()
-                for command in command_list:
-                    commands[command] = 0
-                    if command in self:
-                        commands[command].override(self[command])
-                        if command in other:
-                            commands[command].override(commands[command] + other[command])
-                    elif command in other:
-                        commands[command].override(other[command])
-                return commands
-            else:
-                raise TypeError
-
-        def get(self):
-            data = {}
-            for key in self:
-                data[key] = public_to_dict(self[key], filter_callable=True)
-            return data
-
-    database = None
-    commands = None
-
-    def __init__(self):
-        self.database = {}
-        self.commands = Statistics.Commands()
-
-    @staticmethod
-    def format_list(data, indent=0):
-        string  = ""
-        for entry in data:
-            string += Statistics.format(entry, indent + Statistics.INDENT_OFFSET) + ", "
-        string.strip(",")
-        return string
-
-    @staticmethod
-    def format_dict(data, indent=0):
-        string = ""
-        max_key_len = max(list(map(len, data.keys())))
-        for key, value in data.items():
-            string += "\n" + (indent * " ") + "{0}: ".format(key)
-            if isinstance(value, (dict, tuple)):
-                value_indent = (indent + Statistics.INDENT_OFFSET)
-            else:
-                value_indent = max_key_len - len(key) + 2
-            string += (value_indent * " ") + Statistics.format(value, value_indent + Statistics.INDENT_OFFSET)
-        return string
-
-    @staticmethod
-    def format_tuple(data, indent=0):
-        string = ""
-        string += (indent * " ")
-        string += "( " + Statistics.format(data[0], indent + Statistics.INDENT_OFFSET)
-        string += Statistics.format(data[1], indent + Statistics.INDENT_OFFSET) + " )"
-        return string
-
-    @staticmethod
-    def format(data, indent=0):
-        if isinstance(data, list):
-            return Statistics.format_list(data, indent)
-        elif isinstance(data, dict):
-            return Statistics.format_dict(data, indent)
-        elif isinstance(data, tuple):
-            return Statistics.format_tuple(data, indent)
-        else:
-            return str(data)
-
-    def print_database(self):
-        string  = ""
-        string += "```asciidoc\n=== Database ===```"
-        string += "```c\n"
-        string += Statistics.format(self.database, -2)
-        string += "```"
-        return string
-
-    def print_commands(self):
-        string  = ""
-        string += "```asciidoc\n=== Commands ===```"
-        if len(self.commands) > 0:
-            string += "```c\n"
-            string += Statistics.format(self.commands.get(), -2)
-            string += "```"
-        else:
-            string += "```asciidoc\n"
-            string += "[ none ]"
-            string += "```"
-        return string
-
-    def __str__(self):
-        string  = ""
-        string += self.print_database()
-        string += self.print_commands()
-        return string
 
 @for_all_methods(trace, trace_func_only)
 class DKPBot:
@@ -227,6 +61,7 @@ class DKPBot:
 
 
     def __init__(self, guild_id: int, config: BotConfig):
+        self.__enabled = True
         self.__db = {}
         self.__config = config
         self.__guild_id = int(guild_id)
@@ -260,6 +95,11 @@ class DKPBot:
     def _reconfigure(self):
         self.__config.store()
         self._configure()
+
+    def shutdown(self):
+        BotLogger().get().info("Shutting down bot for [%d]", self.__guild_id)
+        self.disable()
+        self.__config.store()
 
     def enable(self):
         self.__enabled = True
@@ -535,11 +375,13 @@ class DKPBot:
 
         callback = getattr(self, method, None)
         if callback and callable(callback):
+            if not self.is_enabled():
+                return Response(ResponseStatus.SUCCESS, BotDisabledResponse().get())
             BotLogger().get().info("Calling [%s] with param [%s] for [%d]", sanitized_command, param, self.__guild_id)
             bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
             start = timestamp_now()
             response = callback(param, request_info)  # pylint: disable=not-callable
-            self.statistics.commands[sanitized_command] = (1000 * (timestamp_now() - start)) # miliseconds
+            self.statistics.data[sanitized_command] = (1000 * (timestamp_now() - start)) # miliseconds
             response.direct_message = direct_message
             response = self.__reminder_injection(response)
             return response
@@ -904,6 +746,9 @@ class DKPBot:
 
     # This method handles response differently. ERROR status is printed also
     def build_database(self, input_string, info):
+        if not self.is_enabled():
+            return Response(ResponseStatus.SUCCESS, BotDisabledResponse().get())
+
         start = timestamp_now()
 
         saved_variable = None
@@ -1037,6 +882,7 @@ class DKPBot:
         embed.add_field(":scroll: History", commands, True)
         commands  = "```{0}raidloot```".format(self.__prefix)
         commands += "```{0}item```".format(self.__prefix)
+        commands += "```{0}value```".format(self.__prefix)
         commands += preformatted_block('Supporter only commands', 'css')
         embed.add_field(":mag: Items", commands, True)
         if is_privileged:
@@ -1298,8 +1144,10 @@ class DKPBot:
     def help_call_items(self, is_privileged): # pylint: disable=unused-argument
         help_string  = 'Display latest 30 loot entries from raids.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "raidloot", '') + preformatted_block('Supporter only command', 'css'))
-        help_string += 'Find loot entries matching `name`. Supports partial match.\n{0}\n'.format(
+        help_string += 'Find loot matching `name`. Supports partial match.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "item name", '') + preformatted_block('Supporter only command', 'css'))
+        help_string += 'Get value (min, max, average, total) data for loot matching `name`. Supports partial match.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "value name", '') + preformatted_block('Supporter only command', 'css'))
 
         return Response(ResponseStatus.SUCCESS, self._help_handler_internal("Items", help_string))
 
@@ -1364,10 +1212,13 @@ class DKPBot:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_default(self, params, num_params, request_info): #pylint: disable=unused-argument
+        BotLogger().get().info("Defaulting bot configuration for [%d]", self.__guild_id)
         self.__config.default()
         return Response(ResponseStatus.RELOAD, self.__guild_id)
 
     def config_call_reload(self, params, num_params, request_info): #pylint: disable=unused-argument
+        BotLogger().get().info("Reloading bot for [%d]", self.__guild_id)
+        self._reconfigure()
         return Response(ResponseStatus.RELOAD, self.__guild_id)
 
     def config_call_register(self, params, num_params, request_info): #pylint: disable=unused-argument

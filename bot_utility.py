@@ -3,6 +3,9 @@ import pytz
 
 SPLIT_DELIMITERS = ["#", "/", "\\", "|", ":", ";", "-", "(", ")", "[", "]"]
 
+def get_width(value):
+    return len(str(int(value)))
+
 def public_to_dict(obj, filter_callable=False):
     dictionary = {}
     public = filter(lambda x: not str(x).startswith("_"), dir(obj))

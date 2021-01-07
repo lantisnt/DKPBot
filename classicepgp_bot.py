@@ -6,7 +6,7 @@ from player_db_models import PlayerInfoEPGP, PlayerEPGPHistory, PlayerLootEPGP
 from raidhelper import RaidHelper
 from display_templates import preformatted_block, get_bot_color, get_bot_links, SUPPORT_SERVER
 from display_templates import RawEmbed, BasicError, BasicCritical, BasicAnnouncement, BasicInfo, BasicSuccess
-from display_templates_epgp import SinglePlayerProfile, EPGPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
+from display_templates_epgp import SinglePlayerProfile, EPGPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse, ItemValueMultipleResponse
 from bot_logger import BotLogger, trace, trace_func_only, for_all_methods
 
 @for_all_methods(trace, trace_func_only)
@@ -48,6 +48,11 @@ class CEPGPBot(EssentialDKPBot):
         config.item_search.entries_per_field, config.item_search.separate_messages,
         config.item_search.multiple_columns, config.item_search.enable_icons, config.item_search.value_suffix,
         config.item_search.alternative_display_mode, self._timezone)
+
+        self._multiple_item_value_output_builder = ItemValueMultipleResponse("Item value", config.item_value.fields,
+        config.item_value.entries_per_field, config.item_value.separate_messages,
+        config.item_value.multiple_columns, config.item_value.enable_icons, config.item_value.value_suffix,
+        config.item_value.alternative_display_mode, self._timezone)
 
         self._update_views_info()
 
