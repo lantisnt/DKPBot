@@ -77,7 +77,7 @@ class Superuser:
                     response_list.append(BasicCritical("Invalid server id: `{0}`".format(server_id)).get())
 
                 if (bot_id is not None) and (bot_id in self.__bots):
-                    response_list.append(self.__bots[bot_id].statistics.print_commands())
+                    response_list.append(self.__bots[bot_id].statistics.print_data())
                 else:
                     response_list.append(BasicError("Server `{0}` has no bot.".format(server_id)).get())
             return Response(ResponseStatus.SUCCESS, response_list)
@@ -145,9 +145,9 @@ class Superuser:
             return Response(ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get())
 
     def su_globalstats(self, param): # pylint: disable=unused-argument
-        global_command_stats = Statistics.Commands()
+        global_command_stats = Statistics.Data()
         for bot in self.__bots.values():
-            global_command_stats += bot.statistics.commands
+            global_command_stats += bot.statistics.data
 
         string  = "```asciidoc\n=== Global Command Statistics ===```"
         if len(global_command_stats) > 0:

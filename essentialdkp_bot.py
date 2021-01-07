@@ -3,9 +3,10 @@ import re
 from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from player_role import RoleFilter
-from display_templates import SupporterOnlyResponse, BasicError, BasicInfo, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse
+from display_templates import SupporterOnlyResponse, BasicError, BasicInfo, SinglePlayerProfile, DKPMultipleResponse, HistoryMultipleResponse, PlayerLootMultipleResponse, LootMultipleResponse, ItemValueMultipleResponse
 from bot_logger import BotLogger, trace, trace_func_only, for_all_methods
 from raidhelper import RaidHelper
+from statistics import Statistics
 
 @for_all_methods(trace, trace_func_only)
 class EssentialDKPBot(DKPBot):
@@ -55,6 +56,11 @@ class EssentialDKPBot(DKPBot):
         config.item_search.multiple_columns, config.item_search.enable_icons, config.item_search.value_suffix,
         config.item_search.alternative_display_mode, self._timezone)
 
+        self._multiple_item_value_output_builder = ItemValueMultipleResponse("Item value", config.item_value.fields,
+        config.item_value.entries_per_field, config.item_value.separate_messages,
+        config.item_value.multiple_columns, config.item_value.enable_icons, config.item_value.value_suffix,
+        config.item_value.alternative_display_mode, self._timezone)
+
         self._update_views_info()
 
     def _build_dkp_output_single(self, info):
@@ -95,6 +101,12 @@ class EssentialDKPBot(DKPBot):
             return None
 
         return self._multiple_item_search_output_builder.build(output_result_list).get()
+
+    def _build_item_value_output_multiple(self, output_result_list):
+        if not output_result_list or not isinstance(output_result_list, list):
+            return None
+
+        return self._multiple_item_value_output_builder.build(output_result_list).get()
 
     ### Database - Variables parsing ###
 
@@ -407,6 +419,8 @@ class EssentialDKPBot(DKPBot):
             self._db_get_info())
         self._multiple_item_search_output_builder.set_database_info(
             self._db_get_info())
+        self._multiple_item_value_output_builder.set_database_info(
+            self._db_get_info())
         ## Global
         rounding = self._get_addon_config(["modes", "rounding"])
         self._single_player_profile_builder.set_info(rounding)
@@ -415,6 +429,7 @@ class EssentialDKPBot(DKPBot):
         self._multiple_player_loot_output_builder.set_info(rounding)
         self._multiple_loot_output_builder.set_info(rounding)
         self._multiple_item_search_output_builder.set_info(rounding)
+        self._multiple_item_value_output_builder.set_info(rounding)
 
     ### Commands ###
 
@@ -600,6 +615,35 @@ class EssentialDKPBot(DKPBot):
             data = self._build_item_search_output_multiple(output_result_list)
         else:
             data = BasicError("No loot matching `{0}` found.".format(param)).get()
+
+        return Response(ResponseStatus.SUCCESS, data)
+
+    def call_itemvalue(self, param, request_info):  # pylint: disable=unused-argument
+        if not self.is_premium():
+            return Response(ResponseStatus.SUCCESS, SupporterOnlyResponse().get())
+
+        if not self.is_database_loaded():
+            return Response(ResponseStatus.SUCCESS, BasicError("Database does not exist. Please upload .lua file.").get())
+
+        if len(param) < 3:
+            return Response(ResponseStatus.SUCCESS, BasicError("Query too short. Please specify at least 3 letters.").get())
+
+        output_result_list_intermediate = self._find_loot(param, self._get_channel_team_mapping(request_info['channel']['id']))
+        BotLogger().get().debug("Output Result List Intermediate: %s", output_result_list_intermediate)
+
+        output_result_list = []
+        if len(output_result_list_intermediate) > 0:
+            value = Statistics()
+            for item in output_result_list_intermediate:
+                value.data[(item.item_id(), item.item_name())] = item.dkp()
+            for (_id, _name), _value in value.data.items():
+                output_result_list.append((_id, _name, _value))
+
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
+        if len(output_result_list) > 0:
+           data = self._build_item_value_output_multiple(output_result_list)
+        else:
+           data = BasicError("No loot matching `{0}` found.".format(param)).get()
 
         return Response(ResponseStatus.SUCCESS, data)
 

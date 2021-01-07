@@ -753,3 +753,6 @@ class LootMultipleResponse(MultipleResponse):
             return generate_loot_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode, True)
 
         return ""
+
+class ItemValueMultipleResponse(MultipleResponse):
+    pass

@@ -1,9 +1,7 @@
 import player_role
 from player_role import Role
 from bot_logger import trace, trace_func_only, for_all_methods
-
-def get_width(value):
-    return len(str(int(value)))
+from bot_utility import get_width
 
 @for_all_methods(trace, trace_func_only)
 class PlayerInfo:
