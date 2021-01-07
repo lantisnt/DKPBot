@@ -12,7 +12,7 @@ from statistics import Statistics
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
 from display_templates import get_bot_color, get_bot_links, preformatted_block
-from display_templates import SupportReminder, RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement, BasicInfo
+from display_templates import SupportReminder, RawEmbed, BasicCritical, BasicError, BasicSuccess, BasicAnnouncement, BasicInfo, BotDisabledResponse
 
 class ResponseStatus(Enum):
     SUCCESS = 0
@@ -60,6 +60,7 @@ class DKPBot:
 
 
     def __init__(self, guild_id: int, config: BotConfig):
+        self.__enabled = True
         self.__db = {}
         self.__config = config
         self.__guild_id = int(guild_id)
@@ -93,6 +94,11 @@ class DKPBot:
     def _reconfigure(self):
         self.__config.store()
         self._configure()
+
+    def shutdown(self):
+        BotLogger().get().info("Shutting down bot for [%d]", self.__guild_id)
+        self.disable()
+        self.__config.store()
 
     def enable(self):
         self.__enabled = True
@@ -368,6 +374,8 @@ class DKPBot:
 
         callback = getattr(self, method, None)
         if callback and callable(callback):
+            if not self.is_enabled():
+                return Response(ResponseStatus.SUCCESS, BotDisabledResponse().get())
             BotLogger().get().info("Calling [%s] with param [%s] for [%d]", sanitized_command, param, self.__guild_id)
             bot_memory_manager.Manager().Handle(self.__guild_id)  # pylint: disable=no-value-for-parameter
             start = timestamp_now()
@@ -737,6 +745,9 @@ class DKPBot:
 
     # This method handles response differently. ERROR status is printed also
     def build_database(self, input_string, info):
+        if not self.is_enabled():
+            return Response(ResponseStatus.SUCCESS, BotDisabledResponse().get())
+
         start = timestamp_now()
 
         saved_variable = None
@@ -1197,10 +1208,13 @@ class DKPBot:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
 
     def config_call_default(self, params, num_params, request_info): #pylint: disable=unused-argument
+        BotLogger().get().info("Defaulting bot configuration for [%d]", self.__guild_id)
         self.__config.default()
         return Response(ResponseStatus.RELOAD, self.__guild_id)
 
     def config_call_reload(self, params, num_params, request_info): #pylint: disable=unused-argument
+        BotLogger().get().info("Reloading bot for [%d]", self.__guild_id)
+        self._reconfigure()
         return Response(ResponseStatus.RELOAD, self.__guild_id)
 
     def config_call_register(self, params, num_params, request_info): #pylint: disable=unused-argument

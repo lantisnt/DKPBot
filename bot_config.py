@@ -256,10 +256,10 @@ class BotConfig():
 
         group = 'DKP Display'
         self.dkp = DisplayConfig(
-            self.__config.getint(group, 'fields', fallback=1),
-            self.__config.getint(group, 'entries_per_field', fallback=1),
-            self.__config.getint(group, 'separate_messages', fallback=1),
-            self.__config.getboolean(group, 'multiple_columns', fallback=False),
+            self.__config.getint(group, 'fields', fallback=6),
+            self.__config.getint(group, 'entries_per_field', fallback=16),
+            self.__config.getint(group, 'separate_messages', fallback=5),
+            self.__config.getboolean(group, 'multiple_columns', fallback=True),
             self.__config.getboolean(group, 'enable_icons', fallback=True),
             self.__config.getboolean(group, 'value_suffix', fallback=True),
             self.__config.getboolean(group, 'alternative_display_mode', fallback=False)
@@ -268,7 +268,7 @@ class BotConfig():
         group = 'DKP History Display'
         self.dkp_history = DisplayConfig(
             self.__config.getint(group, 'fields', fallback=1),
-            self.__config.getint(group, 'entries_per_field', fallback=1),
+            self.__config.getint(group, 'entries_per_field', fallback=10),
             self.__config.getint(group, 'separate_messages', fallback=1),
             self.__config.getboolean(group, 'multiple_columns', fallback=False),
             self.__config.getboolean(group, 'enable_icons', fallback=True),
@@ -279,7 +279,7 @@ class BotConfig():
         group = 'Loot History Display'
         self.loot_history = DisplayConfig(
             self.__config.getint(group, 'fields', fallback=1),
-            self.__config.getint(group, 'entries_per_field', fallback=1),
+            self.__config.getint(group, 'entries_per_field', fallback=10),
             self.__config.getint(group, 'separate_messages', fallback=1),
             self.__config.getboolean(group, 'multiple_columns', fallback=False),
             self.__config.getboolean(group, 'enable_icons', fallback=True),
@@ -289,8 +289,8 @@ class BotConfig():
 
         group = 'Latest Loot Display'
         self.latest_loot = DisplayConfig(
-            self.__config.getint(group, 'fields', fallback=1),
-            self.__config.getint(group, 'entries_per_field', fallback=1),
+            self.__config.getint(group, 'fields', fallback=6),
+            self.__config.getint(group, 'entries_per_field', fallback=5),
             self.__config.getint(group, 'separate_messages', fallback=1),
             self.__config.getboolean(group, 'multiple_columns', fallback=False),
             self.__config.getboolean(group, 'enable_icons', fallback=True),
@@ -300,9 +300,9 @@ class BotConfig():
 
         group = 'Item Search Display'
         self.item_search = DisplayConfig(
-            self.__config.getint(group, 'fields', fallback=1),
-            self.__config.getint(group, 'entries_per_field', fallback=1),
-            self.__config.getint(group, 'separate_messages', fallback=1),
+            self.__config.getint(group, 'fields', fallback=6),
+            self.__config.getint(group, 'entries_per_field', fallback=5),
+            self.__config.getint(group, 'separate_messages', fallback=3),
             self.__config.getboolean(group, 'multiple_columns', fallback=False),
             self.__config.getboolean(group, 'enable_icons', fallback=True),
             self.__config.getboolean(group, 'value_suffix', fallback=True),
@@ -311,9 +311,9 @@ class BotConfig():
 
         group = 'Item Value Display'
         self.item_value = DisplayConfig(
-            self.__config.getint(group, 'fields', fallback=1),
-            self.__config.getint(group, 'entries_per_field', fallback=1),
-            self.__config.getint(group, 'separate_messages', fallback=1),
+            self.__config.getint(group, 'fields', fallback=6),
+            self.__config.getint(group, 'entries_per_field', fallback=5),
+            self.__config.getint(group, 'separate_messages', fallback=3),
             self.__config.getboolean(group, 'multiple_columns', fallback=False),
             self.__config.getboolean(group, 'enable_icons', fallback=True),
             self.__config.getboolean(group, 'value_suffix', fallback=True),

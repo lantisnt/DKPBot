@@ -1,3 +1,4 @@
+import sys
 from dkp_bot import Response, ResponseStatus, Statistics
 from bot_logger import BotLogger, trace, trace_func_only, for_all_methods
 from display_templates import BasicError, BasicCritical, BasicInfo, BasicSuccess
@@ -199,3 +200,6 @@ class Superuser:
             return Response(ResponseStatus.SUCCESS, BasicSuccess("`" + config.upper() + "` " + "Enabled" if enable else "Disabled").get())
         else:
             return Response(ResponseStatus.SUCCESS, BasicCritical("Invalid parameters").get())
+
+    def su_shutdown(self, param):
+        sys.exit(0)

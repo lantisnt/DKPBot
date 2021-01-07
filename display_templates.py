@@ -1,5 +1,5 @@
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
-from bot_utility import get_date_from_timestamp
+from bot_utility import get_date_from_timestamp, get_width
 from bot_config import DisplayConfig
 from bot_logger import trace, trace_func_only, for_all_methods, BotLogger
 import build_info
@@ -171,6 +171,13 @@ def get_history_format_string(width, rounding, value_suffix):
 def get_loot_format_string(width, rounding, value_suffix):
     return get_points_format_string(width, rounding, value_suffix)
 
+@trace 
+def get_item_value_format_string(min_width, max_width, avg_width, num_width, value_suffix, alternative_display_mode):
+    if alternative_display_mode:
+        return "`Min:     {{0:{0}.0f}}{4}`\n`Max:     {{1:{1}.0f}}{4}`\n`Average: {{2:{2}.0f}}{4}`\n`Total:   {{3:{3}.0f}}`\n".format(min_width, max_width, avg_width, num_width, " DKP" if value_suffix else "")
+    else:
+        return "`Min: {{0:{0}.0f}}{4}` `Max: {{1:{1}.0f}}{4}` `Average: {{2:{2}.0f}}{4}` `Total: {{3:{3}.0f}}`\n".format(min_width, max_width, avg_width, num_width, " DKP" if value_suffix else "")
+
 @trace
 def preformatted_block(string: str, language='swift'):
     return "```" + language + "\n" + string + "```"
@@ -208,6 +215,19 @@ def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_dis
         row += "\n"
         return row
     return "- No data available -"
+
+@trace
+def generate_item_value_entry(entry, format_string, enable_icons, alternative_display_mode, player, timezone):
+    if isinstance(entry, tuple) and len(entry) == 3:
+        (id, name, value) = entry
+        row = ""
+        row += "[{0}](https://classic.wowhead.com/item={1})".format(name, id)
+        row += "\n"
+        row += format_string.format(value.min, value.max, value.avg, value.num)
+        row += "\n"
+        return row
+    else:
+        return "- No data available -"
 
 @for_all_methods(trace, trace_func_only)
 class RawEmbed:
@@ -339,6 +359,18 @@ class BasicAnnouncement(RawEmbed):
             message,
             "https://cdn.discordapp.com/attachments/765089790295015425/766304397508345856/dkpbot-alert-info.png",
             1735398,
+            None)
+        self.add_field("\u200b", get_bot_links(), False)
+
+@for_all_methods(trace, trace_func_only)
+class BotDisabledResponse(RawEmbed):
+    def __init__(self):
+        self.build(
+            None,
+            "Bot is Disabled",
+            "Check {0} #announcements for actual status.".format(SUPPORT_SERVER),
+            "https://cdn.discordapp.com/avatars/746132320297156608/1d6c8788497eb6418c821e4d9450e06c.png",
+            get_config_color(),
             None)
         self.add_field("\u200b", get_bot_links(), False)
 
@@ -755,4 +787,50 @@ class LootMultipleResponse(MultipleResponse):
         return ""
 
 class ItemValueMultipleResponse(MultipleResponse):
-    pass
+    def _prepare(self, data_list):
+        # Prepare format string
+        def get_min(i):
+            return i[2].min
+
+        def get_max(i):
+            return i[2].max
+
+        def get_avg(i):
+            return i[2].avg
+
+        def get_num(i):
+            return i[2].num
+
+        data_list_min_min = get_min(min(data_list, key=get_min))
+        data_list_min_max = get_min(max(data_list, key=get_min))
+
+        data_list_max_min = get_max(min(data_list, key=get_max))
+        data_list_max_max = get_max(max(data_list, key=get_max))
+
+        data_list_avg_min = get_avg(min(data_list, key=get_avg))
+        data_list_avg_max = get_avg(max(data_list, key=get_avg))
+
+        data_list_num_min = get_num(min(data_list, key=get_num))
+        data_list_num_max = get_num(max(data_list, key=get_num))
+        
+        min_width = max(get_width(data_list_min_min), get_width(data_list_min_max))
+        max_width = max(get_width(data_list_max_min), get_width(data_list_max_max))
+        avg_width = max(get_width(data_list_avg_min), get_width(data_list_avg_max))
+        num_width = max(get_width(data_list_num_min), get_width(data_list_num_max))
+
+        if self._alternative_display_mode:
+            min_width = max_width = avg_width = num_width = max(min_width, max_width, avg_width, num_width)
+
+        self._value_format_string = get_item_value_format_string(min_width, max_width, avg_width, num_width, self._value_suffix, self._alternative_display_mode)
+
+    #def _override_response_loop(self, response_id):
+    #    self._embed.set_title(self.__user)
+
+    def _override_field_loop(self, response_id, field_id):
+        self._embed.edit_field(field_id, name="\u200b")
+
+    def _build_row(self, data, requester):
+        if data:
+            return generate_item_value_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode, True, self._timezone)
+
+        return ""
