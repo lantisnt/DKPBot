@@ -213,6 +213,24 @@ class CEPGPBot(EssentialDKPBot):
         info.set_inactive()
         self._set_dkp(info.name(), info, self.DEFAULT_TEAM)
 
+        # Main <-> Alt linking
+        alt_data = addon_data.get("Alt")
+        if isinstance(alt_data, dict):
+            alt_links = alt_data.get("Links")
+            if isinstance(alt_links, dict) and len(alt_links) > 0:
+                for player, alt_list in alt_links.items():
+                    main = self._get_dkp(player, self.DEFAULT_TEAM)
+                    if main is not None:
+                        alt_list_objects = []
+                        for _alt in alt_list:
+                            alt = self._get_dkp(_alt, self.DEFAULT_TEAM)
+                            if alt is not None:
+                                alt.set_main(main)
+                                alt_list_objects.append(alt)
+                            else:
+                                alt_list_objects.append(_alt) # Append name
+                        main.link_alts(alt_list_objects)
+
         return True
 
     # Called 3rd
