@@ -365,6 +365,7 @@ async def handle_bot_response(message: discord.Message, request_info: dict, resp
         elif response.status == dkp_bot.ResponseStatus.RELOAD:
             guild = None
             if response.data in bots.keys():
+                bots[response.data].shutdown()
                 for _guild in client.guilds:
                     if _guild.id == response.data:
                         guild = _guild
