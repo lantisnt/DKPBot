@@ -376,8 +376,9 @@ class BaseResponse:
     _isBuilt = False
     _rounding = 1
 
-    def __init__(self, title):
+    def __init__(self, title, timezone):
         self._embed = RawEmbed()
+        self._timezone = timezone
 
         if title:
             self._title = str(title)
@@ -441,8 +442,8 @@ class SinglePlayerProfile(BaseResponse):
 @for_all_methods(trace, trace_func_only)
 class MultipleResponse(BaseResponse): 
 
-    def __init__(self, title, field_limit, entry_limit, response_limit, multiple_columns, enable_icons, value_suffix, alternative_display_mode):
-        super().__init__(title)
+    def __init__(self, title, field_limit, entry_limit, response_limit, multiple_columns, enable_icons, value_suffix, alternative_display_mode, timezone):
+        super().__init__(title, timezone)
 
         self._value_format_string = "{0:8.1f}"
 

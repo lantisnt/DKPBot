@@ -285,7 +285,7 @@ async def discord_attachment_check(bot: dkp_bot.DKPBot, message: discord.Message
                 attachment_bytes = await attachment.read()
                 info = {
                     'comment': discord.utils.escape_markdown(message.clean_content)[:75],
-                    'date': message.created_at.astimezone(pytz.timezone("Europe/Paris")).strftime("%b %d %a %H:%M"),
+                    'date': message.created_at.replace(tzinfo=pytz.timezone('UTC')).astimezone(bot.get_timezone()).strftime("%b %d %a %H:%M"),
                     'author': normalize_author(author)
                 }
                 BotLogger().get().info('Building database for server [%s (%d)]', message.guild.name, message.guild.id)

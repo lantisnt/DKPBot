@@ -1,7 +1,7 @@
 from dkp_bot import DKPBot
 from essentialdkp_bot import EssentialDKPBot
 from display_templates import SinglePlayerProfile
-from bot_logger import trace, trace_func_only, for_all_methods
+from bot_logger import trace, trace_func_only, for_all_methods, BotLogger
 
 @for_all_methods(trace, trace_func_only)
 class CommunityDKPBot(EssentialDKPBot):
@@ -14,7 +14,7 @@ class CommunityDKPBot(EssentialDKPBot):
     def _configure(self):
         super()._configure()
         # Data outputs
-        self._single_player_profile_builder = SinglePlayerProfile("Community DKP Profile")
+        self._single_player_profile_builder = SinglePlayerProfile("Community DKP Profile", self._timezone)
 
 
     def __get_configured_teams(self, server_list):
