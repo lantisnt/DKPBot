@@ -2,6 +2,7 @@ import re
 import json
 import collections
 from enum import Enum
+import pytz
 
 from savedvariables_parser import SavedVariablesParser
 from bot_config import BotConfig
@@ -237,6 +238,7 @@ class DKPBot:
         self.__reminder_command_count = self.REMINDER_FREQUENCY
         self.__init_db_structure()
         self.statistics = Statistics()
+        self._timezone = pytz.timezone("Europe/Paris")
 
     def _configure(self):
         self.__input_file_name = self.__config.guild_info.filename
@@ -253,6 +255,7 @@ class DKPBot:
         self.__direct_message_response = bool(self.__config.guild_info.direct_message_response)
         self.__block_response_modifier = bool(self.__config.guild_info.block_response_modifier)
         self.__smart_roles = bool(self.__config.guild_info.smart_roles)
+        self._timezone = pytz.timezone(self.__config.guild_info.timezone)
 
     def _reconfigure(self):
         self.__config.store()
@@ -315,6 +318,9 @@ class DKPBot:
             return ("<@&{0}>".format(self.__announcement_mention_role), BasicAnnouncement(announcement).get())
         else:
             return BasicAnnouncement(announcement).get()
+
+    def get_timezone(self):
+        return self._timezone
 
     # Config
     def _get_config(self):
@@ -431,6 +437,11 @@ class DKPBot:
         self._reconfigure()
 
         return in_limit
+
+    # Timezone
+    def _update_timezone(self, timezone):
+        self.__config.guild_info.timezone = str(timezone)
+        self._reconfigure()
 
     ### Command handling and parsing ###
 
@@ -1097,8 +1108,6 @@ class DKPBot:
         if callback and callable(callback):
             return callback(params, num_params, request_info)
         else:
-            # string += "`filename` - change filename of lua file expected by bot including the .lua extension - **case sensitive** - up to 20 characters\n"
-            # string += "current: `{0}`\n\n".format(self.__config.guild_info.filename)
             embed = RawEmbed()
             embed.build(None, "Available configurations", "All commands and values are case insensitive.", None, 16553987, None)
             # bot-type
@@ -1107,6 +1116,11 @@ class DKPBot:
             string += preformatted_block("Current:   {0}\n".format(self.__config.guild_info.bot_type.lower()))
             string += preformatted_block("Supported: essential monolith community cepgp")
             embed.add_field("bot-type", string, False)
+            # timezone
+            string = "Configure bot timezone. Supports most **cannonical** timezones. For reference check [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)."
+            string += preformatted_block("Usage:     {0}config timezone CanonicalTimezone".format(self.__prefix))
+            string += preformatted_block("Current:   {0}\n".format(self._timezone))
+            embed.add_field("timezone", string, False)
             # server-side
             string = "Set ingame server and side data required by some addons\n"
             string += preformatted_block("Usage:     {0}config server-side ServerName Side\nExample:   {0}config server-side Dragon's Call Alliance\n".format(self.__prefix))
@@ -1462,3 +1476,20 @@ class DKPBot:
             return type(self).__generic_response(success, "block-response-modifier", params[1])
         else:
             return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
+
+    def config_call_timezone(self, params, num_params, request_info): #pylint: disable=unused-argument
+        if num_params == 3:
+            params[1] = params[1] + "/" + params[2]
+            num_params = 2
+
+        if num_params == 2:
+            success = False
+            try:
+                self._update_timezone(pytz.timezone(params[1]))
+                success = True
+            except pytz.exceptions.UnknownTimeZoneError:
+                pass
+            return type(self).__generic_response(success, "timezone", params[1])
+        else:
+            return Response(ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get())
+

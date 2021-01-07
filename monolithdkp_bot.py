@@ -9,7 +9,7 @@ class MonolithDKPBot(EssentialDKPBot):
     def _configure(self):
         super()._configure()
         # Data outputs
-        self._single_player_profile_builder = SinglePlayerProfile("Monolith DKP Profile")
+        self._single_player_profile_builder = SinglePlayerProfile("Monolith DKP Profile", self._timezone)
 
     def config_call_server_side(self, params, num_params, request_info):
         return Response(ResponseStatus.SUCCESS, BasicInfo("Server and Side setting are not used in `monolith` mode.").get())

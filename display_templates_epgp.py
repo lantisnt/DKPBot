@@ -35,12 +35,12 @@ def get_loot_format_string(ep_width, value_suffix):
     return "`{{0:{0}.0f}}{1}`".format(ep_width, " GP" if value_suffix else "")
 
 @trace
-def generate_epgp_history_entry(history_entry, format_string, enable_icons, alternative_display_mode):
+def generate_epgp_history_entry(history_entry, format_string, enable_icons, alternative_display_mode, timezone):
     if history_entry and isinstance(history_entry, PlayerEPGPHistory):
         row = ""
         if enable_icons:
             row += get_plus_minus_icon_string(history_entry.ep() >= 0 or history_entry.gp() <= 0) + " "
-        row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp()))
+        row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp(), timezone))
         row += format_string.format(history_entry.ep(), history_entry.gp())
         row += " - {0} _by {1}_".format(history_entry.reason(),
                                       history_entry.officer())
@@ -49,10 +49,10 @@ def generate_epgp_history_entry(history_entry, format_string, enable_icons, alte
     return "- No data available -"
 
 @trace
-def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_display_mode, player):
+def generate_loot_entry(loot_entry, format_string, enable_icons, alternative_display_mode, player, timezone):
     if loot_entry and isinstance(loot_entry, PlayerLootEPGP):
         row = ""
-        row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
+        row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp(), timezone))
         row += format_string.format(loot_entry.dkp())
         row += " - [{0}](https://classic.wowhead.com/item={1})".format(loot_entry.item_name(),
                                       loot_entry.item_id())
@@ -86,12 +86,12 @@ class SinglePlayerProfile(BaseResponse):
                               generate_epgp_history_entry(history, get_history_format_string(
                                 0 if history is None else history.ep_width(),
                                 0 if history is None else history.gp_width(),
-                                True), False, False), False)
+                                True), False, False, self._timezone), False)
         loot = info.get_latest_loot_entry()
         self._embed.add_field("Last received loot:",
                               generate_loot_entry(loot, get_loot_format_string(
                                 0 if loot is None else loot.width(), 
-                                True), False, False, False), False)
+                                True), False, False, False, self._timezone), False)
         return self
 
     def get(self):
@@ -196,7 +196,7 @@ class HistoryMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerEPGPHistory):
-            return generate_epgp_history_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode)
+            return generate_epgp_history_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode, self._timezone)
 
         return ""
 
@@ -231,7 +231,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerLootEPGP):
-            return generate_loot_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode, False)
+            return generate_loot_entry(data, self._value_format_string, self._enable_icons, self._alternative_display_mode, False, self._timezone)
 
         return ""
 
