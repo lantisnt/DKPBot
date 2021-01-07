@@ -19,6 +19,7 @@ class ResponseStatus(Enum):
     ERROR = 1
     DELEGATE = 2
     RELOAD = 3
+    SHUTDOWN = 90
     IGNORE = 99
 
 

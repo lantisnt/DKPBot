@@ -81,7 +81,7 @@ def get_config(filepath):
 
 # Cleanup
 def cleanup():
-    for bot in bots:
+    for bot in bots.values():
         if isinstance(bot, dkp_bot.DKPBot):
             bot.shutdown()
     BotLogger().get().info("Bye Bye!")
@@ -380,6 +380,8 @@ async def handle_bot_response(message: discord.Message, request_info: dict, resp
         ## DELEGATE
         elif (response.status == dkp_bot.ResponseStatus.DELEGATE):
             return super_user.handle(response.data[0], response.data[1], request_info)
+#        elif (response.status == dkp_bot.ResponseStatus.SHUTDOWN):
+#            cleanup()
 
     return None
 
