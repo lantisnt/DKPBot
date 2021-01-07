@@ -618,7 +618,7 @@ class EssentialDKPBot(DKPBot):
 
         return Response(ResponseStatus.SUCCESS, data)
 
-    def call_itemvalue(self, param, request_info):  # pylint: disable=unused-argument
+    def call_value(self, param, request_info):  # pylint: disable=unused-argument
         if not self.is_premium():
             return Response(ResponseStatus.SUCCESS, SupporterOnlyResponse().get())
 

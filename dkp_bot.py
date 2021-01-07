@@ -882,6 +882,7 @@ class DKPBot:
         embed.add_field(":scroll: History", commands, True)
         commands  = "```{0}raidloot```".format(self.__prefix)
         commands += "```{0}item```".format(self.__prefix)
+        commands += "```{0}value```".format(self.__prefix)
         commands += preformatted_block('Supporter only commands', 'css')
         embed.add_field(":mag: Items", commands, True)
         if is_privileged:
@@ -1143,8 +1144,10 @@ class DKPBot:
     def help_call_items(self, is_privileged): # pylint: disable=unused-argument
         help_string  = 'Display latest 30 loot entries from raids.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "raidloot", '') + preformatted_block('Supporter only command', 'css'))
-        help_string += 'Find loot entries matching `name`. Supports partial match.\n{0}\n'.format(
+        help_string += 'Find loot matching `name`. Supports partial match.\n{0}\n'.format(
             preformatted_block(self.get_prefix() + "item name", '') + preformatted_block('Supporter only command', 'css'))
+        help_string += 'Get value (min, max, average, total) data for loot matching `name`. Supports partial match.\n{0}\n'.format(
+            preformatted_block(self.get_prefix() + "value name", '') + preformatted_block('Supporter only command', 'css'))
 
         return Response(ResponseStatus.SUCCESS, self._help_handler_internal("Items", help_string))
 
