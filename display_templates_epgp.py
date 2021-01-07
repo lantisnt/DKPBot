@@ -72,7 +72,7 @@ class SinglePlayerProfile(BaseResponse):
         self._embed.build(
             author_name=self._title,
             title=info.player().name(),
-            description="",
+            description="Alt of **{0}**".format(info.main().name()) if info.is_alt() else "Main",
             thumbnail_url=get_thumbnail(),
             color=get_epgp_color(),
             footer_text=self._get_footer()
@@ -92,6 +92,10 @@ class SinglePlayerProfile(BaseResponse):
                               generate_loot_entry(loot, get_loot_format_string(
                                 0 if loot is None else loot.width(), 
                                 True), False, False, False), False)
+        alts = info.alts()
+        if isinstance(alts, list) and len(alts) > 0:
+            self._embed.add_field("Alts:", "\n".join(["`{0}`".format(a.name()) for a in alts]), False)
+
         return self
 
     def get(self):
