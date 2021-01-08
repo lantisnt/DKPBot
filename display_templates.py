@@ -481,27 +481,36 @@ class MultipleResponse(BaseResponse):
 
         self.__response_list = []
 
-        if field_limit and isinstance(field_limit, int):
+        if isinstance(field_limit, int):
             if field_limit > 16:
                 self.__field_limit = 16
             elif field_limit < 1:
                 self.__field_limit = 1
             else:
                 self.__field_limit = field_limit
+        else:
+            BotLogger().get().warning("Missing or invalid type of [field_limit]")
+            self.__field_limit = 1
 
-        if entry_limit and isinstance(entry_limit, int):
+        if isinstance(entry_limit, int):
             if entry_limit > 32:
                 self.__entry_limit = 32
             elif entry_limit < 1:
                 self.__entry_limit = 1
             else:
                 self.__entry_limit = entry_limit
+        else:
+            BotLogger().get().warning("Missing or invalid type of [entry_limit]")
+            self.__entry_limit = 1
 
-        if response_limit and isinstance(response_limit, int):
+        if isinstance(response_limit, int):
             if response_limit < 1:
                 self.__response_limit = 0
             else:
                 self.__response_limit = response_limit
+        else:
+            BotLogger().get().warning("Missing or invalid type of [response_limit]")
+            self.__response_limit = 1
 
         self.__multiple_columns = bool(multiple_columns)
 
