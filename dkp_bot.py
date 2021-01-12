@@ -40,21 +40,11 @@ class Response:
 @for_all_methods(trace, trace_func_only)
 class DKPBot:
     DEFAULT_TEAM = "0"
-    REMINDER_FREQUENCY = 25
+    REMINDER_FREQUENCY = 20 # Then every 20
     __POSITIVE_ENTRY_THRESHOLD = 2
 
     __param_parser = re.compile("\s*([\d\w\-!?+.:<>|*^'\"]*)[\s[\/\,]*")  # pylint: disable=anomalous-backslash-in-string
-    _classes = [
-        'warrior',
-        'druid',
-        'priest',
-        'paladin',
-        'shaman',
-        'rogue',
-        'hunter',
-        'mage',
-        'warlock'
-    ]
+    _classes = [ 'warrior', 'druid', 'priest', 'paladin', 'shaman', 'rogue', 'hunter', 'mage', 'warlock' ]
     _aliases = [
         'tank', 'tanks', 'healer', 'healers', 'dps', 'caster', 'casters', 'physical', 'range', 'ranged', 'melee'
     ]
@@ -70,7 +60,7 @@ class DKPBot:
         self.__announcement_mention_role = 0
         self._channel_team_map = collections.OrderedDict()
         self.__db_loaded = False
-        self.__reminder_command_count = self.REMINDER_FREQUENCY
+        self.__reminder_command_count = 5 # First reminder after 5 messages
         self.__init_db_structure()
         self.statistics = Statistics()
         self._timezone = pytz.timezone("Europe/Paris")
@@ -383,7 +373,8 @@ class DKPBot:
             response = callback(param, request_info)  # pylint: disable=not-callable
             self.statistics.data[sanitized_command] = (1000 * (timestamp_now() - start)) # miliseconds
             response.direct_message = direct_message
-            response = self.__reminder_injection(response)
+            if sanitized_command not in ['config', 'display']: # inject reminder except on config/display calls
+                response = self.__reminder_injection(response)
             return response
         elif sanitized_command.startswith('su_'):
             return Response(ResponseStatus.DELEGATE, (sanitized_command, param))
