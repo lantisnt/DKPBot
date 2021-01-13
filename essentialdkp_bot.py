@@ -301,12 +301,13 @@ class EssentialDKPBot(DKPBot):
 
         if not item_info or not isinstance(item_info, list) or len(item_info) != 1:
             BotLogger().get().warning(
-                "ERROR in loot entry: %s %s %s %s %s",
+                "ERROR in loot entry: %s %s %s %s %s : [%s]",
                 player.player(),
                 date,
                 cost,
                 loot,
-                item_info
+                item_info,
+                entry
             )
             return None
 
