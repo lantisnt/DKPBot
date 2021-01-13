@@ -5,13 +5,14 @@ from player_db_models import PlayerInfo
 
 
 class RaidUser:
-    def __init__(self, userid=0, username="", spec="", role="", entrydate="", raidid=0, id=0):
+    def __init__(
+        self, userid=0, username="", spec="", role="", entrydate="", raidid=0, id=0
+    ):
         self.id = userid
         self.__username = username
 
         self.names = split_names(self.__username.strip("*"))
-        self.names = list(filter(lambda x: len(
-            x) >= 2 and len(x) <= 12, self.names))
+        self.names = list(filter(lambda x: len(x) >= 2 and len(x) <= 12, self.names))
 
     def name(self):
         if len(self.names) > 0:
@@ -39,7 +40,6 @@ class RaidUser:
 
 
 class RaidHelper:
-
     class __RaidHelper:  # pylint: disable=invalid-name, attribute-defined-outside-init
 
         RAIDS_ENDPOINT = "/api/raids/"
@@ -55,8 +55,10 @@ class RaidHelper:
         def execute_query(self, target):
             try:
                 self.__num_calls = self.__num_calls + 1
-                response = requests.get(self.__endpoint + self.RAIDS_ENDPOINT + target, headers={
-                                        "Authorization": "Bearer " + self.__token})
+                response = requests.get(
+                    self.__endpoint + self.RAIDS_ENDPOINT + target,
+                    headers={"Authorization": "Bearer " + self.__token},
+                )
                 if response.status_code == 200:
                     return response.json()
                 else:

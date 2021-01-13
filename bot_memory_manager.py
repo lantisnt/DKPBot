@@ -1,8 +1,9 @@
 import collections
 from bot_logger import BotLogger
 
+
 class Manager(object):
-    class __Manager: #pylint: disable=invalid-name, attribute-defined-outside-init
+    class __Manager:  # pylint: disable=invalid-name, attribute-defined-outside-init
         def initialize(self, limit, bots, save_fn, restore_fn):
             # In Memory bots limit
             self.__limit = int(limit)

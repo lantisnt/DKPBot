@@ -3,9 +3,12 @@ from player_role import Role
 from bot_logger import trace, trace_func_only, for_all_methods
 from bot_utility import get_width
 
+
 @for_all_methods(trace, trace_func_only)
 class PlayerInfo:
-    def __init__(self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role, spec):
+    def __init__(
+        self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role, spec
+    ):
         self._player = str(player).lower().capitalize()
         self._dkp = float(dkp)
         self._lifetime_gained = abs(float(lifetime_gained))
@@ -68,8 +71,14 @@ class PlayerInfo:
 
     def __str__(self):
         return "{0} ({1} - {6}) {2} ({3}/{4}) DKP | Active: {5}".format(
-            self._player, self._ingame_class, self._dkp, self._lifetime_gained, self._lifetime_spent,
-            self._active, self._smart_role)
+            self._player,
+            self._ingame_class,
+            self._dkp,
+            self._lifetime_gained,
+            self._lifetime_spent,
+            self._active,
+            self._smart_role,
+        )
 
     __repr__ = __str__
 
@@ -108,13 +117,13 @@ class PlayerInfo:
             other = other.dkp()
         return self.dkp() >= other
 
+
 @for_all_methods(trace, trace_func_only)
 class PlayerInfoEPGP(PlayerInfo):
-
     def __init__(self, player, ep, gp):
-         super().__init__(player, ep, gp, 0 if gp == 0 else ep/gp, None, None, None)
-         self._alts = []
-         self._main = None
+        super().__init__(player, ep, gp, 0 if gp == 0 else ep / gp, None, None, None)
+        self._alts = []
+        self._main = None
 
     def ep(self):
         return self.dkp()
@@ -158,23 +167,38 @@ class PlayerInfoEPGP(PlayerInfo):
         if isinstance(alt_list, list):
             for alt in alt_list:
                 if not isinstance(alt, PlayerInfoEPGP):
-                    self._alts.append(PlayerInfoEPGP(alt, 0, 0)) # Create dummy object for not existing alts
+                    self._alts.append(
+                        PlayerInfoEPGP(alt, 0, 0)
+                    )  # Create dummy object for not existing alts
                 else:
                     self._alts.append(alt)
 
-
     def __str__(self):
         if self._main is None:
-            return "{0}: {1} EP {2} GP {3} PR Alts: {4}".format(self._name, self._dkp, self._lifetime_gained, self._lifetime_spent, str(self._alts))
+            return "{0}: {1} EP {2} GP {3} PR Alts: {4}".format(
+                self._name,
+                self._dkp,
+                self._lifetime_gained,
+                self._lifetime_spent,
+                str(self._alts),
+            )
         else:
-            return "{0}: {1} EP {2} GP {3} PR Alt of {4}".format(self._name, self._dkp, self._lifetime_gained, self._lifetime_spent, self._main.name())
+            return "{0}: {1} EP {2} GP {3} PR Alt of {4}".format(
+                self._name,
+                self._dkp,
+                self._lifetime_gained,
+                self._lifetime_spent,
+                self._main.name(),
+            )
+
 
 @for_all_methods(trace, trace_func_only)
 class PlayerLoot:
-
     def __init__(self, player, item_id, item_name, dkp, timestamp):
-        if not isinstance(player, (PlayerInfo, PlayerInfoEPGP)): #Workaround as we expect player to be connected to the Player
-           player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
+        if not isinstance(
+            player, (PlayerInfo, PlayerInfoEPGP)
+        ):  # Workaround as we expect player to be connected to the Player
+            player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
         self._player = player
         self._item_id = int(item_id)
         self._item_name = str(item_name)
@@ -201,28 +225,40 @@ class PlayerLoot:
 
     def __str__(self):
         return "{0}: {1} {2}({3}) for {4} DKP".format(
-            self._timestamp, self._player.name(), self._item_name, self._item_id, self._dkp)
+            self._timestamp,
+            self._player.name(),
+            self._item_name,
+            self._item_id,
+            self._dkp,
+        )
 
     __repr__ = __str__
 
     def __hash__(self):
         return hash(str(self))
 
+
 @for_all_methods(trace, trace_func_only)
 class PlayerLootEPGP(PlayerLoot):
-    
     def gp(self):
         return self.dkp()
 
     def __str__(self):
         return "{0}: {1} {2}({3}) for {4} GP".format(
-            self._timestamp, self._player.name(), self._item_name, self._item_id, self._dkp)
+            self._timestamp,
+            self._player.name(),
+            self._item_name,
+            self._item_id,
+            self._dkp,
+        )
 
-#@for_all_methods(trace, trace_func_only)
+
+# @for_all_methods(trace, trace_func_only)
 class PlayerDKPHistory:
-
     def __init__(self, player, dkp, timestamp, reason, index):
-        if not isinstance(player, (PlayerInfo, PlayerInfoEPGP)): #Workaround as we expect player to be connected to the Player DKP
+        if not isinstance(
+            player, (PlayerInfo, PlayerInfoEPGP)
+        ):  # Workaround as we expect player to be connected to the Player DKP
             player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
         self._player = player
         self._dkp = float(dkp)
@@ -251,7 +287,8 @@ class PlayerDKPHistory:
 
     def __str__(self):
         return "{0}: {1} {2} DKP ({3}) by {4}".format(
-            self._timestamp, self._player.name(), self._dkp, self._reason, self._officer)
+            self._timestamp, self._player.name(), self._dkp, self._reason, self._officer
+        )
 
     __repr__ = __str__
 
@@ -290,6 +327,7 @@ class PlayerDKPHistory:
     #         other = other.dkp()
     #     return self.dkp() >= other
 
+
 @for_all_methods(trace, trace_func_only)
 class PlayerEPGPHistory(PlayerDKPHistory):
     def __init__(self, player, ep, gp, is_percentage, timestamp, reason, officer):
@@ -314,4 +352,10 @@ class PlayerEPGPHistory(PlayerDKPHistory):
 
     def __str__(self):
         return "{0}: {1} {2} EP {3} GP ({4}) by {5}".format(
-            self._timestamp, self._player.name(), self._dkp, self._gp, self._reason, self._officer)
+            self._timestamp,
+            self._player.name(),
+            self._dkp,
+            self._gp,
+            self._reason,
+            self._officer,
+        )
