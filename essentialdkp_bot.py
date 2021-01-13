@@ -306,7 +306,7 @@ class EssentialDKPBot(DKPBot):
                 date,
                 cost,
                 loot,
-                item_info,
+                item_info
             )
             return None
 
