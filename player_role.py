@@ -1,14 +1,23 @@
 import re
 
+
 class Role:
-    __tank    = False
-    __dps     = True # So we won't filter at least in single group?
-    __healer  = False
-    __ranged  = False
-    __caster  = False
+    __tank = False
+    __dps = True  # So we won't filter at least in single group?
+    __healer = False
+    __ranged = False
+    __caster = False
     __spec_id = 0
 
-    def __init__(self, tank: bool, dps: bool, healer: bool, ranged: bool, caster: bool, spec_id: int):
+    def __init__(
+        self,
+        tank: bool,
+        dps: bool,
+        healer: bool,
+        ranged: bool,
+        caster: bool,
+        spec_id: int,
+    ):
         if isinstance(tank, bool):
             self.__tank = tank
         if isinstance(dps, bool):
@@ -55,10 +64,10 @@ class Role:
                 return "Tank"
 
         if self.__caster:
-                string += "Caster "
+            string += "Caster "
         else:
             string += "Physical "
-        
+
         if self.__ranged:
             string += "ranged "
         else:
@@ -69,22 +78,24 @@ class Role:
 
 
 __role_re = re.compile("^.*\((\d+)\/(\d+)\/(\d+)\).*")
+
+
 def __get(class_name: str, talents: list):
     class_name = class_name.lower()
 
-    if class_name in ['mage', 'warlock']:
+    if class_name in ["mage", "warlock"]:
         return Role(False, True, False, True, True, 0)
 
-    if class_name == 'rogue':
+    if class_name == "rogue":
         return Role(False, True, False, False, False, 0)
 
-    if class_name  == 'hunter':
+    if class_name == "hunter":
         return Role(False, True, False, True, False, 0)
 
     # Warrior
     # (a/b/1+) - tank
     # everything else: dps
-    if class_name == 'warrior':
+    if class_name == "warrior":
         if talents[2] > 0:
             return Role(True, False, False, False, False, 2)
         else:
@@ -95,11 +106,11 @@ def __get(class_name: str, talents: list):
     # (a/21+/b) - dps and tank
     # (a/b/21+) - healer
     # everything else: dps and tank
-    if class_name == 'druid':
+    if class_name == "druid":
         if talents[0] >= 30:
             return Role(False, True, False, True, True, 0)
         elif talents[1] >= 21:
-            if talents[2] > talents[0]: # HotW / NS
+            if talents[2] > talents[0]:  # HotW / NS
                 return Role(False, True, True, False, False, 2)
             else:
                 return Role(True, True, False, False, False, 1)
@@ -110,7 +121,7 @@ def __get(class_name: str, talents: list):
     # Priest
     # (a/b/30+) - dps
     # everything else healer
-    if class_name == 'priest':
+    if class_name == "priest":
         if talents[2] >= 30:
             return Role(False, True, False, True, True, 2)
         else:
@@ -121,7 +132,7 @@ def __get(class_name: str, talents: list):
     # (a/b/25+) - ret (dps)
     # (a/31+/b) - prot (tank)
     # everything else: holy
-    if class_name == 'paladin':
+    if class_name == "paladin":
         if talents[0] >= 20:
             return Role(False, False, True, True, True, 0)
         elif talents[2] >= 25:
@@ -136,7 +147,7 @@ def __get(class_name: str, talents: list):
     # (a/31+/b) - dps melee
     # (a/b/30+) - heal
     # everything else: dps and heal
-    if class_name == 'shaman':
+    if class_name == "shaman":
         if talents[0] >= 31:
             return Role(False, True, False, True, True, 0)
         elif talents[1] >= 31:
@@ -166,6 +177,7 @@ def get(class_name: str, role_string: str):
                 talents[t] = talent_value
     return __get(class_name, talents)
 
+
 class RoleFilter:
     __dps = False
     __tank = False
@@ -177,14 +189,14 @@ class RoleFilter:
     __aliases = []
 
     def __init__(self, aliases):
-        self.__dps = 'dps' in aliases
-        self.__tank = 'tank' in aliases or 'tanks' in  aliases
-        self.__healer = 'healer' in aliases or 'healers' in aliases
-        self.__caster = 'caster' in aliases or 'casters' in aliases
-        self.__physical = 'physical' in aliases
-        self.__ranged = 'range' in aliases or 'ranged' in aliases
-        self.__melee =  'melee' in aliases
-        self.__aliases  = aliases
+        self.__dps = "dps" in aliases
+        self.__tank = "tank" in aliases or "tanks" in aliases
+        self.__healer = "healer" in aliases or "healers" in aliases
+        self.__caster = "caster" in aliases or "casters" in aliases
+        self.__physical = "physical" in aliases
+        self.__ranged = "range" in aliases or "ranged" in aliases
+        self.__melee = "melee" in aliases
+        self.__aliases = aliases
 
     def get_aliases(self):
         return self.__aliases
@@ -208,18 +220,48 @@ class RoleFilter:
             healer_list = list(filter(lambda p: p.role().is_healer(), player_info_list))
 
         if self.__ranged:
-            ranged_list = list(filter(lambda p: p.role().is_dps() and p.role().is_ranged(), player_info_list))
+            ranged_list = list(
+                filter(
+                    lambda p: p.role().is_dps() and p.role().is_ranged(),
+                    player_info_list,
+                )
+            )
 
         if self.__melee:
-            melee_list = list(filter(lambda p: (p.role().is_dps() or p.role().is_tank()) and not p.role().is_ranged(), player_info_list))
+            melee_list = list(
+                filter(
+                    lambda p: (p.role().is_dps() or p.role().is_tank())
+                    and not p.role().is_ranged(),
+                    player_info_list,
+                )
+            )
 
         if self.__caster:
-            caster_list = list(filter(lambda p: p.role().is_dps() and p.role().is_caster(), player_info_list))
+            caster_list = list(
+                filter(
+                    lambda p: p.role().is_dps() and p.role().is_caster(),
+                    player_info_list,
+                )
+            )
 
         if self.__physical:
-            physical_list = list(filter(lambda p: (p.role().is_dps() or p.role().is_tank()) and not p.role().is_caster(), player_info_list))
+            physical_list = list(
+                filter(
+                    lambda p: (p.role().is_dps() or p.role().is_tank())
+                    and not p.role().is_caster(),
+                    player_info_list,
+                )
+            )
 
-        return dps_list + tank_list + healer_list + ranged_list + melee_list + caster_list + physical_list
+        return (
+            dps_list
+            + tank_list
+            + healer_list
+            + ranged_list
+            + melee_list
+            + caster_list
+            + physical_list
+        )
 
     def __call__(self, player_info_list):
         return self.filter(player_info_list)

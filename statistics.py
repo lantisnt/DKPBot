@@ -1,5 +1,6 @@
 from bot_utility import public_to_dict
 
+
 class Statistics:
 
     INDENT_OFFSET = 2
@@ -35,7 +36,7 @@ class Statistics:
 
                 tmp_sum = (self.avg * self.num) + value
 
-                self.num =  self.num + 1
+                self.num = self.num + 1
 
                 self.avg = tmp_sum / self.num
 
@@ -58,14 +59,16 @@ class Statistics:
                     tmp.num = self.num + other.num
 
                     total = (self.avg * self.num) + (other.avg * other.num)
-                    tmp.avg = total/tmp.num
+                    tmp.avg = total / tmp.num
 
                     return tmp
                 else:
                     raise TypeError
 
             def __str__(self):
-                return "Min: {0} Max: {1} Avg: {2} Num: {3}".format(self.min, self.max, self.avg, self.num)
+                return "Min: {0} Max: {1} Avg: {2} Num: {3}".format(
+                    self.min, self.max, self.avg, self.num
+                )
 
             __repr__ = __str__
 
@@ -108,7 +111,7 @@ class Statistics:
 
     @staticmethod
     def format_list(data, indent=0):
-        string  = ""
+        string = ""
         for entry in data:
             string += Statistics.format(entry, indent + Statistics.INDENT_OFFSET) + ", "
         string.strip(",")
@@ -121,16 +124,18 @@ class Statistics:
         for key, value in data.items():
             string += "\n" + (indent * " ") + "{0}: ".format(key)
             if isinstance(value, (dict, tuple)):
-                value_indent = (indent + Statistics.INDENT_OFFSET)
+                value_indent = indent + Statistics.INDENT_OFFSET
             else:
                 value_indent = max_key_len - len(key) + 2
-            string += (value_indent * " ") + Statistics.format(value, value_indent + Statistics.INDENT_OFFSET)
+            string += (value_indent * " ") + Statistics.format(
+                value, value_indent + Statistics.INDENT_OFFSET
+            )
         return string
 
     @staticmethod
     def format_tuple(data, indent=0):
         string = ""
-        string += (indent * " ")
+        string += indent * " "
         string += "( " + Statistics.format(data[0], indent + Statistics.INDENT_OFFSET)
         string += Statistics.format(data[1], indent + Statistics.INDENT_OFFSET) + " )"
         return string
@@ -147,7 +152,7 @@ class Statistics:
             return str(data)
 
     def print_database(self):
-        string  = ""
+        string = ""
         string += "```asciidoc\n=== Database ===```"
         string += "```c\n"
         string += Statistics.format(self.database, -2)
@@ -155,7 +160,7 @@ class Statistics:
         return string
 
     def print_data(self):
-        string  = ""
+        string = ""
         string += "```asciidoc\n=== Data ===```"
         if len(self.data) > 0:
             string += "```c\n"
@@ -168,7 +173,7 @@ class Statistics:
         return string
 
     def __str__(self):
-        string  = ""
+        string = ""
         string += self.print_database()
         string += self.print_data()
         return string

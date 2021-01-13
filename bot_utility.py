@@ -3,8 +3,10 @@ import pytz
 
 SPLIT_DELIMITERS = ["#", "/", "\\", "|", ":", ";", "-", "(", ")", "[", "]"]
 
+
 def get_width(value):
     return len(str(int(value)))
+
 
 def public_to_dict(obj, filter_callable=False):
     dictionary = {}
@@ -19,6 +21,7 @@ def public_to_dict(obj, filter_callable=False):
             dictionary[attr] = getattr(obj, attr)
     return dictionary
 
+
 def to_dict(obj):
     dictionary = {}
     ppp = dir(obj)
@@ -26,21 +29,27 @@ def to_dict(obj):
         dictionary[attr] = getattr(obj, attr)
     return dictionary
 
-def get_date_from_timestamp(timestamp, tzone=pytz.timezone("Europe/Paris"), fmt = "%b %d %a %H:%M"):
+
+def get_date_from_timestamp(
+    timestamp, tzone=pytz.timezone("Europe/Paris"), fmt="%b %d %a %H:%M"
+):
     return datetime.fromtimestamp(timestamp, tz=tzone).strftime(fmt)
 
-def timestamp_now(round_output = False):
+
+def timestamp_now(round_output=False):
     now = datetime.now(tz=timezone.utc).timestamp()
     if round_output:
         return int(now)
     else:
         return now
 
+
 def sanitize_name(name: str):
     out_name = name
     for delimiter in SPLIT_DELIMITERS:
         out_name = out_name.replace(delimiter, "")
     return out_name
+
 
 def split_names(name: str):
     names_list = []
@@ -54,6 +63,7 @@ def split_names(name: str):
         names_list.append(sanitize_name(name).strip().lower())
 
     return names_list
+
 
 def get_all_names(name_list: list):
     full_name_list = []

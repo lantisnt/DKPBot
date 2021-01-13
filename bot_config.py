@@ -338,6 +338,8 @@ class BotConfig():
                     self.__config.add_section(section)
                 self.__config.set(section, str(option), str(value))
 
+    def __reload
+
     def store(self):
         with open(self.__filepath, "w", encoding='utf-8') as file:
             self.__store()
