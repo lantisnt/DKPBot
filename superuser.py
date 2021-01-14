@@ -173,23 +173,32 @@ class Superuser:
 
     def su_reload(self, param):
         params = param.split(" ")
-        response_list = []
         if len(params) > 0:
+            bot_id = None
             for server_id in params:
-                bot_id = None
                 try:
                     bot_id = int(server_id)
-                except TypeError:
-                    response_list.append(
-                        BasicCritical(
-                            "Invalid server id: `{0}`".format(server_id)
-                        ).get()
-                    )
+                    break
+                except (TypeError, ValueError):
+                    continue
 
-                if (bot_id is not None) and (bot_id in self.__bots):
+            if bot_id is None:
+                return Response(
+                    ResponseStatus.SUCCESS,
+                    BasicCritical(
+                        "No server found in parameters: `{0}`".format(params)
+                    ).get()
+                )
+            else:
+                if bot_id in self.__bots:
+                    if "config" in params:
+                        self.__bots[bot_id].reload_config()
                     return Response(ResponseStatus.RELOAD, bot_id)
-
-            return Response(ResponseStatus.SUCCESS, response_list)
+                else:
+                    return Response(
+                        ResponseStatus.SUCCESS,
+                        BasicCritical("Server is not supported by the bot.").get(),
+                    )
         else:
             return Response(
                 ResponseStatus.SUCCESS, BasicCritical("Server id not specified.").get()

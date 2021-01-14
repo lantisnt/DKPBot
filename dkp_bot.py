@@ -129,6 +129,10 @@ class DKPBot:
         self.disable()
         self.__config.store()
 
+    def reload_config(self):
+        BotLogger().get().info("Reloading config from file for [%d]", self.__guild_id)
+        self.__config.load()
+
     def enable(self):
         self.__enabled = True
 
@@ -361,7 +365,7 @@ class DKPBot:
             try:
                 param_int = int(param)
                 int_list.append(param_int)
-            except ValueError:
+            except (TypeError, ValueError):
                 continue
         return int_list
 
