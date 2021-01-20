@@ -497,14 +497,12 @@ class DKPBot:
     def _get_dkp(self, player, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            BotLogger().get().warning("Unknown team %s", team)
             return None
         return team_data["dkp"].get(player.lower())
 
     def _get_team_dkp(self, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            BotLogger().get().warning("Unknown team %s", team)
             return None
         team_dkp_data = []
         for entry in team_data["dkp"].values():
@@ -514,7 +512,6 @@ class DKPBot:
     def _search_dkp(self, player, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            BotLogger().get().warning("Unknown team %s", team)
             return None
         players = team_data["dkp"].keys()
         players = [p for p in players if p.lower().startswith(player)]
@@ -523,21 +520,18 @@ class DKPBot:
     def _get_player_loot(self, player, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            BotLogger().get().warning("Unknown team %s", team)
             return None
         return team_data["player_loot"].get(player.lower())
 
     def _get_loot(self, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            BotLogger().get().warning("Unknown team %s", team)
             return None
         return team_data["loot"]
 
     def _get_history(self, player, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            BotLogger().get().warning("Unknown team %s", team)
             return None
         return team_data["history"].get(player.lower())
 
@@ -631,7 +625,6 @@ class DKPBot:
 
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            BotLogger().get().warning("Unknown team %s", team)
             return list()
 
         loot_pattern = re.compile(keyword.strip(), flags=re.IGNORECASE)
@@ -662,7 +655,6 @@ class DKPBot:
 
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            BotLogger().get().warning("Unknown team %s", team)
             return None
 
         player = player.lower()
