@@ -3,16 +3,12 @@ from player_role import Role
 from bot_logger import trace, trace_func_only, for_all_methods
 from bot_utility import get_width
 
-
 @for_all_methods(trace, trace_func_only)
-class PlayerInfo:
+class PlayerInfoLC:
     def __init__(
-        self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role, spec
+        self, player, ingame_class, role, spec
     ):
         self._player = str(player).lower().capitalize()
-        self._dkp = float(dkp)
-        self._lifetime_gained = abs(float(lifetime_gained))
-        self._lifetime_spent = abs(float(lifetime_spent))
         self._ingame_class = str(ingame_class).lower().capitalize()
         if ingame_class is None or spec is None:
             self._smart_role = Role(True, True, True, True, True, 0)
@@ -20,22 +16,12 @@ class PlayerInfo:
             self._smart_role = player_role.get(ingame_class, spec)
         self._active = True
         self._latest_loot_entry = None
-        self._latest_history_entry = None
 
     def name(self):
         return self._player
 
     def player(self):
         return self
-
-    def dkp(self):
-        return self._dkp
-
-    def lifetime_gained(self):
-        return self._lifetime_gained
-
-    def lifetime_spent(self):
-        return self._lifetime_spent
 
     def ingame_class(self):
         return self._ingame_class
@@ -51,6 +37,49 @@ class PlayerInfo:
 
     def is_active(self):
         return self._active
+
+    def set_latest_loot_entry(self, loot_entry):
+        if loot_entry and isinstance(loot_entry, list):
+            self._latest_loot_entry = loot_entry
+
+    def get_latest_loot_entry(self):
+        return self._latest_loot_entry
+
+    def __str__(self):
+        return "{0} {1} {3} | Active: {2}".format(
+            self._player,
+            self._ingame_class,
+            self._active,
+            self._smart_role,
+        )
+
+    __repr__ = __str__
+
+    def __hash__(self):
+        return hash(str(self))
+
+@for_all_methods(trace, trace_func_only)
+class PlayerInfo(PlayerInfoLC):
+    def __init__(
+        self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role, spec
+    ):
+        super().__init__(player, ingame_class, role,spec)
+        self._dkp = float(dkp)
+        self._lifetime_gained = abs(float(lifetime_gained))
+        self._lifetime_spent = abs(float(lifetime_spent))
+        self._latest_history_entry = None
+
+    def dkp(self):
+        return self._dkp
+
+    def lifetime_gained(self):
+        return self._lifetime_gained
+
+    def lifetime_spent(self):
+        return self._lifetime_spent
+
+    def ingame_class(self):
+        return self._ingame_class
 
     def set_latest_loot_entry(self, loot_entry):
         if loot_entry and isinstance(loot_entry, PlayerLoot):
