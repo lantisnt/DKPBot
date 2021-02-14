@@ -274,14 +274,14 @@ class CEPGPBot(EssentialDKPBot):
     def _set_player_latest_positive_history_and_activity(
         self, inactive_time=200000000000
     ):
-        for dkp in self._get_team_dkp(self.DEFAULT_TEAM):
-            if dkp.dkp() <= 0:
-                dkp.set_inactive()
-            history = self._get_history(dkp.name(), self.DEFAULT_TEAM)
+        for entry in self._get_team_dkp(self.DEFAULT_TEAM):
+            if entry.ep() <= 0:
+                entry.set_inactive()
+            history = self._get_history(entry.name(), self.DEFAULT_TEAM)
             if history and isinstance(history, list):
                 for history_entry in history:
-                    if history_entry.dkp() > 0:
-                        dkp.set_latest_history_entry(history_entry)
+                    if history_entry.ep() > 0:
+                        entry.set_latest_history_entry(history_entry)
                         break
 
     # Called 1st
@@ -379,7 +379,7 @@ class CEPGPBot(EssentialDKPBot):
         self._sort_player_loot()
         self._set_player_latest_loot()
         self._sort_history()
-        # self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
+        self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
 
         return True
 
