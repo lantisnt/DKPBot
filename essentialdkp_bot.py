@@ -1,7 +1,7 @@
 import re
 
 from dkp_bot import DKPBot, Response, ResponseStatus
-from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
+from player_db_models import PlayerInfo, PlayerInfoBasic, PlayerDKPHistory, PlayerLoot
 from player_role import RoleFilter
 from display_templates import (
     SupporterOnlyResponse,
@@ -33,9 +33,10 @@ class EssentialDKPBot(DKPBot):
         "^[^:]*:*(\d*).*\[([^\]]*)", re.I
     )  # pylint: disable=anomalous-backslash-in-string
 
-    def __init__(self, guild_id, config):
+    def __init__(self, guild_id, config, isRetail=False):
         super().__init__(guild_id, config)
         self._configure()
+        self.isRetail = bool(isRetail)
 
     ###
 
@@ -122,7 +123,7 @@ class EssentialDKPBot(DKPBot):
         self._update_views_info()
 
     def _build_dkp_output_single(self, info):
-        if not info or not isinstance(info, PlayerInfo):
+        if not info or not isinstance(info, PlayerInfoBasic):
             return None
 
         return self._single_player_profile_builder.build(
@@ -169,6 +170,9 @@ class EssentialDKPBot(DKPBot):
             return None
 
         return self._multiple_item_value_output_builder.build(output_result_list).get()
+
+    def _get_addon_thumbnail(self):
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822883951822635028/essentiallogo.png"
 
     ### Database - Variables parsing ###
 
@@ -522,20 +526,20 @@ class EssentialDKPBot(DKPBot):
 
     ### Commands ###
 
-    def __get_dkp_target_results(self, team, targets, original, smart_roles_decoder):
+    def _get_dkp_target_results(self, team, targets, original, smart_roles_decoder):
 
         output_result_list_single = []
         output_result_list_group = []
         if smart_roles_decoder is not None:  # smart roles
             for target in targets:  # iterate to get all single player mixins
                 info = self._get_dkp(target, team)
-                if isinstance(info, PlayerInfo):
+                if isinstance(info, PlayerInfoBasic):
                     output_result_list_single.append(info)
             for target in self._classes:  # Get data for all classess supported
                 group_info = self._get_group_dkp(target, team)
                 if group_info and len(group_info) > 0:
                     for info in group_info:
-                        if info and isinstance(info, PlayerInfo):
+                        if info and isinstance(info, PlayerInfoBasic):
                             output_result_list_group.append(info)
             # Filter out the required data
             output_result_list_group = smart_roles_decoder(output_result_list_group)
@@ -547,7 +551,7 @@ class EssentialDKPBot(DKPBot):
                     group_info = self._get_group_dkp(target, team)
                     if group_info and len(group_info) > 0:
                         for info in group_info:
-                            if info and isinstance(info, PlayerInfo):
+                            if info and isinstance(info, PlayerInfoBasic):
                                 output_result_list_class.append(info)
             output_result_list_group = (
                 output_result_list_group + output_result_list_class
@@ -556,14 +560,14 @@ class EssentialDKPBot(DKPBot):
             for target in targets:
                 # Single player
                 info = self._get_dkp(target, team)
-                if isinstance(info, PlayerInfo):
+                if isinstance(info, PlayerInfoBasic):
                     output_result_list_single.append(info)
                 else:
                     # Group request
                     group_info = self._get_group_dkp(target, team)
                     if group_info and len(group_info) > 0:
                         for info in group_info:
-                            if info and isinstance(info, PlayerInfo):
+                            if info and isinstance(info, PlayerInfoBasic):
                                 output_result_list_group.append(info)
 
         # Filter non unique
@@ -597,26 +601,29 @@ class EssentialDKPBot(DKPBot):
                         signed.append(raid_user.main())
         raid_helper_filter = len(signed) > 0
 
-        if len(targets) == len(int_list) and raid_helper_filter:
-            output_result_list = self.__get_dkp_target_results(
-                team, signed, original, smart_roles_filter
-            )
-        elif len(targets) > 0:
-            output_result_list = self.__get_dkp_target_results(
-                team, targets, original, smart_roles_filter
-            )
-            if self.is_premium() and raid_helper_filter:
-                output_result_list = list(
-                    filter(lambda t: (t.name().lower() in signed), output_result_list)
-                )
+        if "all" in original:
+            output_result_list = self._get_team_dkp(self.DEFAULT_TEAM)
         else:
-            if not self.is_premium():
-                return Response(ResponseStatus.SUCCESS, SupporterOnlyResponse().get())
-            else:
-                return Response(
-                    ResponseStatus.SUCCESS,
-                    BasicError("Unable to find data for {0}.".format(param)).get(),
+            if len(targets) == len(int_list) and raid_helper_filter:
+                output_result_list = self._get_dkp_target_results(
+                    team, signed, original, smart_roles_filter
                 )
+            elif len(targets) > 0:
+                output_result_list = self._get_dkp_target_results(
+                    team, targets, original, smart_roles_filter
+                )
+                if self.is_premium() and raid_helper_filter:
+                    output_result_list = list(
+                        filter(lambda t: (t.name().lower() in signed), output_result_list)
+                    )
+            else:
+                if not self.is_premium():
+                    return Response(ResponseStatus.SUCCESS, SupporterOnlyResponse().get())
+                else:
+                    return Response(
+                        ResponseStatus.SUCCESS,
+                        BasicError("Unable to find data for {0}.".format(param)).get(),
+                    )
 
         BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) == 1:

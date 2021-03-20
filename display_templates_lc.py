@@ -1,4 +1,4 @@
-from player_db_models import PlayerInfoLC, PlayerLootLC
+from player_db_models import PlayerInfoBasic, PlayerLootBasic
 from bot_utility import get_date_from_timestamp
 from bot_config import DisplayConfig
 from bot_logger import trace, trace_func_only, for_all_methods
@@ -8,6 +8,7 @@ from display_templates import (
     get_bot_color,
     get_class_color,
     get_config_color,
+    get_class_icon_string,
     preformatted_block,
     get_thumbnail
 )
@@ -18,33 +19,34 @@ import build_info
 def get_lc_color():
     return 10204605
 
-
 @trace
-def get_thumbnail():
+def get_rclc_thumbnail():
     return "https://cdn.discordapp.com/attachments/765089790295015425/810464766808031242/rclootcouncil.png"
 
 @trace
-def generate_loot_entries(loot_entry_list, enable_icons, alternative_display_mode, player, timezone)
-    if loot_entry_list and isinstnace(loot_entry_list, list):
+def generate_loot_entries(loot_entry_list, enable_icons, alternative_display_mode, player, timezone):
+    if loot_entry_list and isinstance(loot_entry_list, list):
         data = ""
-        for i, loot_entry in loot_entry_list:
+        for loot_entry in loot_entry_list:
             data += generate_loot_entry(loot_entry, enable_icons, alternative_display_mode, player, timezone)
-     return "- No data available -"
+        return data
+    return "- No data available -"
 
 
 
 @trace
 def generate_loot_entry(loot_entry, enable_icons, alternative_display_mode, player, timezone):
-    if loot_entry and isinstance(loot_entry, PlayerLootLC):
+    if loot_entry and isinstance(loot_entry, PlayerLootBasic):
         row = ""
-        row += "`{0:16}` - ".format(
-            get_date_from_timestamp(loot_entry.timestamp(), timezone)
-        )
-        row += " - [{0}](https://classic.wowhead.com/item={1})".format(
+        row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
+        row += "[{0}](https://classic.wowhead.com/item={1})".format(
             loot_entry.item_name(), loot_entry.item_id()
         )
         if player:
-            row += " - "
+            if enable_icons:
+                row += " - {0}".format(
+                    get_class_icon_string(loot_entry.player().ingame_class(), None)
+                )
             row += "{0}".format(loot_entry.player().name())
         row += "\n"
         return row
@@ -81,10 +83,40 @@ class SinglePlayerProfile(BaseResponse):
         return self._embed.get()
 
 @for_all_methods(trace, trace_func_only)
+class RCLCMultipleResponse(MultipleResponse):
+    def _prepare(self, data_list):
+        pass
+
+    def _display_filter(self, data):
+        if data and isinstance(data, PlayerInfoBasic):
+            return data.is_active()
+
+        return False
+
+    def _build_row(self, data, requester):
+        if data and isinstance(data, PlayerInfoBasic):
+            if self._enable_icons:
+                row = "{0}".format(
+                    get_class_icon_string(data.ingame_class(), None)
+                )
+            else:
+                row = ""
+
+            row += " "
+            if requester == data.player().name():
+                row += "**{0}**".format(data.player().name())
+            else:
+                row += "{0}".format(data.player().name())
+            row += "\n"
+            return row
+
+        return ""
+
+@for_all_methods(trace, trace_func_only)
 class PlayerLootMultipleResponse(MultipleResponse):
     def _prepare(self, data_list):
         for data in data_list:
-            if data and isinstance(data, PlayerLootLC):
+            if data and isinstance(data, PlayerLootBasic):
                 self.__user = data.player().name()
                 break
 
@@ -98,7 +130,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
             self._embed.edit_field(field_id, name="\u200b")
 
     def _build_row(self, data, requester):
-        if data and isinstance(data, PlayerLootLC):
+        if data and isinstance(data, PlayerLootBasic):
             return generate_loot_entry(data, self._enable_icons, self._alternative_display_mode, False, self._timezone)
 
         return ""
@@ -107,7 +139,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
 class LootMultipleResponse(MultipleResponse):
     def _prepare(self, data_list):
         for data in data_list:
-            if data and isinstance(data, PlayerLootLC):
+            if data and isinstance(data, PlayerLootBasic):
                 self.__user = data.player().name()
                 break
 
@@ -118,7 +150,7 @@ class LootMultipleResponse(MultipleResponse):
         self._embed.edit_field(field_id, name="\u200b")
 
     def _build_row(self, data, requester):
-        if data and isinstance(data, PlayerLootLC):
+        if data and isinstance(data, PlayerLootBasic):
             return generate_loot_entry(data, self._enable_icons, self._alternative_display_mode, True, self._timezone)
 
         return ""

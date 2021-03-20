@@ -19,6 +19,9 @@ class CommunityDKPBot(EssentialDKPBot):
             "Community DKP Profile", self._timezone
         )
 
+    def _get_addon_thumbnail(self):
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822883949000654858/communitylogo.png"
+
     def __get_configured_teams(self, server_list):
         server_side = self._get_config().guild_info.server_side
         guild_name = self._get_config().guild_info.guild_name

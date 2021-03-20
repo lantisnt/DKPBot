@@ -2,7 +2,7 @@ import re
 from enum import Enum
 from dkp_bot import DKPBot, Response, ResponseStatus
 from essentialdkp_bot import EssentialDKPBot
-from player_db_models import PlayerInfoLC, PlayerLootLC
+from player_db_models import PlayerInfoBasic, PlayerLootBasic
 from raidhelper import RaidHelper
 from display_templates import (
     preformatted_block,
@@ -20,6 +20,7 @@ from display_templates import (
 )
 from display_templates_lc import (
     SinglePlayerProfile,
+    RCLCMultipleResponse,
     PlayerLootMultipleResponse,
     LootMultipleResponse,
 )
@@ -39,6 +40,18 @@ class RCLCBot(EssentialDKPBot):
         # # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile(
             "RCLootCouncil Profile", self._timezone
+        )
+
+        self._multiple_dkp_output_builder = RCLCMultipleResponse(
+            "RCLootCouncil profiles",
+            config.dkp.fields,
+            config.dkp.entries_per_field,
+            config.dkp.separate_messages,
+            config.dkp.multiple_columns,
+            config.dkp.enable_icons,
+            config.dkp.value_suffix,
+            config.dkp.alternative_display_mode,
+            self._timezone,
         )
 
         self._multiple_player_loot_output_builder = PlayerLootMultipleResponse(
@@ -79,14 +92,14 @@ class RCLCBot(EssentialDKPBot):
 
         self._update_views_info()
 
-    def _transform_factionrealm(factionrealm):
+    def _get_addon_thumbnail(self):
+        return "https://cdn.discordapp.com/attachments/765089790295015425/810464766808031242/rclootcouncil.png"
+
+    def _transform_factionrealm(self, factionrealm):
         data = factionrealm.lower().split("-")
         return data[1].strip() + "-" + data[0].strip()
 
-    def _get_loot_info(lootString):
-
-
-    def _parse_entry(playername, entry):
+    def _parse_entry(self, playername, entry):
         name = playername.split("-")[0]
         if len(name) == 0:
             return None
@@ -103,16 +116,22 @@ class RCLCBot(EssentialDKPBot):
         if timestamp_id is None:
             return None
         
+        try:
+            timestamp = timestamp_id.split("-")[0]
+        except ValueError:
+            return None
+        
         player = self._get_dkp(name, self.DEFAULT_TEAM)
         if player is None:
-            info = PlayerInfoLC(name, ingame_class)
+            info = PlayerInfoBasic(name, ingame_class, None, None)
             self._set_dkp(info.name(), info, self.DEFAULT_TEAM)
+            self._set_group_dkp(info.ingame_class(), info, self.DEFAULT_TEAM)
         
-        found = self.epgp_value_regex.findall(lootWon)
+        found = self.rclc_loot_regex.findall(lootWon)
         if found and isinstance(found, list) and len(found) == 1 and len(found[0]) == 2:
-            loot = PlayerLootLC(player, item_id, item_name, timestamp):
+            loot = PlayerLootBasic(player, found[0][0], found[0][1], timestamp)
             self._add_loot(loot, self.DEFAULT_TEAM)
-            self._add_player_loot(player_loot.player().name(), loot, self.DEFAULT_TEAM)
+            self._add_player_loot(loot.player().name(), loot, self.DEFAULT_TEAM)
 
     ### Database - Variables parsing ###
 
@@ -136,24 +155,25 @@ class RCLCBot(EssentialDKPBot):
 
         factionrealm = addon_data.get("factionrealm")
         if (
-            traffic_list is None
+            factionrealm is None
             or not factionrealm
             or not isinstance(factionrealm, dict)
         ):
             return False
 
         server_side = self._get_config().guild_info.server_side
-
-        for factionrealm_name, player in factionrealm:
-            transformed = self._transform_factionrealm
+        for factionrealm_name, player in factionrealm.items():
+            transformed = self._transform_factionrealm(factionrealm_name)
             if server_side == transformed:
                 for playername, entries in player.items():
-                    for i, entry in entries,items():
+                    if not isinstance(entries, list):
+                        continue
+                    for entry in entries:
                         self._parse_entry(playername, entry)
 
                 self._sort_loot()
                 self._sort_player_loot()
-                self._set_player_latest_loot()
+                self._set_player_latest_loot(5)
                 return True
 
         return False
@@ -178,28 +198,16 @@ class RCLCBot(EssentialDKPBot):
 
     ### RCLC commands ###
 
-    def call_info(self, param, request_info):  # pylint: disable=unused-argument
-        embed = RawEmbed()
-        embed.build(None, "Info", None, None, get_bot_color(), None)
-        info_string = "WoW DKP Bot allows querying DKP/EPGP/RCLootCouncil standings, history and loot data directly through the discord."
-        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP`, `CommunityDKP` and `CEPGP` to a discord channel.\n"
-        embed.add_field("\u200b", info_string, False)
-        info_string = "Due to many possible usages of the addons and discord limitations bot data may exceed maxium accetable size. To mitigate this issue extensive `display` configuration is available to tweak response sizes."
-        embed.add_field("\u200b", info_string, False)
-        info_string = "For bot to work properly you will need to upload saved variable file of your addon every time you want to update the data."
-        embed.add_field("\u200b", info_string, False)
-        info_string = "If you want to become supporter and get access to `supporter only commands` or you need help configuring the bot checkout the {0}.\n\n".format(
-            SUPPORT_SERVER
-        )
-        embed.add_field("\u200b", info_string, False)
-        # Pseudo-Footer: Discord link
-        embed.add_field("\u200b", get_bot_links(), False)
-        return Response(ResponseStatus.SUCCESS, embed.get())
+    def config_call_server_side(self, params, num_params, request_info):
+        return DKPBot.config_call_server_side(self, params, num_params, request_info)
 
     def call_dkp(self, param, request_info):
         return Response(ResponseStatus.IGNORE)
 
-    def call_epgp(self, param, request_info):  # pylint: disable=unused-argument
+    def call_history(self, param, request_info):
+        return Response(ResponseStatus.IGNORE)
+
+    def call_rc(self, param, request_info):  # pylint: disable=unused-argument
         if not self.is_database_loaded():
             return Response(
                 ResponseStatus.SUCCESS,
@@ -224,25 +232,32 @@ class RCLCBot(EssentialDKPBot):
         if "all" in original:
             output_result_list = self._get_team_dkp(self.DEFAULT_TEAM)
         else:
-            if raid_helper_filter:
-                targets = signed
-
-            if self.is_premium() or raid_helper_filter:
-                for target in targets:
-                    info = self._get_dkp(target, self.DEFAULT_TEAM)
-                    if isinstance(info, PlayerInfoEPGP):
-                        output_result_list.append(info)
+            if len(targets) == len(int_list) and raid_helper_filter:
+                output_result_list = self._get_dkp_target_results(
+                    self.DEFAULT_TEAM, signed, original, None
+                )
+            elif len(targets) > 0:
+                output_result_list = self._get_dkp_target_results(
+                    self.DEFAULT_TEAM, targets, original, None
+                )
+                if self.is_premium() and raid_helper_filter:
+                    output_result_list = list(
+                        filter(lambda t: (t.name().lower() in signed), output_result_list)
+                    )
             else:
-                for target in targets:
-                    info = self._get_dkp(target, self.DEFAULT_TEAM)
-                    if isinstance(info, PlayerInfoEPGP):
-                        output_result_list.append(info)
-                        break
+                if not self.is_premium():
+                    return Response(ResponseStatus.SUCCESS, SupporterOnlyResponse().get())
+                else:
+                    return Response(
+                        ResponseStatus.SUCCESS,
+                        BasicError("Unable to find data for {0}.".format(param)).get(),
+                    )
 
+        BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) == 1:
             data = self._build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
-            output_result_list.sort(key=lambda info: info.ep(), reverse=True)
+            output_result_list.sort(key=lambda info: info.name(), reverse=True)
             data = self._build_dkp_output_multiple(
                 output_result_list, request_info["author"]["name"]
             )
@@ -257,13 +272,13 @@ class RCLCBot(EssentialDKPBot):
 
     def _help_internal(self, is_privileged):
         return Response(
-            ResponseStatus.SUCCESS, self._build_help_internal(is_privileged, "rc")
+            ResponseStatus.SUCCESS, self._build_help_internal(is_privileged, "rc", ["history", "value"])
         )
 
     def help_call_dkp(self, is_privileged):  # pylint: disable=unused-argument
         return self._help_internal(is_privileged)
 
-    def help_call_rclc(self, is_privileged):  # pylint: disable=unused-argument
+    def help_call_rc(self, is_privileged):  # pylint: disable=unused-argument
         help_string = "Display summary information for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n".format(
             preformatted_block(self.get_prefix() + "rc", "")
         )
@@ -272,7 +287,54 @@ class RCLCBot(EssentialDKPBot):
                 preformatted_block(self.get_prefix() + "rc player", "")
             )
         )
+        help_string += "Display list of all active players.\nPlayers are assumed active if they received any item within last 180 days.\n{0}\n".format(
+            preformatted_block(self.get_prefix() + "rc all", "")
+        )
+        help_string += "Display list of as many players, classes or aliases mixed together as you wish.\n{0}".format(
+            preformatted_block(
+                "{0}rc class/alias/player\nExamples:\n{0}rc hunter tanks joe\n{0}rc rogue druid\n{0}rc joe andy".format(
+                    self.get_prefix()
+                ),
+                "",
+            )
+        )
+        help_string += preformatted_block(
+            "Supported aliases:\n* tanks\n* healers\n* dps\n* casters\n* physical\n* ranged\n* melee",
+            "",
+        )
+        help_string += preformatted_block("Supporter only command", "css") + "\n"
+        help_string += "Display summary information for players signed to `raidid` event in `Raid-Helper` bot. Supporters can also use it in conjunction with above mixnis.\n{0}\n".format(
+            preformatted_block(self.get_prefix() + "rc raidid", "")
+        )
 
         return Response(
-            ResponseStatus.SUCCESS, self._help_handler_internal("RCLootCouncil", help_string)
+            ResponseStatus.SUCCESS, self._help_handler_internal("RC", help_string)
+        )
+
+    def help_call_history(self, is_privileged):  # pylint: disable=unused-argument
+        help_string = "Display latest loot for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n".format(
+            preformatted_block(self.get_prefix() + "loot", "")
+        )
+        help_string += "Display latest loot  for specified `player`.\n{0}\n".format(
+            preformatted_block(self.get_prefix() + "loot player", "")
+        )
+
+        return Response(
+            ResponseStatus.SUCCESS, self._help_handler_internal("History", help_string)
+        )
+
+    def help_call_items(self, is_privileged):  # pylint: disable=unused-argument
+        help_string = "Display latest 30 loot entries from raids.\n{0}\n".format(
+            preformatted_block(self.get_prefix() + "raidloot", "")
+            + preformatted_block("Supporter only command", "css")
+        )
+        help_string += (
+            "Find loot matching `name`. Supports partial match.\n{0}\n".format(
+                preformatted_block(self.get_prefix() + "item name", "")
+                + preformatted_block("Supporter only command", "css")
+            )
+        )
+
+        return Response(
+            ResponseStatus.SUCCESS, self._help_handler_internal("Items", help_string)
         )

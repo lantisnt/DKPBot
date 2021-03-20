@@ -4,7 +4,7 @@ from bot_logger import trace, trace_func_only, for_all_methods
 from bot_utility import get_width
 
 @for_all_methods(trace, trace_func_only)
-class PlayerInfoLC:
+class PlayerInfoBasic:
     def __init__(
         self, player, ingame_class, role, spec
     ):
@@ -59,7 +59,7 @@ class PlayerInfoLC:
         return hash(str(self))
 
 @for_all_methods(trace, trace_func_only)
-class PlayerInfo(PlayerInfoLC):
+class PlayerInfo(PlayerInfoBasic):
     def __init__(
         self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role, spec
     ):
@@ -222,10 +222,10 @@ class PlayerInfoEPGP(PlayerInfo):
 
 
 @for_all_methods(trace, trace_func_only)
-class PlayerLootLC:
+class PlayerLootBasic:
     def __init__(self, player, item_id, item_name, timestamp):
         if not isinstance(
-            player, (PlayerInfo, PlayerInfoEPGP, PlayerInfoLC)
+            player, (PlayerInfo, PlayerInfoEPGP, PlayerInfoBasic)
         ):  # Workaround as we expect player to be connected to the Player
             player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
         self._player = player
@@ -262,7 +262,7 @@ class PlayerLootLC:
         return hash(str(self))
 
 @for_all_methods(trace, trace_func_only)
-class PlayerLoot(PlayerLootLC):
+class PlayerLoot(PlayerLootBasic):
     def __init__(self, player, item_id, item_name, dkp, timestamp):
         super().__init__(player, item_id, item_name, timestamp)
 

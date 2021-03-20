@@ -58,6 +58,16 @@ def get_class_color(class_name=None):
     if class_name == "shaman":
         return 159965
 
+    ## retail
+    if class_name == "deathknight":
+        return 12852794
+
+    if class_name == "demonhunter":
+        return 10694857
+
+    if class_name == "monk":
+        return 65432
+    
     return 10204605
 
 
@@ -70,7 +80,7 @@ def get_plus_minus_icon_string(plus=True):
 
 
 @trace
-def get_class_icon_string(class_name=None, spec_id=0):
+def get_class_icon_string(class_name=None, spec_id=None):
     if not class_name:
         return ""
 
@@ -126,6 +136,17 @@ def get_class_icon_string(class_name=None, spec_id=0):
         else:
             return "<:shaman:760863673887227955>"
 
+    ## retail
+    if class_name == "deathknight":
+        return "<:dk:822845779748192286>"
+
+    if class_name == "demonhunter":
+        return "<:dh:822845779697467443>"
+
+    if class_name == "monk":
+        return "<:monk:822846155309580318>"
+
+
     return ""
 
 
@@ -162,6 +183,16 @@ def get_thumbnail(class_name):
 
     if class_name == "shaman":
         return "https://cdn.discordapp.com/attachments/765089790295015425/765241408449019914/shaman.png"
+
+    ## retail
+    if class_name == "deathknight":
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822834605719552060/deathknight.jpg"
+
+    if class_name == "demonhunter":
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822834607887876136/demonhunter.jpg"
+
+    if class_name == "monk":
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822834131943030824/monk.jpg"
 
     return None
 

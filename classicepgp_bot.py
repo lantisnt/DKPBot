@@ -122,6 +122,9 @@ class CEPGPBot(EssentialDKPBot):
 
         self._update_views_info()
 
+    def _get_addon_thumbnail(self):
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822884836887887913/cepgplogo.png"
+
     ### Database - Variables parsing ###
 
     def _generate_player_info(self, player_entry, data):
@@ -412,8 +415,8 @@ class CEPGPBot(EssentialDKPBot):
     def call_info(self, param, request_info):  # pylint: disable=unused-argument
         embed = RawEmbed()
         embed.build(None, "Info", None, None, get_bot_color(), None)
-        info_string = "WoW DKP Bot allows querying DKP/EPGP standings, history and loot data directly through the discord."
-        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP`, `CommunityDKP` and `CEPGP` to a discord channel.\n"
+        info_string = "WoW DKP Bot allows querying DKP/EPGP/RCLootCouncil standings, history and loot data directly through the discord."
+        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP`, `CommunityDKP`, `CEPGP` and `RCLootCouncil` to a discord channel.\n"
         embed.add_field("\u200b", info_string, False)
         info_string = "Due to many possible usages of the addons and discord limitations bot data may exceed maxium accetable size. To mitigate this issue extensive `display` configuration is available to tweak response sizes."
         embed.add_field("\u200b", info_string, False)

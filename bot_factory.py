@@ -21,6 +21,8 @@ def new(guild_id, config: bot_config.BotConfig):
     elif config.guild_info.bot_type == "cepgp":
         return classicepgp_bot.CEPGPBot(guild_id, config)
     elif config.guild_info.bot_type == "rclc":
-        return rclc_bot.RCLCLBot(guild_id, config)
+        return rclc_bot.RCLCBot(guild_id, config)
+    elif config.guild_info.bot_type == "rclc-retail":
+        return rclc_bot.RCLCBot(guild_id, config, True)
     else:
         return None

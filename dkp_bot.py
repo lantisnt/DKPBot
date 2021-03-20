@@ -67,6 +67,9 @@ class DKPBot:
         "hunter",
         "mage",
         "warlock",
+        "deathknight",
+        "demonhunter",
+        "monk"
     ]
     _aliases = [
         "tank",
@@ -232,25 +235,25 @@ class DKPBot:
     # Class related
     def _decode_alias_internal(self, group):
         if group == "tank" or group == "tanks":
-            return ["warrior", "druid"]
+            return ["warrior", "druid", "demonhunter", "deathknight", "monk"]
 
         elif group == "healer" or group == "healers":
-            return ["priest", "paladin", "druid", "shaman"]
+            return ["priest", "paladin", "druid", "shaman", "monk"]
 
         elif group == "dps":
-            return ["warrior", "rogue", "hunter", "mage", "warlock", "shaman", "druid"]
+            return ["warrior", "rogue", "hunter", "mage", "warlock", "shaman", "druid", "demonhunter", "deathknight", "monk"]
 
         elif group == "caster" or group == "casters":
             return ["mage", "warlock", "shaman"]
 
         elif group == "physical":
-            return ["warrior", "rogue", "hunter", "druid"]
+            return ["warrior", "rogue", "hunter", "druid", "demonhunter", "deathknight", "monk"]
 
         elif group == "range" or group == "ranged":
             return ["mage", "warlock", "shaman"]
 
         elif group == "melee":
-            return ["warrior", "rogue", "druid"]
+            return ["warrior", "rogue", "druid", "demonhunter", "deathknight", "monk"]
 
         return []
 
@@ -765,6 +768,7 @@ class DKPBot:
 
             if not group in team_data.keys():
                 team_data[group] = []
+
             team_data[group].append(entry)
             if sort:
                 self._sort_group_dkp(group)
@@ -779,12 +783,15 @@ class DKPBot:
 
         return None
 
-    def _set_player_latest_loot(self):
+    def _set_player_latest_loot(self, count=0):
         for team, team_data in self.__db["global"].items():
             for dkp in team_data["dkp"].values():
                 loot = self._get_player_loot(dkp.name(), team)
                 if loot and isinstance(loot, list):
-                    dkp.set_latest_loot_entry(loot[0])
+                    if count <= 0:
+                        dkp.set_latest_loot_entry(loot[0])
+                    else:
+                        dkp.set_latest_loot_entry(loot[0:count])
 
     def _set_player_latest_history(self):
         for team, team_data in self.__db["global"].items():
@@ -1002,12 +1009,12 @@ class DKPBot:
 
         return string.rstrip(", ")
 
-    def _build_help_internal(self, is_privileged, standings):
+    def _build_help_internal(self, is_privileged, standings, exclude=[]):
         embed = RawEmbed()
         embed.build(
             None,
             "Help",
-            "WoW DKP Bot allows querying DKP/EPGP standings, history and loot data directly through the discord.\n"
+            "WoW DKP Bot allows querying DKP/EPGP/RCLootCouncil standings, history and loot data directly through the discord.\n"
             "All commands and values are case insensitive.\n\n"
             "You can preceed any command with double prefix `{0}{0}` instead of single one to get the response in DM.\n"
             "Request will be removed by the bot afterwards.\n\n"
@@ -1018,23 +1025,32 @@ class DKPBot:
             get_bot_color(),
             None,
         )
-        commands = "```{0}help```".format(self.__prefix)
+        commands = ""
+        commands += "```{0}help```".format(self.__prefix)
         commands += "```{0}info```".format(self.__prefix)
         embed.add_field(":information_source: General", commands, True)
         commands = "```{0}{1} #####```".format(self.__prefix, standings.lower())
         embed.add_field(
             ":crossed_swords: {0}".format(standings.upper()), commands, True
         )
-        commands = "```{0}history player```".format(self.__prefix)
-        commands += "```{0}loot player```".format(self.__prefix)
+        commands = ""
+        if not "history" in exclude:
+            commands += "```{0}history player```".format(self.__prefix)
+        if not "loot" in exclude:
+            commands += "```{0}loot player```".format(self.__prefix)
         embed.add_field(":scroll: History", commands, True)
-        commands = "```{0}raidloot```".format(self.__prefix)
-        commands += "```{0}item```".format(self.__prefix)
-        commands += "```{0}value```".format(self.__prefix)
+        commands = ""
+        if not "raidloot" in exclude:
+            commands += "```{0}raidloot```".format(self.__prefix)
+        if not "item" in exclude:
+            commands += "```{0}item```".format(self.__prefix)
+        if not "value" in exclude:
+            commands += "```{0}value```".format(self.__prefix)
         commands += preformatted_block("Supporter only commands", "css")
         embed.add_field(":mag: Items", commands, True)
         if is_privileged:
-            commands = "```{0}config```".format(self.__prefix)
+            commands = ""
+            commands += "```{0}config```".format(self.__prefix)
             commands += "```{0}display```".format(self.__prefix)
             embed.add_field(":a:  Administration", commands, False)
         embed.add_field("\u200b", get_bot_links(), False)
@@ -1074,8 +1090,8 @@ class DKPBot:
     def call_info(self, param, request_info):  # pylint: disable=unused-argument
         embed = RawEmbed()
         embed.build(None, "Info", None, None, get_bot_color(), None)
-        info_string = "WoW DKP Bot allows querying DKP/EPGP standings, history and loot data directly through the discord."
-        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP`, `CommunityDKP` and `CEPGP` to a discord channel.\n"
+        info_string = "WoW DKP Bot allows querying DKP/EPGP/RCLootCouncil standings, history and loot data directly through the discord."
+        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP`, `CommunityDKP`, `CEPGP` and `RCLootCouncil` to a discord channel.\n"
         embed.add_field("\u200b", info_string, False)
         info_string = "Due to many possible usages of the addons and discord limitations bot data may exceed maxium accetable size. To mitigate this issue extensive `display` configuration is available to tweak response sizes."
         embed.add_field("\u200b", info_string, False)
@@ -1124,7 +1140,7 @@ class DKPBot:
                 "Current:   {0}\n".format(self.__config.guild_info.bot_type.lower())
             )
             string += preformatted_block(
-                "Supported: essential monolith community cepgp"
+                "Supported: essential monolith community cepgp rclc rclc-retail"
             )
             embed.add_field("bot-type", string, False)
             # timezone
@@ -1459,7 +1475,7 @@ class DKPBot:
     ):  # pylint: disable=unused-argument
         if num_params == 2:
             value = params[1]
-            if value in ["community", "monolith", "essential", "cepgp", "rclc"]:
+            if value in ["community", "monolith", "essential", "cepgp", "rclc", "rclc-retail"]:
                 current = self.__config.guild_info.bot_type
                 if value == current:
                     return Response(
@@ -1473,7 +1489,7 @@ class DKPBot:
                 if new == value:
                     if value == "cepgp":
                         self.__config.guild_info.filename = "CEPGP.lua"
-                    elif value == "rclc":
+                    elif value in ["rclc", "rclc-retail"]:
                         self.__config.guild_info.filename = "RCLootCouncil.lua"
                     else:
                         self.__config.guild_info.filename = (

@@ -13,6 +13,9 @@ class MonolithDKPBot(EssentialDKPBot):
             "Monolith DKP Profile", self._timezone
         )
 
+    def _get_addon_thumbnail(self):
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822883954771230720/monolithlogo.png"
+
     def config_call_server_side(self, params, num_params, request_info):
         return Response(
             ResponseStatus.SUCCESS,
