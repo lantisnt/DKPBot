@@ -222,16 +222,15 @@ class PlayerInfoEPGP(PlayerInfo):
 
 
 @for_all_methods(trace, trace_func_only)
-class PlayerLoot:
-    def __init__(self, player, item_id, item_name, dkp, timestamp):
+class PlayerLootLC:
+    def __init__(self, player, item_id, item_name, timestamp):
         if not isinstance(
-            player, (PlayerInfo, PlayerInfoEPGP)
+            player, (PlayerInfo, PlayerInfoEPGP, PlayerInfoLC)
         ):  # Workaround as we expect player to be connected to the Player
             player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
         self._player = player
         self._item_id = int(item_id)
         self._item_name = str(item_name)
-        self._dkp = float(abs(dkp))
         self._timestamp = int(timestamp)
 
     def player(self):
@@ -243,14 +242,34 @@ class PlayerLoot:
     def item_name(self):
         return self._item_name
 
-    def dkp(self):
-        return self._dkp
-
     def timestamp(self):
         return self._timestamp
 
     def width(self):
         return get_width(self.dkp())
+
+    def __str__(self):
+        return "{0}: {1} {2}({3})".format(
+            self._timestamp,
+            self._player.name(),
+            self._item_name,
+            self._item_id
+        )
+
+    __repr__ = __str__
+
+    def __hash__(self):
+        return hash(str(self))
+
+@for_all_methods(trace, trace_func_only)
+class PlayerLoot(PlayerLootLC):
+    def __init__(self, player, item_id, item_name, dkp, timestamp):
+        super().__init__(player, item_id, item_name, timestamp)
+
+        self._dkp = float(abs(dkp))
+
+    def dkp(self):
+        return self._dkp
 
     def __str__(self):
         return "{0}: {1} {2}({3}) for {4} DKP".format(

@@ -1459,7 +1459,7 @@ class DKPBot:
     ):  # pylint: disable=unused-argument
         if num_params == 2:
             value = params[1]
-            if value in ["community", "monolith", "essential", "cepgp"]:
+            if value in ["community", "monolith", "essential", "cepgp", "rclc"]:
                 current = self.__config.guild_info.bot_type
                 if value == current:
                     return Response(
@@ -1473,6 +1473,8 @@ class DKPBot:
                 if new == value:
                     if value == "cepgp":
                         self.__config.guild_info.filename = "CEPGP.lua"
+                    elif value == "rclc":
+                        self.__config.guild_info.filename = "RCLootCouncil.lua"
                     else:
                         self.__config.guild_info.filename = (
                             value.capitalize() + "DKP.lua"

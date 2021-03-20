@@ -6,8 +6,10 @@ from display_templates import BaseResponse, MultipleResponse
 from display_templates import (
     get_bot_links,
     get_bot_color,
+    get_class_color,
     get_config_color,
     preformatted_block,
+    get_thumbnail
 )
 import build_info
 
@@ -20,6 +22,16 @@ def get_lc_color():
 @trace
 def get_thumbnail():
     return "https://cdn.discordapp.com/attachments/765089790295015425/810464766808031242/rclootcouncil.png"
+
+@trace
+def generate_loot_entries(loot_entry_list, enable_icons, alternative_display_mode, player, timezone)
+    if loot_entry_list and isinstnace(loot_entry_list, list):
+        data = ""
+        for i, loot_entry in loot_entry_list:
+            data += generate_loot_entry(loot_entry, enable_icons, alternative_display_mode, player, timezone)
+     return "- No data available -"
+
+
 
 @trace
 def generate_loot_entry(loot_entry, enable_icons, alternative_display_mode, player, timezone):
@@ -44,21 +56,22 @@ class SinglePlayerProfile(BaseResponse):
     def build(self, info, thumbnail=None):
         self._embed.clear()
 
+        if thumbnail:
+            thumbnail = get_thumbnail(thumbnail)
+
         self._embed.build(
             author_name=self._title,
             title=info.player().name(),
-            thumbnail_url=get_thumbnail(),
-            color=get_epgp_color(),
+            description=info.ingame_class(),
+            thumbnail_url=thumbnail,
+            color=get_class_color(info.ingame_class()),
             footer_text=self._get_footer(),
         )
 
-        self._embed.add_field("Effort Points:", "`{0:.0f} EP`".format(info.ep()), True)
-        self._embed.add_field("Gear Points:", "`{0:.0f} GP`".format(info.gp()), True)
-        self._embed.add_field("Priority:", "`{0:.2f} PR`".format(info.pr()), True)
         loot = info.get_latest_loot_entry()
         self._embed.add_field(
             "Last received loot:",
-            generate_loot_entry(loot, False, False, False, self._timezone), 
+            generate_loot_entries(loot, False, False, False, self._timezone), 
             False,
         )
 
