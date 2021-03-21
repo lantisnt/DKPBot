@@ -35,6 +35,7 @@ class GuildInfo:
         block_response_modifier,
         smart_roles,
         timezone,
+        version
     ):
         self.bot_type = bot_type
         self.file_upload_channel = file_upload_channel
@@ -50,6 +51,7 @@ class GuildInfo:
         self.block_response_modifier = bool(block_response_modifier)
         self.smart_roles = smart_roles
         self.timezone = timezone
+        self.version = version
 
 
 class DisplayConfig(object):
@@ -61,7 +63,7 @@ class DisplayConfig(object):
         multiple_columns,
         enable_icons,
         value_suffix,
-        alternative_display_mode,
+        alternative_display_mode
     ):
         self.__fields = fields
         self.__entries_per_field = entries_per_field
@@ -253,6 +255,7 @@ class BotConfig:
         False,
         True,
         "Europe/Paris",
+        "classic"
     )
     dkp = DisplayConfig(6, 16, 5, True, True, True, False)
     dkp_history = DisplayConfig(1, 10, 1, True, True, True, False)
@@ -284,6 +287,7 @@ class BotConfig:
             self.__config.getboolean(group, "block_response_modifier", fallback=False),
             self.__config.getboolean(group, "smart_roles", fallback=True),
             self.__config.get(group, "timezone", fallback="Europe/Paris"),
+            self.__config.get(group, "version", fallback="classic"),
         )
 
         group = "DKP Display"

@@ -45,7 +45,7 @@ class CEPGPBot(EssentialDKPBot):
         config = self._get_config()
         # # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile(
-            "CEPGP Profile", self._timezone
+            "CEPGP Profile", self._timezone, self._version
         )
 
         self._multiple_dkp_output_builder = EPGPMultipleResponse(
@@ -57,7 +57,7 @@ class CEPGPBot(EssentialDKPBot):
             config.dkp.enable_icons,
             config.dkp.value_suffix,
             config.dkp.alternative_display_mode,
-            self._timezone,
+            self._timezone, self._version
         )
 
         self._multiple_history_output_builder = HistoryMultipleResponse(
@@ -69,7 +69,7 @@ class CEPGPBot(EssentialDKPBot):
             config.dkp_history.enable_icons,
             config.dkp_history.value_suffix,
             config.dkp_history.alternative_display_mode,
-            self._timezone,
+            self._timezone, self._version
         )
 
         self._multiple_player_loot_output_builder = PlayerLootMultipleResponse(
@@ -81,7 +81,7 @@ class CEPGPBot(EssentialDKPBot):
             config.loot_history.enable_icons,
             config.loot_history.value_suffix,
             config.loot_history.alternative_display_mode,
-            self._timezone,
+            self._timezone, self._version
         )
 
         self._multiple_loot_output_builder = LootMultipleResponse(
@@ -93,7 +93,7 @@ class CEPGPBot(EssentialDKPBot):
             config.latest_loot.enable_icons,
             config.latest_loot.value_suffix,
             config.latest_loot.alternative_display_mode,
-            self._timezone,
+            self._timezone, self._version
         )
 
         self._multiple_item_search_output_builder = LootMultipleResponse(
@@ -105,7 +105,7 @@ class CEPGPBot(EssentialDKPBot):
             config.item_search.enable_icons,
             config.item_search.value_suffix,
             config.item_search.alternative_display_mode,
-            self._timezone,
+            self._timezone, self._version
         )
 
         self._multiple_item_value_output_builder = ItemValueMultipleResponse(
@@ -117,10 +117,13 @@ class CEPGPBot(EssentialDKPBot):
             config.item_value.enable_icons,
             config.item_value.value_suffix,
             config.item_value.alternative_display_mode,
-            self._timezone,
+            self._timezone, self._version
         )
 
         self._update_views_info()
+
+    def _get_addon_thumbnail(self):
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822884836887887913/cepgplogo.png"
 
     ### Database - Variables parsing ###
 
@@ -412,8 +415,8 @@ class CEPGPBot(EssentialDKPBot):
     def call_info(self, param, request_info):  # pylint: disable=unused-argument
         embed = RawEmbed()
         embed.build(None, "Info", None, None, get_bot_color(), None)
-        info_string = "WoW DKP Bot allows querying DKP/EPGP standings, history and loot data directly through the discord."
-        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP`, `CommunityDKP` and `CEPGP` to a discord channel.\n"
+        info_string = "WoW DKP Bot allows querying DKP/EPGP/RCLootCouncil standings, history and loot data directly through the discord."
+        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP`, `CommunityDKP`, `CEPGP` and `RCLootCouncil` to a discord channel.\n"
         embed.add_field("\u200b", info_string, False)
         info_string = "Due to many possible usages of the addons and discord limitations bot data may exceed maxium accetable size. To mitigate this issue extensive `display` configuration is available to tweak response sizes."
         embed.add_field("\u200b", info_string, False)

@@ -1,3 +1,4 @@
+from enum import Enum
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp, get_width
 from bot_config import DisplayConfig
@@ -7,6 +8,35 @@ import build_info
 INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
 SUPPORT_SERVER = "[Support Server](http://{0})".format(build_info.SUPPORT_SERVER)
 DONATE = "[Donate](http://wowdkpbot.com/donate)"
+
+class WoWVersion(Enum):
+    CLASSIC = 0
+    TBC = 1
+    RETAIL = 9
+
+    def from_string(string):
+        if str(string).lower() == "tbc":
+            return WoWVersion.TBC
+        if str(string).lower() == "retail":
+            return WoWVersion.RETAIL
+        return WoWVersion.CLASSIC
+
+    def get_version_strings():
+        return ["classic", "tbc", "retail"]
+
+def get_wowhead_item_link(item_name, item_id, version):
+    if version == WoWVersion.RETAIL:
+        return "[{1}](https://{0}/item={2})".format(
+            "wowhead.com", item_name, item_id
+        )
+    if version == WoWVersion.TBC:
+        return "[{1}](https://{0}/item={2})".format(
+            "tbc.wowhead.com", item_name, item_id
+        )
+
+    return "[{1}](https://{0}/item={2})".format(
+        "classic.wowhead.com", item_name, item_id
+    )
 
 
 @trace
@@ -58,6 +88,16 @@ def get_class_color(class_name=None):
     if class_name == "shaman":
         return 159965
 
+    ## retail
+    if class_name == "deathknight":
+        return 12852794
+
+    if class_name == "demonhunter":
+        return 10694857
+
+    if class_name == "monk":
+        return 65432
+    
     return 10204605
 
 
@@ -70,7 +110,7 @@ def get_plus_minus_icon_string(plus=True):
 
 
 @trace
-def get_class_icon_string(class_name=None, spec_id=0):
+def get_class_icon_string(class_name=None, spec_id=None):
     if not class_name:
         return ""
 
@@ -126,6 +166,17 @@ def get_class_icon_string(class_name=None, spec_id=0):
         else:
             return "<:shaman:760863673887227955>"
 
+    ## retail
+    if class_name == "deathknight":
+        return "<:dk:822845779748192286>"
+
+    if class_name == "demonhunter":
+        return "<:dh:822845779697467443>"
+
+    if class_name == "monk":
+        return "<:monk:822846155309580318>"
+
+
     return ""
 
 
@@ -162,6 +213,16 @@ def get_thumbnail(class_name):
 
     if class_name == "shaman":
         return "https://cdn.discordapp.com/attachments/765089790295015425/765241408449019914/shaman.png"
+
+    ## retail
+    if class_name == "deathknight":
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822834605719552060/deathknight.jpg"
+
+    if class_name == "demonhunter":
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822834607887876136/demonhunter.jpg"
+
+    if class_name == "monk":
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822834131943030824/monk.jpg"
 
     return None
 
@@ -202,13 +263,13 @@ def preformatted_block(string: str, language="swift"):
 
 @trace
 def generate_dkp_history_entry(
-    history_entry, format_string, enable_icons, alternative_display_mode
+    history_entry, format_string, enable_icons, alternative_display_mode, timezone
 ):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):
         row = ""
         if enable_icons:
             row += get_plus_minus_icon_string(history_entry.dkp() > 0) + " "
-        row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp()))
+        row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp(), timezone))
         row += format_string.format(history_entry.dkp())
         row += " - {0} _by {1}_".format(history_entry.reason(), history_entry.officer())
         row += "\n"
@@ -218,15 +279,13 @@ def generate_dkp_history_entry(
 
 @trace
 def generate_loot_entry(
-    loot_entry, format_string, enable_icons, alternative_display_mode, player
+    loot_entry, format_string, enable_icons, alternative_display_mode, player, timezone, version
 ):
     if loot_entry and isinstance(loot_entry, PlayerLoot):
         row = ""
-        row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
+        row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp(), timezone))
         row += format_string.format(loot_entry.dkp())
-        row += " - [{0}](https://classic.wowhead.com/item={1})".format(
-            loot_entry.item_name(), loot_entry.item_id()
-        )
+        row += " - " + get_wowhead_item_link(loot_entry.item_name(), loot_entry.item_id(), version)
         if player:
             row += " - "
             if enable_icons:
@@ -244,12 +303,12 @@ def generate_loot_entry(
 
 @trace
 def generate_item_value_entry(
-    entry, format_string, enable_icons, alternative_display_mode, player, timezone
+    entry, format_string, enable_icons, alternative_display_mode, player, version
 ):
     if isinstance(entry, tuple) and len(entry) == 3:
         (id, name, value) = entry
         row = ""
-        row += "[{0}](https://classic.wowhead.com/item={1})".format(name, id)
+        row += get_wowhead_item_link(name, id, version)
         row += "\n"
         row += format_string.format(value.min, value.max, value.avg, value.num)
         row += "\n"
@@ -447,9 +506,10 @@ class BaseResponse:
     _isBuilt = False
     _rounding = 1
 
-    def __init__(self, title, timezone):
+    def __init__(self, title, timezone, version):
         self._embed = RawEmbed()
         self._timezone = timezone
+        self._version = version
 
         if title:
             self._title = str(title)
@@ -507,6 +567,7 @@ class SinglePlayerProfile(BaseResponse):
                 ),
                 False,
                 False,
+                self._timezone
             ),
             False,
         )
@@ -521,6 +582,8 @@ class SinglePlayerProfile(BaseResponse):
                 False,
                 False,
                 False,
+                self._timezone,
+                self._version
             ),
             False,
         )
@@ -544,8 +607,9 @@ class MultipleResponse(BaseResponse):
         value_suffix,
         alternative_display_mode,
         timezone,
+        version
     ):
-        super().__init__(title, timezone)
+        super().__init__(title, timezone, version)
 
         self._value_format_string = "{0:8.1f}"
 
@@ -809,6 +873,7 @@ class HistoryMultipleResponse(MultipleResponse):
                 self._value_format_string,
                 self._enable_icons,
                 self._alternative_display_mode,
+                self._timezone
             )
 
         return ""
@@ -855,6 +920,8 @@ class PlayerLootMultipleResponse(MultipleResponse):
                 self._enable_icons,
                 self._alternative_display_mode,
                 False,
+                self._timezone,
+                self._version
             )
 
         return ""
@@ -898,6 +965,8 @@ class LootMultipleResponse(MultipleResponse):
                 self._enable_icons,
                 self._alternative_display_mode,
                 True,
+                self._timezone,
+                self._version
             )
 
         return ""
@@ -963,7 +1032,7 @@ class ItemValueMultipleResponse(MultipleResponse):
                 self._enable_icons,
                 self._alternative_display_mode,
                 True,
-                self._timezone,
+                self._version
             )
 
         return ""

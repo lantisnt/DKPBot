@@ -3,16 +3,12 @@ from player_role import Role
 from bot_logger import trace, trace_func_only, for_all_methods
 from bot_utility import get_width
 
-
 @for_all_methods(trace, trace_func_only)
-class PlayerInfo:
+class PlayerInfoBasic:
     def __init__(
-        self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role, spec
+        self, player, ingame_class, role, spec
     ):
         self._player = str(player).lower().capitalize()
-        self._dkp = float(dkp)
-        self._lifetime_gained = abs(float(lifetime_gained))
-        self._lifetime_spent = abs(float(lifetime_spent))
         self._ingame_class = str(ingame_class).lower().capitalize()
         if ingame_class is None or spec is None:
             self._smart_role = Role(True, True, True, True, True, 0)
@@ -20,22 +16,12 @@ class PlayerInfo:
             self._smart_role = player_role.get(ingame_class, spec)
         self._active = True
         self._latest_loot_entry = None
-        self._latest_history_entry = None
 
     def name(self):
         return self._player
 
     def player(self):
         return self
-
-    def dkp(self):
-        return self._dkp
-
-    def lifetime_gained(self):
-        return self._lifetime_gained
-
-    def lifetime_spent(self):
-        return self._lifetime_spent
 
     def ingame_class(self):
         return self._ingame_class
@@ -51,6 +37,49 @@ class PlayerInfo:
 
     def is_active(self):
         return self._active
+
+    def set_latest_loot_entry(self, loot_entry):
+        if loot_entry and isinstance(loot_entry, list):
+            self._latest_loot_entry = loot_entry
+
+    def get_latest_loot_entry(self):
+        return self._latest_loot_entry
+
+    def __str__(self):
+        return "{0} {1} {3} | Active: {2}".format(
+            self._player,
+            self._ingame_class,
+            self._active,
+            self._smart_role,
+        )
+
+    __repr__ = __str__
+
+    def __hash__(self):
+        return hash(str(self))
+
+@for_all_methods(trace, trace_func_only)
+class PlayerInfo(PlayerInfoBasic):
+    def __init__(
+        self, player, dkp, lifetime_gained, lifetime_spent, ingame_class, role, spec
+    ):
+        super().__init__(player, ingame_class, role,spec)
+        self._dkp = float(dkp)
+        self._lifetime_gained = abs(float(lifetime_gained))
+        self._lifetime_spent = abs(float(lifetime_spent))
+        self._latest_history_entry = None
+
+    def dkp(self):
+        return self._dkp
+
+    def lifetime_gained(self):
+        return self._lifetime_gained
+
+    def lifetime_spent(self):
+        return self._lifetime_spent
+
+    def ingame_class(self):
+        return self._ingame_class
 
     def set_latest_loot_entry(self, loot_entry):
         if loot_entry and isinstance(loot_entry, PlayerLoot):
@@ -193,16 +222,15 @@ class PlayerInfoEPGP(PlayerInfo):
 
 
 @for_all_methods(trace, trace_func_only)
-class PlayerLoot:
-    def __init__(self, player, item_id, item_name, dkp, timestamp):
+class PlayerLootBasic:
+    def __init__(self, player, item_id, item_name, timestamp):
         if not isinstance(
-            player, (PlayerInfo, PlayerInfoEPGP)
+            player, (PlayerInfo, PlayerInfoEPGP, PlayerInfoBasic)
         ):  # Workaround as we expect player to be connected to the Player
             player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
         self._player = player
         self._item_id = int(item_id)
         self._item_name = str(item_name)
-        self._dkp = float(abs(dkp))
         self._timestamp = int(timestamp)
 
     def player(self):
@@ -214,14 +242,34 @@ class PlayerLoot:
     def item_name(self):
         return self._item_name
 
-    def dkp(self):
-        return self._dkp
-
     def timestamp(self):
         return self._timestamp
 
     def width(self):
         return get_width(self.dkp())
+
+    def __str__(self):
+        return "{0}: {1} {2}({3})".format(
+            self._timestamp,
+            self._player.name(),
+            self._item_name,
+            self._item_id
+        )
+
+    __repr__ = __str__
+
+    def __hash__(self):
+        return hash(str(self))
+
+@for_all_methods(trace, trace_func_only)
+class PlayerLoot(PlayerLootBasic):
+    def __init__(self, player, item_id, item_name, dkp, timestamp):
+        super().__init__(player, item_id, item_name, timestamp)
+
+        self._dkp = float(abs(dkp))
+
+    def dkp(self):
+        return self._dkp
 
     def __str__(self):
         return "{0}: {1} {2}({3}) for {4} DKP".format(

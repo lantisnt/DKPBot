@@ -10,8 +10,11 @@ class MonolithDKPBot(EssentialDKPBot):
         super()._configure()
         # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile(
-            "Monolith DKP Profile", self._timezone
+            "Monolith DKP Profile", self._timezone, self._version
         )
+
+    def _get_addon_thumbnail(self):
+        return "https://cdn.discordapp.com/attachments/765089790295015425/822883954771230720/monolithlogo.png"
 
     def config_call_server_side(self, params, num_params, request_info):
         return Response(

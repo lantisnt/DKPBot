@@ -9,6 +9,7 @@ from display_templates import (
     get_config_color,
     get_plus_minus_icon_string,
     preformatted_block,
+    get_wowhead_item_link
 )
 import build_info
 
@@ -91,7 +92,7 @@ def generate_epgp_history_entry(
 
 @trace
 def generate_loot_entry(
-    loot_entry, format_string, enable_icons, alternative_display_mode, player, timezone
+    loot_entry, format_string, enable_icons, alternative_display_mode, player, timezone, version
 ):
     if loot_entry and isinstance(loot_entry, PlayerLootEPGP):
         row = ""
@@ -99,9 +100,7 @@ def generate_loot_entry(
             get_date_from_timestamp(loot_entry.timestamp(), timezone)
         )
         row += format_string.format(loot_entry.dkp())
-        row += " - [{0}](https://classic.wowhead.com/item={1})".format(
-            loot_entry.item_name(), loot_entry.item_id()
-        )
+        row += " - " + get_wowhead_item_link(loot_entry.item_name(), loot_entry.item_id(), version)
         if player:
             row += " - "
             row += "{0}".format(loot_entry.player().name())
@@ -112,12 +111,12 @@ def generate_loot_entry(
 
 @trace
 def generate_item_value_entry(
-    entry, format_string, enable_icons, alternative_display_mode, player, timezone
+    entry, format_string, enable_icons, alternative_display_mode, player, timezone, version
 ):
     if isinstance(entry, tuple) and len(entry) == 3:
         (id, name, value) = entry
         row = ""
-        row += "[{0}](https://classic.wowhead.com/item={1})".format(name, id)
+        row += get_wowhead_item_link(name, id, version)
         row += "\n"
         row += format_string.format(value.min, value.max, value.avg, value.num)
         row += "\n"
@@ -171,6 +170,7 @@ class SinglePlayerProfile(BaseResponse):
                 False,
                 False,
                 self._timezone,
+                self._version
             ),
             False,
         )
@@ -346,6 +346,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
                 self._alternative_display_mode,
                 False,
                 self._timezone,
+                self._version
             )
 
         return ""
@@ -384,6 +385,7 @@ class LootMultipleResponse(MultipleResponse):
                 self._alternative_display_mode,
                 True,
                 self._timezone,
+                self._version
             )
 
         return ""
@@ -450,6 +452,7 @@ class ItemValueMultipleResponse(MultipleResponse):
                 self._alternative_display_mode,
                 True,
                 self._timezone,
+                self._version
             )
 
         return ""
