@@ -141,7 +141,7 @@ class CEPGPBot(EssentialDKPBot):
             tmp = data.split(",")
             if len(tmp) == 2:
                 ep = float(tmp[0])
-                gp = float(tmp[1])
+                gp = max(float(tmp[1]), self._get_min_gp())
             else:
                 BotLogger().get().debug("Invalid backup entry %s", player_entry)
         else:
@@ -287,8 +287,32 @@ class CEPGPBot(EssentialDKPBot):
                         entry.set_latest_history_entry(history_entry)
                         break
 
+    def _get_min_gp(self):
+        min_gp = self._get_addon_config("min-gp")
+        if isinstance(min_gp, float):
+            return min_gp
+        else:
+            return 0
+
     # Called 1st
     def _build_config_database(self, saved_variable):  # pylint: disable=unused-argument
+        if saved_variable is None:
+            BotLogger().get().debug("Missing saved_variable")
+            return False
+        
+        addon_data = saved_variable.get(self._SV)
+        if addon_data is None or not addon_data or not isinstance(addon_data, dict):
+            BotLogger().get().debug("Missing %s", self._SV)
+            return False
+
+        gp_config_dict = addon_data.get("GP")
+        if isinstance(gp_config_dict, dict):
+            gp_min_value = gp_config_dict.get("Min")
+            if isinstance(gp_min_value, (int, float)):
+                config = { "min-gp": float(gp_min_value) }
+                self._set_addon_config(config)
+            return True
+
         self._set_addon_config({})
         return True
 
@@ -334,7 +358,7 @@ class CEPGPBot(EssentialDKPBot):
                 self._set_dkp(info.name(), info, self.DEFAULT_TEAM)
 
         # Fake DKP entry to hold Raid / Guild (group) traffic
-        info = PlayerInfoEPGP(self.TRAFFIC_HOLDER, 0, 0)
+        info = PlayerInfoEPGP(self.TRAFFIC_HOLDER, 0, self._get_min_gp())
         info.set_inactive()
         self._set_dkp(info.name(), info, self.DEFAULT_TEAM)
 
