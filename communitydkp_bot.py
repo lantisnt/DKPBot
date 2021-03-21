@@ -16,7 +16,7 @@ class CommunityDKPBot(EssentialDKPBot):
         super()._configure()
         # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile(
-            "Community DKP Profile", self._timezone
+            "Community DKP Profile", self._timezone, self._version
         )
 
     def _get_addon_thumbnail(self):

@@ -24,18 +24,18 @@ class WoWVersion(Enum):
     def get_version_strings():
         return ["classic", "tbc", "retail"]
 
-def get_wowhead_item_link(itemName, itemId, version):
-    if version in WoWVersion.RETAIL:
+def get_wowhead_item_link(item_name, item_id, version):
+    if version == WoWVersion.RETAIL:
         return "[{1}](https://{0}/item={2})".format(
-            "wowhead.com", loot_entry.item_name(), loot_entry.item_id()
+            "wowhead.com", item_name, item_id
         )
     if version == WoWVersion.TBC:
         return "[{1}](https://{0}/item={2})".format(
-            "tbc.wowhead.com", loot_entry.item_name(), loot_entry.item_id()
+            "tbc.wowhead.com", item_name, item_id
         )
 
     return "[{1}](https://{0}/item={2})".format(
-        "classic.wowhead.com", loot_entry.item_name(), loot_entry.item_id()
+        "classic.wowhead.com", item_name, item_id
     )
 
 

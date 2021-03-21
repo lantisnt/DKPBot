@@ -125,9 +125,13 @@ class DKPBot:
         self._timezone = pytz.timezone(self.__config.guild_info.timezone)
         self._version = WoWVersion.from_string(self.__config.guild_info.version)
 
+    def _update_views_info(self):
+        pass
+
     def _reconfigure(self):
         self.__config.store()
         self._configure()
+        self._update_views_info()
 
     def shutdown(self):
         BotLogger().get().info("Shutting down bot for [%d]", self.__guild_id)

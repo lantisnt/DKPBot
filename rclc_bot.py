@@ -39,7 +39,7 @@ class RCLCBot(EssentialDKPBot):
         config = self._get_config()
         # # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile(
-            "RCLootCouncil Profile", self._timezone
+            "RCLootCouncil Profile", self._timezone, self._version
         )
 
         self._multiple_dkp_output_builder = RCLCMultipleResponse(
@@ -51,7 +51,7 @@ class RCLCBot(EssentialDKPBot):
             config.dkp.enable_icons,
             config.dkp.value_suffix,
             config.dkp.alternative_display_mode,
-            self._timezone,
+            self._timezone, self._version
         )
 
         self._multiple_player_loot_output_builder = PlayerLootMultipleResponse(
@@ -63,7 +63,7 @@ class RCLCBot(EssentialDKPBot):
             config.loot_history.enable_icons,
             config.loot_history.value_suffix,
             config.loot_history.alternative_display_mode,
-            self._timezone,
+            self._timezone, self._version
         )
 
         self._multiple_loot_output_builder = LootMultipleResponse(
@@ -75,7 +75,7 @@ class RCLCBot(EssentialDKPBot):
             config.latest_loot.enable_icons,
             config.latest_loot.value_suffix,
             config.latest_loot.alternative_display_mode,
-            self._timezone,
+            self._timezone, self._version
         )
 
         self._multiple_item_search_output_builder = LootMultipleResponse(
@@ -87,7 +87,7 @@ class RCLCBot(EssentialDKPBot):
             config.item_search.enable_icons,
             config.item_search.value_suffix,
             config.item_search.alternative_display_mode,
-            self._timezone,
+            self._timezone, self._version
         )
 
         self._update_views_info()

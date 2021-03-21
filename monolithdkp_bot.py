@@ -10,7 +10,7 @@ class MonolithDKPBot(EssentialDKPBot):
         super()._configure()
         # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile(
-            "Monolith DKP Profile", self._timezone
+            "Monolith DKP Profile", self._timezone, self._version
         )
 
     def _get_addon_thumbnail(self):
