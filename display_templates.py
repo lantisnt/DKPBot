@@ -269,7 +269,7 @@ def generate_dkp_history_entry(
         row = ""
         if enable_icons:
             row += get_plus_minus_icon_string(history_entry.dkp() > 0) + " "
-        row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp()))
+        row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp(), timezone))
         row += format_string.format(history_entry.dkp())
         row += " - {0} _by {1}_".format(history_entry.reason(), history_entry.officer())
         row += "\n"
@@ -283,7 +283,7 @@ def generate_loot_entry(
 ):
     if loot_entry and isinstance(loot_entry, PlayerLoot):
         row = ""
-        row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
+        row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp(), timezone))
         row += format_string.format(loot_entry.dkp())
         row += " - " + get_wowhead_item_link(loot_entry.item_name(), loot_entry.item_id(), version)
         if player:
@@ -303,7 +303,7 @@ def generate_loot_entry(
 
 @trace
 def generate_item_value_entry(
-    entry, format_string, enable_icons, alternative_display_mode, player, timezone, version
+    entry, format_string, enable_icons, alternative_display_mode, player, version
 ):
     if isinstance(entry, tuple) and len(entry) == 3:
         (id, name, value) = entry
@@ -567,6 +567,7 @@ class SinglePlayerProfile(BaseResponse):
                 ),
                 False,
                 False,
+                self._timezone
             ),
             False,
         )
@@ -581,6 +582,7 @@ class SinglePlayerProfile(BaseResponse):
                 False,
                 False,
                 False,
+                self._timezone,
                 self._version
             ),
             False,
@@ -871,6 +873,7 @@ class HistoryMultipleResponse(MultipleResponse):
                 self._value_format_string,
                 self._enable_icons,
                 self._alternative_display_mode,
+                self._timezone
             )
 
         return ""
@@ -917,6 +920,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
                 self._enable_icons,
                 self._alternative_display_mode,
                 False,
+                self._timezone,
                 self._version
             )
 
@@ -961,7 +965,8 @@ class LootMultipleResponse(MultipleResponse):
                 self._enable_icons,
                 self._alternative_display_mode,
                 True,
-                self._isRetail
+                self._timezone,
+                self._version
             )
 
         return ""
@@ -1027,7 +1032,6 @@ class ItemValueMultipleResponse(MultipleResponse):
                 self._enable_icons,
                 self._alternative_display_mode,
                 True,
-                self._timezone,
                 self._version
             )
 

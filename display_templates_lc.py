@@ -39,7 +39,7 @@ def generate_loot_entries(loot_entry_list, enable_icons, alternative_display_mod
 def generate_loot_entry(loot_entry, enable_icons, alternative_display_mode, player, timezone, version):
     if loot_entry and isinstance(loot_entry, PlayerLootBasic):
         row = ""
-        row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
+        row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp(), timezone))
         row += get_wowhead_item_link(loot_entry.item_name(), loot_entry.item_id(), version)
         if player:
             if enable_icons:
