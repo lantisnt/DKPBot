@@ -1140,7 +1140,7 @@ class DKPBot:
                 "Current:   {0}\n".format(self.__config.guild_info.bot_type.lower())
             )
             string += preformatted_block(
-                "Supported: essential monolith community cepgp rclc rclc-retail"
+                "Supported: essential monolith community cepgp rclc"
             )
             embed.add_field("bot-type", string, False)
             # timezone
@@ -1475,7 +1475,7 @@ class DKPBot:
     ):  # pylint: disable=unused-argument
         if num_params == 2:
             value = params[1]
-            if value in ["community", "monolith", "essential", "cepgp", "rclc", "rclc-retail"]:
+            if value in ["community", "monolith", "essential", "cepgp", "rclc"]:
                 current = self.__config.guild_info.bot_type
                 if value == current:
                     return Response(
@@ -1489,7 +1489,7 @@ class DKPBot:
                 if new == value:
                     if value == "cepgp":
                         self.__config.guild_info.filename = "CEPGP.lua"
-                    elif value in ["rclc", "rclc-retail"]:
+                    elif value == "rclc":
                         self.__config.guild_info.filename = "RCLootCouncil.lua"
                     else:
                         self.__config.guild_info.filename = (

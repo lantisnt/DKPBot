@@ -9,6 +9,7 @@ from display_templates import (
     get_config_color,
     get_plus_minus_icon_string,
     preformatted_block,
+    get_wowhead_item_link
 )
 import build_info
 
@@ -99,9 +100,7 @@ def generate_loot_entry(
             get_date_from_timestamp(loot_entry.timestamp(), timezone)
         )
         row += format_string.format(loot_entry.dkp())
-        row += " - [{0}](https://classic.wowhead.com/item={1})".format(
-            loot_entry.item_name(), loot_entry.item_id()
-        )
+        row += " - " + get_wowhead_item_link(loot_entry.item_name(), loot_entry.item_id(), self._version)
         if player:
             row += " - "
             row += "{0}".format(loot_entry.player().name())
@@ -117,7 +116,7 @@ def generate_item_value_entry(
     if isinstance(entry, tuple) and len(entry) == 3:
         (id, name, value) = entry
         row = ""
-        row += "[{0}](https://classic.wowhead.com/item={1})".format(name, id)
+        row += get_wowhead_item_link(name, id, self._version)
         row += "\n"
         row += format_string.format(value.min, value.max, value.avg, value.num)
         row += "\n"

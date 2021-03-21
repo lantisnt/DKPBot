@@ -1,3 +1,4 @@
+from enum import Enum
 from player_db_models import PlayerInfo, PlayerDKPHistory, PlayerLoot
 from bot_utility import get_date_from_timestamp, get_width
 from bot_config import DisplayConfig
@@ -7,6 +8,25 @@ import build_info
 INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
 SUPPORT_SERVER = "[Support Server](http://{0})".format(build_info.SUPPORT_SERVER)
 DONATE = "[Donate](http://wowdkpbot.com/donate)"
+
+class WoWVersion(Enum):
+    CLASSIC = 0
+    TBC = 1
+    RETAIL = 9
+
+def get_wowhead_item_link(itemName, itemId, version):
+    if version == WoWVersion.CLASSIC:
+        return "[{1}](https://{0}/item={2})".format(
+            "classic.wowhead.com", loot_entry.item_name(), loot_entry.item_id()
+        )
+    if version == WoWVersion.TBC:
+        return "[{1}](https://{0}/item={2})".format(
+            "tbc.wowhead.com", loot_entry.item_name(), loot_entry.item_id()
+        )
+
+    return "[{1}](https://{0}/item={2})".format(
+        "wowhead.com", loot_entry.item_name(), loot_entry.item_id()
+    )
 
 
 @trace
@@ -249,15 +269,13 @@ def generate_dkp_history_entry(
 
 @trace
 def generate_loot_entry(
-    loot_entry, format_string, enable_icons, alternative_display_mode, player
+    loot_entry, format_string, enable_icons, alternative_display_mode, player, isRetail
 ):
     if loot_entry and isinstance(loot_entry, PlayerLoot):
         row = ""
         row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
         row += format_string.format(loot_entry.dkp())
-        row += " - [{0}](https://classic.wowhead.com/item={1})".format(
-            loot_entry.item_name(), loot_entry.item_id()
-        )
+        row += " - " + get_wowhead_item_link(loot_entry.item_name(), loot_entry.item_id(), self._version)
         if player:
             row += " - "
             if enable_icons:
@@ -280,7 +298,7 @@ def generate_item_value_entry(
     if isinstance(entry, tuple) and len(entry) == 3:
         (id, name, value) = entry
         row = ""
-        row += "[{0}](https://classic.wowhead.com/item={1})".format(name, id)
+        row += get_wowhead_item_link(name, id, self._version)
         row += "\n"
         row += format_string.format(value.min, value.max, value.avg, value.num)
         row += "\n"
@@ -478,9 +496,10 @@ class BaseResponse:
     _isBuilt = False
     _rounding = 1
 
-    def __init__(self, title, timezone):
+    def __init__(self, title, timezone, version=WoWVersion.CLASSIC):
         self._embed = RawEmbed()
         self._timezone = timezone
+        self._version = version
 
         if title:
             self._title = str(title)
@@ -552,6 +571,7 @@ class SinglePlayerProfile(BaseResponse):
                 False,
                 False,
                 False,
+                self._isRetail
             ),
             False,
         )
@@ -886,6 +906,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
                 self._enable_icons,
                 self._alternative_display_mode,
                 False,
+                self._isRetail
             )
 
         return ""
@@ -929,6 +950,7 @@ class LootMultipleResponse(MultipleResponse):
                 self._enable_icons,
                 self._alternative_display_mode,
                 True,
+                self._isRetail
             )
 
         return ""

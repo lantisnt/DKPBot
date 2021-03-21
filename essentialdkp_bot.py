@@ -33,10 +33,9 @@ class EssentialDKPBot(DKPBot):
         "^[^:]*:*(\d*).*\[([^\]]*)", re.I
     )  # pylint: disable=anomalous-backslash-in-string
 
-    def __init__(self, guild_id, config, isRetail=False):
+    def __init__(self, guild_id, config):
         super().__init__(guild_id, config)
         self._configure()
-        self.isRetail = bool(isRetail)
 
     ###
 

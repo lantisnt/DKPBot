@@ -10,7 +10,8 @@ from display_templates import (
     get_config_color,
     get_class_icon_string,
     preformatted_block,
-    get_thumbnail
+    get_thumbnail,
+    get_wowhead_item_link
 )
 import build_info
 
@@ -39,9 +40,7 @@ def generate_loot_entry(loot_entry, enable_icons, alternative_display_mode, play
     if loot_entry and isinstance(loot_entry, PlayerLootBasic):
         row = ""
         row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
-        row += "[{0}](https://classic.wowhead.com/item={1})".format(
-            loot_entry.item_name(), loot_entry.item_id()
-        )
+        row += get_wowhead_item_link(loot_entry.item_name(), loot_entry.item_id(), self._version)
         if player:
             if enable_icons:
                 row += " - {0}".format(
