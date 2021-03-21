@@ -14,10 +14,20 @@ class WoWVersion(Enum):
     TBC = 1
     RETAIL = 9
 
+    def from_string(string):
+        if str(string).lower() == "tbc":
+            return WoWVersion.TBC
+        if str(string).lower() == "retail":
+            return WoWVersion.RETAIL
+        return WoWVersion.CLASSIC
+
+    def get_version_strings():
+        return ["classic", "tbc", "retail"]
+
 def get_wowhead_item_link(itemName, itemId, version):
-    if version == WoWVersion.CLASSIC:
+    if version in WoWVersion.RETAIL:
         return "[{1}](https://{0}/item={2})".format(
-            "classic.wowhead.com", loot_entry.item_name(), loot_entry.item_id()
+            "wowhead.com", loot_entry.item_name(), loot_entry.item_id()
         )
     if version == WoWVersion.TBC:
         return "[{1}](https://{0}/item={2})".format(
@@ -25,7 +35,7 @@ def get_wowhead_item_link(itemName, itemId, version):
         )
 
     return "[{1}](https://{0}/item={2})".format(
-        "wowhead.com", loot_entry.item_name(), loot_entry.item_id()
+        "classic.wowhead.com", loot_entry.item_name(), loot_entry.item_id()
     )
 
 
@@ -253,7 +263,7 @@ def preformatted_block(string: str, language="swift"):
 
 @trace
 def generate_dkp_history_entry(
-    history_entry, format_string, enable_icons, alternative_display_mode
+    history_entry, format_string, enable_icons, alternative_display_mode, timezone
 ):
     if history_entry and isinstance(history_entry, PlayerDKPHistory):
         row = ""
@@ -269,13 +279,13 @@ def generate_dkp_history_entry(
 
 @trace
 def generate_loot_entry(
-    loot_entry, format_string, enable_icons, alternative_display_mode, player, isRetail
+    loot_entry, format_string, enable_icons, alternative_display_mode, player, timezone, version
 ):
     if loot_entry and isinstance(loot_entry, PlayerLoot):
         row = ""
         row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
         row += format_string.format(loot_entry.dkp())
-        row += " - " + get_wowhead_item_link(loot_entry.item_name(), loot_entry.item_id(), self._version)
+        row += " - " + get_wowhead_item_link(loot_entry.item_name(), loot_entry.item_id(), version)
         if player:
             row += " - "
             if enable_icons:
@@ -293,12 +303,12 @@ def generate_loot_entry(
 
 @trace
 def generate_item_value_entry(
-    entry, format_string, enable_icons, alternative_display_mode, player, timezone
+    entry, format_string, enable_icons, alternative_display_mode, player, timezone, version
 ):
     if isinstance(entry, tuple) and len(entry) == 3:
         (id, name, value) = entry
         row = ""
-        row += get_wowhead_item_link(name, id, self._version)
+        row += get_wowhead_item_link(name, id, version)
         row += "\n"
         row += format_string.format(value.min, value.max, value.avg, value.num)
         row += "\n"
@@ -496,7 +506,7 @@ class BaseResponse:
     _isBuilt = False
     _rounding = 1
 
-    def __init__(self, title, timezone, version=WoWVersion.CLASSIC):
+    def __init__(self, title, timezone, version):
         self._embed = RawEmbed()
         self._timezone = timezone
         self._version = version
@@ -571,7 +581,7 @@ class SinglePlayerProfile(BaseResponse):
                 False,
                 False,
                 False,
-                self._isRetail
+                self._version
             ),
             False,
         )
@@ -595,8 +605,9 @@ class MultipleResponse(BaseResponse):
         value_suffix,
         alternative_display_mode,
         timezone,
+        version
     ):
-        super().__init__(title, timezone)
+        super().__init__(title, timezone, version)
 
         self._value_format_string = "{0:8.1f}"
 
@@ -906,7 +917,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
                 self._enable_icons,
                 self._alternative_display_mode,
                 False,
-                self._isRetail
+                self._version
             )
 
         return ""
@@ -1017,6 +1028,7 @@ class ItemValueMultipleResponse(MultipleResponse):
                 self._alternative_display_mode,
                 True,
                 self._timezone,
+                self._version
             )
 
         return ""

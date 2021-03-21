@@ -25,22 +25,22 @@ def get_rclc_thumbnail():
     return "https://cdn.discordapp.com/attachments/765089790295015425/810464766808031242/rclootcouncil.png"
 
 @trace
-def generate_loot_entries(loot_entry_list, enable_icons, alternative_display_mode, player, timezone):
+def generate_loot_entries(loot_entry_list, enable_icons, alternative_display_mode, player, timezone, version):
     if loot_entry_list and isinstance(loot_entry_list, list):
         data = ""
         for loot_entry in loot_entry_list:
-            data += generate_loot_entry(loot_entry, enable_icons, alternative_display_mode, player, timezone)
+            data += generate_loot_entry(loot_entry, enable_icons, alternative_display_mode, player, timezone, version)
         return data
     return "- No data available -"
 
 
 
 @trace
-def generate_loot_entry(loot_entry, enable_icons, alternative_display_mode, player, timezone):
+def generate_loot_entry(loot_entry, enable_icons, alternative_display_mode, player, timezone, version):
     if loot_entry and isinstance(loot_entry, PlayerLootBasic):
         row = ""
         row += "`{0:16}` - ".format(get_date_from_timestamp(loot_entry.timestamp()))
-        row += get_wowhead_item_link(loot_entry.item_name(), loot_entry.item_id(), self._version)
+        row += get_wowhead_item_link(loot_entry.item_name(), loot_entry.item_id(), version)
         if player:
             if enable_icons:
                 row += " - {0}".format(
@@ -72,7 +72,7 @@ class SinglePlayerProfile(BaseResponse):
         loot = info.get_latest_loot_entry()
         self._embed.add_field(
             "Last received loot:",
-            generate_loot_entries(loot, False, False, False, self._timezone), 
+            generate_loot_entries(loot, False, False, False, self._timezone, self._version), 
             False,
         )
 
@@ -130,7 +130,7 @@ class PlayerLootMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerLootBasic):
-            return generate_loot_entry(data, self._enable_icons, self._alternative_display_mode, False, self._timezone)
+            return generate_loot_entry(data, self._enable_icons, self._alternative_display_mode, False, self._timezone, self._version)
 
         return ""
 
@@ -150,6 +150,6 @@ class LootMultipleResponse(MultipleResponse):
 
     def _build_row(self, data, requester):
         if data and isinstance(data, PlayerLootBasic):
-            return generate_loot_entry(data, self._enable_icons, self._alternative_display_mode, True, self._timezone)
+            return generate_loot_entry(data, self._enable_icons, self._alternative_display_mode, True, self._timezone, self._version)
 
         return ""

@@ -11,7 +11,7 @@ from bot_utility import timestamp_now
 from statistics import Statistics
 import bot_memory_manager
 from display_templates import SUPPORT_SERVER
-from display_templates import get_bot_color, get_bot_links, preformatted_block
+from display_templates import get_bot_color, get_bot_links, preformatted_block, WoWVersion
 from display_templates import (
     SupportReminder,
     RawEmbed,
@@ -99,6 +99,7 @@ class DKPBot:
         self.__init_db_structure()
         self.statistics = Statistics()
         self._timezone = pytz.timezone("Europe/Paris")
+        self._version = WoWVersion.CLASSIC
 
     def _configure(self):
         self.__input_file_name = self.__config.guild_info.filename
@@ -122,6 +123,7 @@ class DKPBot:
         )
         self.__smart_roles = bool(self.__config.guild_info.smart_roles)
         self._timezone = pytz.timezone(self.__config.guild_info.timezone)
+        self._version = WoWVersion.from_string(self.__config.guild_info.version)
 
     def _reconfigure(self):
         self.__config.store()
@@ -1150,6 +1152,18 @@ class DKPBot:
             )
             string += preformatted_block("Current:   {0}\n".format(self._timezone))
             embed.add_field("timezone", string, False)
+            # version
+            string = "Set WoW content version\n"
+            string += preformatted_block(
+                "Usage:     {0}config version VERSION\n".format(self.__prefix)
+            )
+            string += preformatted_block(
+                "Current:   {0}\n".format(self.__config.guild_info.version.lower())
+            )
+            string += preformatted_block(
+                "Supported: classic tbc retail"
+            )
+            embed.add_field("version", string, False)
             # server-side
             string = "Set ingame server and side data required by some addons\n"
             string += preformatted_block(
@@ -1601,6 +1615,39 @@ class DKPBot:
         response += role_response
         return Response(ResponseStatus.SUCCESS, BasicSuccess(response).get())
 
+    def config_call_version(
+        self, params, num_params, request_info
+    ):  # pylint: disable=unused-argument
+        if num_params == 2:
+            value = params[1]
+            if value in WoWVersion.get_version_strings():
+                self.__config.guild_info.version = value
+                new = self.__config.guild_info.version
+                if new == value:
+                    self._reconfigure()
+                    return Response(
+                        ResponseStatus.SUCCESS,
+                        BasicSuccess("Set version to `{0}`".format(value)).get(),
+                    )
+                else:
+                    BotLogger().get().error(
+                        "Unexpected error during version change: %s", request_info
+                    )
+                    return Response(
+                        ResponseStatus.SUCCESS,
+                        BasicCritical("Unexpected error during version change").get(),
+                    )
+            else:
+                BotLogger().get().warning("Unsupported version %s", value)
+                return Response(
+                    ResponseStatus.SUCCESS, BasicError("Unsupported version").get()
+                )
+        else:
+            return Response(
+                ResponseStatus.SUCCESS, BasicError("Invalid number of parameters").get()
+            )
+
+
     def config_call_server_side(
         self, params, num_params, request_info
     ):  # pylint: disable=unused-argument
@@ -1669,7 +1716,7 @@ class DKPBot:
                     "Unexpected error during guild name change to %s", value
                 )
                 return Response(
-                    ResponseStatus.SUCCESS, "Unexpected error during guild name change."
+                    ResponseStatus.SUCCESS, BasicCritical("Unexpected error during guild name change.").get()
                 )
         else:
             return Response(
