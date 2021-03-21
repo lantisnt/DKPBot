@@ -1428,14 +1428,20 @@ class DKPBot:
         help_string = "Display DKP history for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n".format(
             preformatted_block(self.get_prefix() + "history", "")
         )
-        help_string += "Display DKP history  for specified `player`.\n{0}\n".format(
+        help_string += "Display DKP history for specified `player`.\n{0}\n".format(
             preformatted_block(self.get_prefix() + "history player", "")
+        )
+        help_string += "Display N-th history page for specified `player`.\n{0}\n".format(
+            preformatted_block(self.get_prefix() + "history player N", "")
         )
         help_string += "Display latest loot for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n".format(
             preformatted_block(self.get_prefix() + "loot", "")
         )
-        help_string += "Display latest loot  for specified `player`.\n{0}\n".format(
+        help_string += "Display latest loot for specified `player`.\n{0}\n".format(
             preformatted_block(self.get_prefix() + "loot player", "")
+        )
+        help_string += "Display N-th loot page for specified `player`.\n{0}\n".format(
+            preformatted_block(self.get_prefix() + "loot player N", "")
         )
 
         return Response(
@@ -1445,6 +1451,10 @@ class DKPBot:
     def help_call_items(self, is_privileged):  # pylint: disable=unused-argument
         help_string = "Display latest 30 loot entries from raids.\n{0}\n".format(
             preformatted_block(self.get_prefix() + "raidloot", "")
+            + preformatted_block("Supporter only command", "css")
+        )
+        help_string += "Display N-th page of loot entries from raids.\n{0}\n".format(
+            preformatted_block(self.get_prefix() + "raidloot N", "")
             + preformatted_block("Supporter only command", "css")
         )
         help_string += (

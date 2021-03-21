@@ -24,6 +24,7 @@ from display_templates_lc import (
     PlayerLootMultipleResponse,
     LootMultipleResponse,
 )
+from bot_utility import timestamp_now
 from bot_logger import BotLogger, trace, trace_func_only, for_all_methods
 
 
@@ -133,6 +134,19 @@ class RCLCBot(EssentialDKPBot):
             self._add_loot(loot, self.DEFAULT_TEAM)
             self._add_player_loot(loot.player().name(), loot, self.DEFAULT_TEAM)
 
+    def _set_player_activity(
+        self, inactive_time=200000000000
+    ):
+        now = timestamp_now(True)
+        for entry in self._get_team_dkp(self.DEFAULT_TEAM):
+            entry.set_inactive()
+            loot = self._get_player_loot(entry.name(), self.DEFAULT_TEAM)
+            if loot and isinstance(loot, list):
+                for loot_entry in loot:
+                    if loot_entry.timestamp() - now <= inactive_time:
+                        entry.set_active()
+                        break
+
     ### Database - Variables parsing ###
 
     # Called 1st
@@ -174,6 +188,7 @@ class RCLCBot(EssentialDKPBot):
                 self._sort_loot()
                 self._sort_player_loot()
                 self._set_player_latest_loot(5)
+                self._set_player_activity(self._45_DAYS_SECONDS * 2)
                 return True
 
         return False
@@ -257,7 +272,7 @@ class RCLCBot(EssentialDKPBot):
         if len(output_result_list) == 1:
             data = self._build_dkp_output_single(output_result_list[0])
         elif len(output_result_list) > 0:
-            output_result_list.sort(key=lambda info: info.name(), reverse=True)
+            output_result_list.sort(key=lambda info: info.name(), reverse=False)
             data = self._build_dkp_output_multiple(
                 output_result_list, request_info["author"]["name"]
             )
@@ -287,7 +302,7 @@ class RCLCBot(EssentialDKPBot):
                 preformatted_block(self.get_prefix() + "rc player", "")
             )
         )
-        help_string += "Display list of all active players.\nPlayers are assumed active if they received any item within last 180 days.\n{0}\n".format(
+        help_string += "Display list of all active players.\nPlayers are assumed active if they received any item within last 90 days.\n{0}\n".format(
             preformatted_block(self.get_prefix() + "rc all", "")
         )
         help_string += "Display list of as many players, classes or aliases mixed together as you wish.\n{0}".format(
@@ -315,10 +330,12 @@ class RCLCBot(EssentialDKPBot):
         help_string = "Display latest loot for the requester.\nUses Discord server nickname if set, Discord username otherwise.\n{0}\n".format(
             preformatted_block(self.get_prefix() + "loot", "")
         )
-        help_string += "Display latest loot  for specified `player`.\n{0}\n".format(
+        help_string += "Display latest loot for specified `player`.\n{0}\n".format(
             preformatted_block(self.get_prefix() + "loot player", "")
         )
-
+        help_string += "Display N-th loot page for specified `player`.\n{0}\n".format(
+            preformatted_block(self.get_prefix() + "loot player N", "")
+        )
         return Response(
             ResponseStatus.SUCCESS, self._help_handler_internal("History", help_string)
         )
@@ -326,6 +343,10 @@ class RCLCBot(EssentialDKPBot):
     def help_call_items(self, is_privileged):  # pylint: disable=unused-argument
         help_string = "Display latest 30 loot entries from raids.\n{0}\n".format(
             preformatted_block(self.get_prefix() + "raidloot", "")
+            + preformatted_block("Supporter only command", "css")
+        )
+        help_string += "Display N-th page of loot entries from raids.\n{0}\n".format(
+            preformatted_block(self.get_prefix() + "raidloot N", "")
             + preformatted_block("Supporter only command", "css")
         )
         help_string += (
