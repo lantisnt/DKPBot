@@ -601,7 +601,7 @@ class EssentialDKPBot(DKPBot):
         raid_helper_filter = len(signed) > 0
 
         if "all" in original:
-            output_result_list = self._get_team_dkp(self.DEFAULT_TEAM)
+            output_result_list = self._get_team_dkp(team)
         else:
             if len(targets) == len(int_list) and raid_helper_filter:
                 output_result_list = self._get_dkp_target_results(
