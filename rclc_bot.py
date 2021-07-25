@@ -127,6 +127,7 @@ class RCLCBot(EssentialDKPBot):
             info = PlayerInfoBasic(name, ingame_class, None, None)
             self._set_dkp(info.name(), info, self.DEFAULT_TEAM)
             self._set_group_dkp(info.ingame_class(), info, self.DEFAULT_TEAM)
+            player = self._get_dkp(name, self.DEFAULT_TEAM)
         
         found = self.rclc_loot_regex.findall(lootWon)
         if found and isinstance(found, list) and len(found) == 1 and len(found[0]) == 2:
