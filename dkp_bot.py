@@ -1518,7 +1518,7 @@ class DKPBot:
                     if value == "cepgp":
                         self.__config.guild_info.filename = "CEPGP.lua"
                     elif value == "rclc":
-                        if self._version !=  WoWVersion.RETAIL:
+                        if self._version != WoWVersion.RETAIL:
                             self.__config.guild_info.filename = "RCLootCouncil_Classic.lua"
                         else:
                             self.__config.guild_info.filename = "RCLootCouncil.lua"
