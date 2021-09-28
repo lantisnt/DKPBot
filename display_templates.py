@@ -228,13 +228,14 @@ def get_thumbnail(class_name):
 
 
 @trace
-def get_points_format_string(width, rounding, value_suffix):
-    return "`{{0:{0}.{1}f}}{2}`".format(width, rounding, " DKP" if value_suffix else "")
+def get_points_format_string(width, rounding, value_suffix, percentage=False):
+    return "`{{0:{0}.{1}f}}{3}{2}`".format(width, rounding, " DKP" if value_suffix else "", "%" if percentage else " ")
 
 
 @trace
 def get_history_format_string(width, rounding, value_suffix):
-    return get_points_format_string(width, rounding, value_suffix)
+    return (get_points_format_string(width, rounding, value_suffix, False),
+            get_points_format_string(width, rounding, value_suffix, True))
 
 
 @trace
@@ -270,7 +271,10 @@ def generate_dkp_history_entry(
         if enable_icons:
             row += get_plus_minus_icon_string(history_entry.dkp() > 0) + " "
         row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp(), timezone))
-        row += format_string.format(history_entry.dkp())
+        if history_entry.percentage():
+            row += format_string[1].format(history_entry.dkp())
+        else:
+            row += format_string[0].format(history_entry.dkp())
         row += " - {0} _by {1}_".format(history_entry.reason(), history_entry.officer())
         row += "\n"
         return row
@@ -789,8 +793,9 @@ class DKPMultipleResponse(MultipleResponse):
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-
+    
         float_extend = 0 if self._rounding == 0 else self._rounding + 1
+
         value_width = (
             max(len(str(int(data_list_min.dkp()))), len(str(int(data_list_max.dkp()))))
             + float_extend

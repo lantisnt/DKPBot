@@ -304,13 +304,14 @@ class PlayerLootEPGP(PlayerLoot):
 
 # @for_all_methods(trace, trace_func_only)
 class PlayerDKPHistory:
-    def __init__(self, player, dkp, timestamp, reason, index):
+    def __init__(self, player, dkp, timestamp, reason, index, percentage=False):
         if not isinstance(
             player, (PlayerInfo, PlayerInfoEPGP)
         ):  # Workaround as we expect player to be connected to the Player DKP
             player = PlayerInfo(str(player), 0, -1, -1, "UNKNOWN", "UNKNOWN", None)
         self._player = player
         self._dkp = float(dkp)
+        self._percentage = bool(percentage)
         self._timestamp = int(timestamp)
         self._reason = str(reason)
         officer = str(index.split("-")[0])
@@ -332,7 +333,13 @@ class PlayerDKPHistory:
         return self._officer
 
     def width(self):
-        return get_width(self.dkp())
+        offset = 0
+        if self._percentage:
+            offset = 1
+        return get_width(self.dkp()) + offset
+
+    def percentage(self):
+        return self._percentage
 
     def __str__(self):
         return "{0}: {1} {2} DKP ({3}) by {4}".format(

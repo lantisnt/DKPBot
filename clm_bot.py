@@ -1,5 +1,5 @@
 from dkp_bot import DKPBot
-from player_db_models import PlayerInfoCLM
+from player_db_models import PlayerInfoCLM, PlayerLoot, PlayerDKPHistory
 from essentialdkp_bot import EssentialDKPBot
 from display_templates import SinglePlayerProfile
 from bot_logger import trace, trace_func_only, for_all_methods, BotLogger
@@ -14,7 +14,7 @@ class CLMBot(EssentialDKPBot):
         super()._configure()
         # Data outputs
         self._single_player_profile_builder = SinglePlayerProfile(
-            "CLM Profile", self._timezone, self._version
+            "Classic Loot Manager Profile", self._timezone, self._version
         )
 
     def _get_addon_thumbnail(self):
@@ -113,65 +113,79 @@ class CLMBot(EssentialDKPBot):
             return False
 
         for team, teamData in rosters.items():
-            team = team.lower()
+            team = team.lower() # to have it common with the keys
             for GUID, playerData in teamData.items():
-                info = self._generate_player_info(profiles.get(GUID), playerData['dkp'])
+                info = self._generate_player_info(profiles.get(GUID), playerData.get('dkp'))
                 if info is None:
                     continue
 
                 self._set_dkp(info.name(), info, team)
                 self._set_group_dkp(info.ingame_class(), info, team)
-        self.dump_database()
 
         return True
 
     # Called 3nd
     def _build_loot_database(self, saved_variable):
         super()._build_loot_database(None)
-        # teams = self.__get_configured_teams(saved_variable.get(self._LOOT_SV))
-        # if teams is None:
-        #     return False
+        data = self.__get_data(saved_variable.get(self._SV))
+        if data is None:
+            return False
 
-        # for team, loot_list in teams.items():
-        #     if isinstance(loot_list, dict):  # dict because there is ["seed"] field...
-        #         loot_list = loot_list.values()
-        #     elif not isinstance(loot_list, list):
-        #         BotLogger().get().debug("Loot data is not a list")
-        #         return False
+        profiles = data.get("profiles")
+        if profiles is None:
+            BotLogger().get().debug("No profiles found")
+            return False
 
-        #     for entry in loot_list:
-        #         player_loot = self._generate_player_loot(entry, team)
-        #         if player_loot is None:
-        #             continue
+        rosters = data.get("rosters")
+        if rosters is None:
+            BotLogger().get().debug("No rosters found")
+            return False
 
-        #         self._add_loot(player_loot, team)
-        #         self._add_player_loot(player_loot.player().name(), player_loot, team)
+        for team, teamData in rosters.items():
+            team = team.lower() # to have it common with the keys
+            for GUID, playerData in teamData.items():
+                for entry in playerData.get('loot'):
+                    player_loot = self._generate_player_loot(entry, team, profiles.get(GUID))
+                    if player_loot is None:
+                        continue
+    
+                    self._add_loot(player_loot, team)
+                    self._add_player_loot(player_loot.player().name(), player_loot, team)
 
-        # self._sort_loot()
-        # self._sort_player_loot()
-        # self._set_player_latest_loot()
-
+        self._sort_loot()
+        self._sort_player_loot()
+        self._set_player_latest_loot()
+        self.dump_database()
         return True
 
     # Called 4rd
     def _build_history_database(self, saved_variable):
         super()._build_history_database(None)
-        # teams = self.__get_configured_teams(saved_variable.get(self._HISTORY_SV))
-        # if teams is None:
-        #     return False
+        data = self.__get_data(saved_variable.get(self._SV))
+        if data is None:
+            return False
 
-        # for team, history in teams.items():
-        #     if isinstance(history, dict):  # dict because there is ["seed"] field...
-        #         history = history.values()
-        #     elif not isinstance(history, list):
-        #         BotLogger().get().debug("History data is not a list")
-        #         return False
+        profiles = data.get("profiles")
+        if profiles is None:
+            BotLogger().get().debug("No profiles found")
+            return False
 
-        #     for entry in history:
-        #         self._generate_player_history(entry, team)
+        rosters = data.get("rosters")
+        if rosters is None:
+            BotLogger().get().debug("No rosters found")
+            return False
 
-        # self._sort_history()
-        # self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
+        for team, teamData in rosters.items():
+            team = team.lower() # to have it common with the keys
+            for GUID, playerData in teamData.items():
+                for entry in playerData.get('history'):
+                    history = self._generate_player_history(entry, team, profiles.get(GUID), profiles)
+                    if history is None:
+                        continue
+                    self._add_history(history.player().name(), history, team)
+
+        self._sort_history()
+        self._set_player_latest_positive_history_and_activity(self._45_DAYS_SECONDS)
 
         return True
 
@@ -208,6 +222,98 @@ class CLMBot(EssentialDKPBot):
             info.set_main(main)
 
         return info
+
+    def _generate_player_loot(self, entry, team, player):
+        if not isinstance(entry, dict):
+            return None
+
+        if not isinstance(player, dict):
+            return None 
+
+        player = self._get_dkp(player.get("name"), team)
+        if player is None:
+            return None
+
+        value = entry.get("value")
+        if value is None:
+            return None
+
+        item_id = entry.get("id")
+        if item_id is None:
+            return None
+
+        item_name = entry.get("name")
+        if item_name is None:
+            return None
+
+        time = entry.get("time")
+        if time is None:
+            return None
+
+        return PlayerLoot(player, item_id, item_name, value, time)
+
+    def _generate_player_history(self, entry, team, player, profiles):
+        if not isinstance(entry, dict):
+            return None
+
+        if not isinstance(player, dict):
+            return None 
+
+        player = self._get_dkp(player.get("name"), team)
+        if player is None:
+            return None
+
+        creator = entry.get("creator")
+        if creator is None:
+            return None
+
+        creator = profiles.get(creator)
+        if creator is None:
+            creator = "Unknown"
+        else:
+            creator = creator.get("name")
+            if creator is None:
+                creator = "Unknown"
+
+        value = entry.get("value")
+        if value is None:
+            return None
+
+        reason = entry.get("reason")
+        if reason is None:
+            return None
+
+        percentage = False
+        if reason == 101:
+            percentage = True
+            value = -float(value)
+
+        reason = self.__decode_reason(reason)
+
+        time = entry.get("time")
+        if time is None:
+            return None
+
+        return PlayerDKPHistory(player, value, time, reason, creator, percentage)
+
+    def __decode_reason(self, reason):
+        data = {
+            1: "On Time Bonus",
+            2: "Boss Kill Bonus",
+            3: "Raid Completion Bonus",
+            4: "Progression Bonus",
+            5: "Standby Bonus",
+            6: "Unexcused absence",
+            7: "Correcting error",
+            8: "Manual adjustment",
+            100: "Import",
+            101: "Decay",
+            102: "Interval Bonus"
+        }
+        decoded = data.get(reason)
+        if decoded is None:
+            decoded = "Unknown"
+        return decoded
 
     def config_call_server_side(self, params, num_params, request_info):
         return DKPBot.config_call_server_side(self, params, num_params, request_info)
