@@ -540,10 +540,13 @@ class SinglePlayerProfile(BaseResponse):
         if thumbnail:
             thumbnail = get_thumbnail(thumbnail)
 
+        description = info.ingame_class() + " | " + ("Alt of **{0}**".format(info.main().name()) if info.is_alt() else "Main")
+
         self._embed.build(
             author_name=self._title,
             title=info.player().name(),
-            description=info.ingame_class(),
+            # description=info.ingame_class(),
+            description=description,
             thumbnail_url=thumbnail,
             color=get_class_color(info.ingame_class()),
             footer_text=self._get_footer(),
@@ -551,12 +554,14 @@ class SinglePlayerProfile(BaseResponse):
 
         dkp_format = "`{{0:.{0}f}} DKP`".format(self._rounding)
         self._embed.add_field("Current:", dkp_format.format(info.dkp()), False)
-        self._embed.add_field(
-            "Lifetime gained:", dkp_format.format(info.lifetime_gained()), True
-        )
-        self._embed.add_field(
-            "Lifetime spent:", dkp_format.format(info.lifetime_spent()), True
-        )
+        if info.lifetime_gained() > 0:
+            self._embed.add_field(
+                "Lifetime gained:", dkp_format.format(info.lifetime_gained()), True
+            )
+        if info.lifetime_spent() > 0:
+            self._embed.add_field(
+                "Lifetime spent:", dkp_format.format(info.lifetime_spent()), True
+            )
         history = info.get_latest_history_entry()
         self._embed.add_field(
             "Last DKP award:",

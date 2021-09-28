@@ -4,6 +4,7 @@ from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerInfoBasic, PlayerDKPHistory, PlayerLoot
 from player_role import RoleFilter
 from display_templates import (
+    BasicCritical,
     SupporterOnlyResponse,
     BasicError,
     BasicInfo,
@@ -623,6 +624,9 @@ class EssentialDKPBot(DKPBot):
                         ResponseStatus.SUCCESS,
                         BasicError("Unable to find data for {0}.".format(param)).get(),
                     )
+        if output_result_list is None:
+            BotLogger().get().error("Output Result List is None!")
+            return Response(ResponseStatus.SUCCESS, BasicCritical("Internal error occured while processing output results.").get())
 
         BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) == 1:

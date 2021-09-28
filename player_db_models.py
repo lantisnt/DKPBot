@@ -69,6 +69,9 @@ class PlayerInfo(PlayerInfoBasic):
         self._lifetime_spent = abs(float(lifetime_spent))
         self._latest_history_entry = None
 
+        self._alts = []
+        self._main = None
+
     def dkp(self):
         return self._dkp
 
@@ -80,6 +83,18 @@ class PlayerInfo(PlayerInfoBasic):
 
     def ingame_class(self):
         return self._ingame_class
+
+    def alts(self):
+        return self._alts
+
+    def main(self):
+        return self._main
+
+    def is_alt(self):
+        return self._main is not None
+
+    def set_main(self, main):
+        self._main = main
 
     def set_latest_loot_entry(self, loot_entry):
         if loot_entry and isinstance(loot_entry, PlayerLoot):
@@ -151,8 +166,6 @@ class PlayerInfo(PlayerInfoBasic):
 class PlayerInfoEPGP(PlayerInfo):
     def __init__(self, player, ep, gp):
         super().__init__(player, ep, gp, 0 if gp == 0 else ep / gp, None, None, None)
-        self._alts = []
-        self._main = None
 
     def ep(self):
         return self.dkp()
@@ -162,15 +175,6 @@ class PlayerInfoEPGP(PlayerInfo):
 
     def pr(self):
         return self.lifetime_spent()
-
-    def alts(self):
-        return self._alts
-
-    def main(self):
-        return self._main
-
-    def is_alt(self):
-        return self._main is not None
 
     def ep_width(self):
         return get_width(self.ep())
@@ -188,9 +192,6 @@ class PlayerInfoEPGP(PlayerInfo):
     def set_latest_history_entry(self, history_entry):
         if history_entry and isinstance(history_entry, PlayerEPGPHistory):
             self._latest_history_entry = history_entry
-
-    def set_main(self, main):
-        self._main = main
 
     def link_alts(self, alt_list):
         if isinstance(alt_list, list):
@@ -406,4 +407,46 @@ class PlayerEPGPHistory(PlayerDKPHistory):
             self._gp,
             self._reason,
             self._officer,
+        )
+
+@for_all_methods(trace, trace_func_only)
+class PlayerInfoCLM(PlayerInfo):
+    def __init__(self, player, dkp, ingame_class, spec):
+        super().__init__(player, dkp, 0, 0, ingame_class, None, spec)
+        self._alts = []
+        self._main = None
+
+        if ingame_class is None or spec is None:
+            self._smart_role = Role(True, True, True, True, True, 0)
+        else:
+            self._smart_role = player_role.get(ingame_class, spec)
+
+    def width(self):
+        return get_width(self.dkp())
+
+    def set_latest_loot_entry(self, loot_entry):
+        if loot_entry and isinstance(loot_entry, PlayerLoot):
+            self._latest_loot_entry = loot_entry
+
+    def set_latest_history_entry(self, history_entry):
+        if history_entry and isinstance(history_entry, PlayerDKPHistory):
+            self._latest_history_entry = history_entry
+
+    def link_alts(self, alt_list):
+        if isinstance(alt_list, list):
+            for alt in alt_list:
+                if not isinstance(alt, PlayerInfoCLM):
+                    self._alts.append(
+                        PlayerInfoCLM(alt, 0, "", 0)
+                    )  # Create dummy object for not existing alts
+                else:
+                    self._alts.append(alt)
+
+    def __str__(self):
+        return "{0} ({1} - {4}) {2} DKP | Active: {3}".format(
+            self._player,
+            self._ingame_class,
+            self._dkp,
+            self._active,
+            self._smart_role,
         )

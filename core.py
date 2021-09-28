@@ -21,7 +21,7 @@ import footprint
 import superuser
 import raidhelper
 
-MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024  # 5MB #3145728 # 3MB
+MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024  # 5MB #3145728 # 3MB
 
 
 class ScriptControl:
