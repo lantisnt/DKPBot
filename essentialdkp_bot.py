@@ -516,13 +516,16 @@ class EssentialDKPBot(DKPBot):
         self._multiple_item_value_output_builder.set_database_info(self._db_get_info())
         # Global
         rounding = self._get_addon_config(["modes", "rounding"])
-        self._single_player_profile_builder.set_info(rounding)
-        self._multiple_dkp_output_builder.set_info(rounding)
-        self._multiple_history_output_builder.set_info(rounding)
-        self._multiple_player_loot_output_builder.set_info(rounding)
-        self._multiple_loot_output_builder.set_info(rounding)
-        self._multiple_item_search_output_builder.set_info(rounding)
-        self._multiple_item_value_output_builder.set_info(rounding)
+        self._set_builder_info(rounding)
+
+    def _set_builder_info(self, info):
+        self._single_player_profile_builder.set_info(info)
+        self._multiple_dkp_output_builder.set_info(info)
+        self._multiple_history_output_builder.set_info(info)
+        self._multiple_player_loot_output_builder.set_info(info)
+        self._multiple_loot_output_builder.set_info(info)
+        self._multiple_item_search_output_builder.set_info(info)
+        self._multiple_item_value_output_builder.set_info(info)
 
     ### Commands ###
 

@@ -5,9 +5,9 @@ from bot_config import DisplayConfig
 from bot_logger import trace, trace_func_only, for_all_methods, BotLogger
 import build_info
 
-INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
-SUPPORT_SERVER = "[Support Server](http://{0})".format(build_info.SUPPORT_SERVER)
-DONATE = "[Donate](http://wowdkpbot.com/donate)"
+INVITE = "[Invite Bot](https://tiny.one/wowdkpbot-invite)"
+SUPPORT_SERVER = "[Support Server](https://{0})".format(build_info.SUPPORT_SERVER)
+DONATE = "[Donate](https://tiny.one/wowdkpbot-donate)"
 
 class WoWVersion(Enum):
     CLASSIC = 0
@@ -544,7 +544,10 @@ class SinglePlayerProfile(BaseResponse):
         if thumbnail:
             thumbnail = get_thumbnail(thumbnail)
 
-        description = info.ingame_class() + " | " + ("Alt of **{0}**".format(info.main().name()) if info.is_alt() else "Main")
+        description = info.ingame_class() + " "
+        description += ("alt of **{0}**".format(info.main().name()) if info.is_alt() else "**Main**")
+        if not info.is_alt() and info.alt_count() > 0:
+            description += " ({0} alts)".format(info.alt_count())
 
         self._embed.build(
             author_name=self._title,

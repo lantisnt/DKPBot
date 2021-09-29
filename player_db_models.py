@@ -70,6 +70,7 @@ class PlayerInfo(PlayerInfoBasic):
         self._latest_history_entry = None
 
         self._alts = []
+        self._altCount = 0
         self._main = None
 
     def dkp(self):
@@ -95,6 +96,12 @@ class PlayerInfo(PlayerInfoBasic):
 
     def set_main(self, main):
         self._main = main
+
+    def increment_alts(self):
+        self._altCount = self._altCount + 1
+
+    def alt_count(self):
+        return self._altCount
 
     def set_latest_loot_entry(self, loot_entry):
         if loot_entry and isinstance(loot_entry, PlayerLoot):
@@ -420,8 +427,6 @@ class PlayerEPGPHistory(PlayerDKPHistory):
 class PlayerInfoCLM(PlayerInfo):
     def __init__(self, player, dkp, ingame_class, spec):
         super().__init__(player, dkp, 0, 0, ingame_class, None, spec)
-        self._alts = []
-        self._main = None
 
         if ingame_class is None or spec is None:
             self._smart_role = Role(True, True, True, True, True, 0)
@@ -438,16 +443,6 @@ class PlayerInfoCLM(PlayerInfo):
     def set_latest_history_entry(self, history_entry):
         if history_entry and isinstance(history_entry, PlayerDKPHistory):
             self._latest_history_entry = history_entry
-
-    def link_alts(self, alt_list):
-        if isinstance(alt_list, list):
-            for alt in alt_list:
-                if not isinstance(alt, PlayerInfoCLM):
-                    self._alts.append(
-                        PlayerInfoCLM(alt, 0, "", 0)
-                    )  # Create dummy object for not existing alts
-                else:
-                    self._alts.append(alt)
 
     def __str__(self):
         return "{0} ({1} - {4}) {2} DKP | Active: {3}".format(

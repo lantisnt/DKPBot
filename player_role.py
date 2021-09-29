@@ -155,7 +155,7 @@ def __get(class_name: str, talents: list):
         elif talents[2] >= 30:
             return Role(False, False, True, True, True, 2)
         else:
-            return Role(False, False, True, True, True, 2)
+            return Role(False, True, True, True, True, 0)
 
     return Role(False, False, False, False, False, 0)
 
