@@ -4,6 +4,7 @@ from dkp_bot import DKPBot, Response, ResponseStatus
 from player_db_models import PlayerInfo, PlayerInfoBasic, PlayerDKPHistory, PlayerLoot
 from player_role import RoleFilter
 from display_templates import (
+    BasicCritical,
     SupporterOnlyResponse,
     BasicError,
     BasicInfo,
@@ -515,13 +516,16 @@ class EssentialDKPBot(DKPBot):
         self._multiple_item_value_output_builder.set_database_info(self._db_get_info())
         # Global
         rounding = self._get_addon_config(["modes", "rounding"])
-        self._single_player_profile_builder.set_info(rounding)
-        self._multiple_dkp_output_builder.set_info(rounding)
-        self._multiple_history_output_builder.set_info(rounding)
-        self._multiple_player_loot_output_builder.set_info(rounding)
-        self._multiple_loot_output_builder.set_info(rounding)
-        self._multiple_item_search_output_builder.set_info(rounding)
-        self._multiple_item_value_output_builder.set_info(rounding)
+        self._set_builder_info(rounding)
+
+    def _set_builder_info(self, info):
+        self._single_player_profile_builder.set_info(info)
+        self._multiple_dkp_output_builder.set_info(info)
+        self._multiple_history_output_builder.set_info(info)
+        self._multiple_player_loot_output_builder.set_info(info)
+        self._multiple_loot_output_builder.set_info(info)
+        self._multiple_item_search_output_builder.set_info(info)
+        self._multiple_item_value_output_builder.set_info(info)
 
     ### Commands ###
 
@@ -623,6 +627,9 @@ class EssentialDKPBot(DKPBot):
                         ResponseStatus.SUCCESS,
                         BasicError("Unable to find data for {0}.".format(param)).get(),
                     )
+        if output_result_list is None:
+            BotLogger().get().error("Output Result List is None!")
+            return Response(ResponseStatus.SUCCESS, BasicCritical("Internal error occured while processing output results.").get())
 
         BotLogger().get().debug("Output Result List: %s", output_result_list)
         if len(output_result_list) == 1:

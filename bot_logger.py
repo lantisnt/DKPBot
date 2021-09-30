@@ -27,7 +27,7 @@ class BotLogger:
             self.stdout_handler = logging.StreamHandler(sys.stdout)
             self.stdout_handler.setFormatter(self.formatter)
 
-            self.set_level(logging.INFO)
+            self.set_level(self.level)
 
         def get(self):
             return self.logger

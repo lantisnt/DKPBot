@@ -4,6 +4,7 @@ import monolithdkp_bot
 import communitydkp_bot
 import classicepgp_bot
 import rclc_bot
+import clm_bot
 from bot_logger import BotLogger
 
 
@@ -22,5 +23,7 @@ def new(guild_id, config: bot_config.BotConfig):
         return classicepgp_bot.CEPGPBot(guild_id, config)
     elif config.guild_info.bot_type == "rclc":
         return rclc_bot.RCLCBot(guild_id, config)
+    elif config.guild_info.bot_type == "clm":
+        return clm_bot.CLMBot(guild_id, config)
     else:
         return None

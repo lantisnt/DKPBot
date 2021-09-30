@@ -5,9 +5,9 @@ from bot_config import DisplayConfig
 from bot_logger import trace, trace_func_only, for_all_methods, BotLogger
 import build_info
 
-INVITE = "[Invite Bot](http://wowdkpbot.com/invite)"
-SUPPORT_SERVER = "[Support Server](http://{0})".format(build_info.SUPPORT_SERVER)
-DONATE = "[Donate](http://wowdkpbot.com/donate)"
+INVITE = "[Invite Bot](https://tiny.one/wowdkpbot-invite)"
+SUPPORT_SERVER = "[Support Server](https://{0})".format(build_info.SUPPORT_SERVER)
+DONATE = "[Donate](https://tiny.one/wowdkpbot-donate)"
 
 class WoWVersion(Enum):
     CLASSIC = 0
@@ -228,13 +228,14 @@ def get_thumbnail(class_name):
 
 
 @trace
-def get_points_format_string(width, rounding, value_suffix):
-    return "`{{0:{0}.{1}f}}{2}`".format(width, rounding, " DKP" if value_suffix else "")
+def get_points_format_string(width, rounding, value_suffix, percentage=False):
+    return "`{{0:{0}.{1}f}}{3}{2}`".format(width, rounding, " DKP" if value_suffix else "", "%" if percentage else " ")
 
 
 @trace
 def get_history_format_string(width, rounding, value_suffix):
-    return get_points_format_string(width, rounding, value_suffix)
+    return (get_points_format_string(width, rounding, value_suffix, False),
+            get_points_format_string(width, rounding, value_suffix, True))
 
 
 @trace
@@ -270,7 +271,10 @@ def generate_dkp_history_entry(
         if enable_icons:
             row += get_plus_minus_icon_string(history_entry.dkp() > 0) + " "
         row += "`{0:16}` - ".format(get_date_from_timestamp(history_entry.timestamp(), timezone))
-        row += format_string.format(history_entry.dkp())
+        if history_entry.percentage():
+            row += format_string[1].format(history_entry.dkp())
+        else:
+            row += format_string[0].format(history_entry.dkp())
         row += " - {0} _by {1}_".format(history_entry.reason(), history_entry.officer())
         row += "\n"
         return row
@@ -540,10 +544,16 @@ class SinglePlayerProfile(BaseResponse):
         if thumbnail:
             thumbnail = get_thumbnail(thumbnail)
 
+        description = info.ingame_class() + " "
+        description += ("alt of **{0}**".format(info.main().name()) if info.is_alt() else "**Main**")
+        if not info.is_alt() and info.alt_count() > 0:
+            description += " ({0} alts)".format(info.alt_count())
+
         self._embed.build(
             author_name=self._title,
             title=info.player().name(),
-            description=info.ingame_class(),
+            # description=info.ingame_class(),
+            description=description,
             thumbnail_url=thumbnail,
             color=get_class_color(info.ingame_class()),
             footer_text=self._get_footer(),
@@ -551,12 +561,14 @@ class SinglePlayerProfile(BaseResponse):
 
         dkp_format = "`{{0:.{0}f}} DKP`".format(self._rounding)
         self._embed.add_field("Current:", dkp_format.format(info.dkp()), False)
-        self._embed.add_field(
-            "Lifetime gained:", dkp_format.format(info.lifetime_gained()), True
-        )
-        self._embed.add_field(
-            "Lifetime spent:", dkp_format.format(info.lifetime_spent()), True
-        )
+        if info.lifetime_gained() > 0:
+            self._embed.add_field(
+                "Lifetime gained:", dkp_format.format(info.lifetime_gained()), True
+            )
+        if info.lifetime_spent() > 0:
+            self._embed.add_field(
+                "Lifetime spent:", dkp_format.format(info.lifetime_spent()), True
+            )
         history = info.get_latest_history_entry()
         self._embed.add_field(
             "Last DKP award:",
@@ -784,8 +796,9 @@ class DKPMultipleResponse(MultipleResponse):
 
         data_list_min = min(data_list, key=get_dkp)
         data_list_max = max(data_list, key=get_dkp)
-
+    
         float_extend = 0 if self._rounding == 0 else self._rounding + 1
+
         value_width = (
             max(len(str(int(data_list_min.dkp()))), len(str(int(data_list_max.dkp()))))
             + float_extend

@@ -503,6 +503,11 @@ class DKPBot:
     def _finalize_database(self):
         return
 
+    def dump_database(self):
+        import pprint
+        with open("dbdump.log", "w") as log_file:
+            pprint.pprint(self.__db, log_file)
+
     def _get_dkp(self, player, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
@@ -1097,7 +1102,7 @@ class DKPBot:
         embed = RawEmbed()
         embed.build(None, "Info", None, None, get_bot_color(), None)
         info_string = "WoW DKP Bot allows querying DKP/EPGP/RCLootCouncil standings, history and loot data directly through the discord."
-        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `MonolithDKP`, `EssentialDKP`, `CommunityDKP`, `CEPGP` and `RCLootCouncil` to a discord channel.\n"
+        info_string += "This is achieved by parsing uploaded saved variable .lua files of popular addons: `Classic Loot Manager`, `MonolithDKP`, `EssentialDKP`, `CommunityDKP`, `CEPGP` and `RCLootCouncil` to a discord channel.\n"
         embed.add_field("\u200b", info_string, False)
         info_string = "Due to many possible usages of the addons and discord limitations bot data may exceed maxium accetable size. To mitigate this issue extensive `display` configuration is available to tweak response sizes."
         embed.add_field("\u200b", info_string, False)
@@ -1146,7 +1151,7 @@ class DKPBot:
                 "Current:   {0}\n".format(self.__config.guild_info.bot_type.lower())
             )
             string += preformatted_block(
-                "Supported: essential monolith community cepgp rclc"
+                "Supported: clm essential monolith community cepgp rclc"
             )
             embed.add_field("bot-type", string, False)
             # timezone
@@ -1207,7 +1212,7 @@ class DKPBot:
             if num_teams > 0:
                 string += preformatted_block("Current:") + "\n"
                 for channel, team in self._channel_team_map.items():
-                    string += "`Team {1}` <#{0}>\n".format(channel, team)
+                    string += "`Team [{1}]: ` <#{0}>\n".format(channel, team)
             else:
                 string += preformatted_block("Current:   none") + "\n"
             embed.add_field("team", string, False)
@@ -1503,7 +1508,7 @@ class DKPBot:
     ):  # pylint: disable=unused-argument
         if num_params == 2:
             value = params[1]
-            if value in ["community", "monolith", "essential", "cepgp", "rclc"]:
+            if value in ["clm", "community", "monolith", "essential", "cepgp", "rclc"]:
                 current = self.__config.guild_info.bot_type
                 if value == current:
                     return Response(
@@ -1522,6 +1527,8 @@ class DKPBot:
                             self.__config.guild_info.filename = "RCLootCouncil_Classic.lua"
                         else:
                             self.__config.guild_info.filename = "RCLootCouncil.lua"
+                    elif value == "clm":
+                        self.__config.guild_info.filename = "ClassicLootManager.lua"
                     else:
                         self.__config.guild_info.filename = (
                             value.capitalize() + "DKP.lua"
@@ -1750,9 +1757,10 @@ class DKPBot:
             teams = self._get_addon_config(["teams"])
             if isinstance(teams, dict) and len(teams) > 0:
                 team_data = "```"
-                team_data += "Id   Name\n"
+                fmt = "{{0:{0}}} {{1}}\n".format(max(list(map(len, teams.keys()))))
+                team_data += fmt.format("Id", "Name")
                 for team_id, team_info in teams.items():
-                    team_data += "{0:2}   {1}\n".format(team_id, team_info.get("name"))
+                    team_data += fmt.format(team_id, team_info.get("name"))
                 team_data += "```"
                 return Response(ResponseStatus.SUCCESS, BasicInfo(team_data).get())
             else:
@@ -1760,7 +1768,8 @@ class DKPBot:
                     ResponseStatus.SUCCESS, BasicError("No teams found").get()
                 )
         elif num_params >= 2:
-            if self._set_channel_team_mapping(channel, params[1]):
+            teamId =  " ".join(params[1:])
+            if self._set_channel_team_mapping(channel, teamId):
                 error_text = ""
             else:
                 error_text = (
@@ -1769,8 +1778,8 @@ class DKPBot:
             return Response(
                 ResponseStatus.SUCCESS,
                 BasicSuccess(
-                    "Registered channel <#{0}> to handle team {1}. {2}".format(
-                        channel, params[1], error_text
+                    "Registered channel <#{0}> to handle team `{1}`. {2}".format(
+                        channel, teamId, error_text
                     )
                 ).get(),
             )

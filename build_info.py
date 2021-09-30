@@ -1,2 +1,2 @@
-VERSION = "v1.9.2"
-SUPPORT_SERVER = "wowdkpbot.com/discord"
+VERSION = "v1.10.0"
+SUPPORT_SERVER = "tiny.one/wowdkpbot-discord"
