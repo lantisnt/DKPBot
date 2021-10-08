@@ -7,6 +7,7 @@ import pytz
 from configparser import ConfigParser
 
 import disnake
+from disnake.ext import commands
 
 import build_info
 import dkp_bot
@@ -22,7 +23,6 @@ import superuser
 import raidhelper
 
 MAX_ATTACHMENT_BYTES = 25 * 1024 * 1024  # 5MB #3145728 # 3MB
-
 
 class ScriptControl:
     __initialized = False
@@ -48,7 +48,9 @@ class ScriptControl:
 
 # Global objects
 script_control = ScriptControl()
-client = disnake.Client(chunk_guilds_at_startup=False)
+# client = disnake.Client(chunk_guilds_at_startup=False)
+discord_bot = commands.Bot(command_prefix="", test_guilds=[746131486234640444]) 
+# discord_bot = commands.InteractionBot(command_prefix="", test_guilds=[746131486234640444]) # no messages parsing # TBD
 bots = {}
 activity = LoopActivity("")
 activity.update({"booting": "booting..."})
@@ -57,10 +59,10 @@ super_user = superuser.Superuser()
 
 async def discord_update_activity():
     BotLogger().get().info("Presence awaiting ready")
-    await client.wait_until_ready()
+    await discord_bot.wait_until_ready()
     BotLogger().get().info("Presence running")
     while True:
-        await client.change_presence(activity=activity.next())
+        await discord_bot.change_presence(activity=activity.next())
         await asyncio.sleep(30)
 
 
@@ -127,9 +129,9 @@ def main(control: ScriptControl):
     # Register atexit script
     atexit.register(cleanup)
     # Create inifite task
-    client.loop.create_task(discord_update_activity())
+    discord_bot.loop.create_task(discord_update_activity())
     # Run client listener
-    client.run(control.token)
+    discord_bot.run(control.token)
 
 
 # Utility
@@ -139,13 +141,13 @@ def initialize_activity_data():
         {
             "version": "{0}".format(build_info.VERSION),
             "discord": "{0}".format(build_info.SUPPORT_SERVER),
-            "help": "@mention me for help",
+            "slash": "Check out new /slash commands!",
         }
     )
 
 
 def update_activity_data():
-    activity.update({"servers": "{0} servers".format(len(client.guilds))})
+    activity.update({"servers": "{0} servers".format(len(discord_bot.guilds))})
 
 
 # Error handling
@@ -220,9 +222,39 @@ def get_request_info(message: disnake.Message):
 
     for channel_mention in message.channel_mentions:
         if isinstance(channel_mention, disnake.TextChannel):
-            # bot_permissions =  client.user.permissions_in(channel_mention)
+            # bot_permissions =  discord_bot.user.permissions_in(channel_mention)
             # if bot_permissions.read_messages and bot_permissions.send_messages:
             request_info["mentions"]["channels"].append(channel_mention.id)
+
+    return request_info
+
+@trace
+def get_interaction_request_info(interaction: disnake.Interaction):
+    # Normalize author
+    author = normalize_author(interaction.author)
+
+    # Check if user is privileged user (administrator)
+    is_privileged = False
+    if isinstance(interaction.author, disnake.Member):
+        is_privileged = interaction.channel.permissions_for(interaction.author).administrator
+
+    request_info = {
+        "server": {"name": interaction.guild.name, "id": interaction.guild.id},
+        "author": {"name": author, "id": interaction.author.id, "raw": interaction.author.name},
+        "channel": {"name": interaction.channel.name, "id": interaction.channel.id},
+        "is_privileged": is_privileged,
+        "mentions": {"roles": [], "channels": []},
+    }
+
+    # for role_mention in interaction.role_mentions:
+    #     if role_mention.mentionable:
+    #         request_info["mentions"]["roles"].append(role_mention.id)
+
+    # for channel_mention in message.channel_mentions:
+    #     if isinstance(channel_mention, disnake.TextChannel):
+    #         # bot_permissions =  discord_bot.user.permissions_in(channel_mention)
+    #         # if bot_permissions.read_messages and bot_permissions.send_messages:
+    #         request_info["mentions"]["channels"].append(channel_mention.id)
 
     return request_info
 
@@ -348,11 +380,11 @@ async def discord_delete(handle):
 async def discord_announce(bot: dkp_bot.DKPBot, channels):
     announcement_channel = None
     for channel in channels:
-        if channel.id == bot.get_announcement_channel():
+        if channel.id == discord_bot.get_announcement_channel():
             announcement_channel = channel
             break
     if announcement_channel is not None:
-        await discord_respond(announcement_channel, bot.get_announcement())
+        await discord_respond(announcement_channel, discord_bot.get_announcement())
         return
 
     BotLogger().get().debug("Announcement channel not found")
@@ -453,22 +485,22 @@ async def spawn_bot(guild):
 
 
 @trace
-async def handle_bot_response(
-    message: disnake.Message, request_info: dict, response: dkp_bot.Response
+async def handle_response_as_message(
+    interaction: disnake.Interaction, request_info: dict, response: dkp_bot.Response
 ):
     if response and isinstance(response, dkp_bot.Response):
         ## SUCCESS
         if response.status == dkp_bot.ResponseStatus.SUCCESS:
             response_channel = await discord_get_response_channel(
-                message, response.direct_message
+                interaction, response.direct_message
             )
             if response.direct_message:
                 if isinstance(response_channel, disnake.DMChannel):
                     await discord_respond(response_channel, response.data)
-                    await discord_delete(message)
+                    # await discord_delete(interaction)
                 else:
                     BotLogger().get().warning(
-                        "Unable to respond on DM to message %s", message
+                        "Unable to respond on DM to message %s", interaction
                     )
                     await discord_respond(
                         response_channel,
@@ -484,12 +516,12 @@ async def handle_bot_response(
             guild = None
             if response.data in bots.keys():
                 bots[response.data].shutdown()
-                for _guild in client.guilds:
+                for _guild in discord_bot.guilds:
                     if _guild.id == response.data:
                         guild = _guild
             if guild is not None:
                 response_channel = await discord_get_response_channel(
-                    message, response.direct_message
+                    interaction, response.direct_message
                 )
                 spawned = await spawn_bot(guild)  # Respawn bot
                 if spawned:
@@ -508,21 +540,19 @@ async def handle_bot_response(
                 BotLogger().get().error(
                     "Reload invalid bot id %s on channel [%s (%d)]",
                     response.data,
-                    message.channel.name,
-                    message.channel.id,
+                    interaction.channel.name,
+                    interaction.channel.id,
                 )
         ## DELEGATE
         elif response.status == dkp_bot.ResponseStatus.DELEGATE:
             return super_user.handle(response.data[0], response.data[1], request_info)
-    #        elif (response.status == dkp_bot.ResponseStatus.SHUTDOWN):
-    #            cleanup()
 
     return None
 
 
 # Discord API
 @trace
-@client.event
+@discord_bot.event
 async def on_guild_join(guild):
     try:
         await spawn_bot(guild)
@@ -532,29 +562,29 @@ async def on_guild_join(guild):
 
 
 @trace
-@client.event
+@discord_bot.event
 async def on_connect():
     BotLogger().get().info("Connected to discord gateway")
 
 
 @trace
-@client.event
+@discord_bot.event
 async def on_disconnect():
     BotLogger().get().info("Disconnected from discord gateway")
 
 
 @trace
-@client.event
+@discord_bot.event
 async def on_ready():
     try:
         if script_control.is_initialized():
             return
 
         BotLogger().get().info(
-            "Starting initializing bot for {0} servers".format(len(client.guilds))
+            "Starting initializing bot for {0} servers".format(len(discord_bot.guilds))
         )
 
-        for guild in client.guilds:
+        for guild in discord_bot.guilds:
             await spawn_bot(guild)
 
         initialize_activity_data()
@@ -568,11 +598,11 @@ async def on_ready():
 
 
 @trace
-@client.event
+@discord_bot.event
 async def on_message(message):
     try:
         # Don't react to own messages
-        if message.author == client.user:
+        if message.author == discord_bot.user:
             return
 
         # Block DMChannel at all
@@ -600,17 +630,17 @@ async def on_message(message):
             request_info,
         )
 
-        response = None
-        if client.user in message.mentions:
-            # Handle bot mention
-            response = bot.call_help("", request_info)
-        else:
-            # Handle command
-            response = bot.handle(message.clean_content, request_info)
+        # response = None
+        # if discord_bot.user in message.mentions:
+        #     # Handle bot mention
+        #     response = bot.call_help("", request_info)
+        # else:
+        # Handle command
+        response = bot.handle(message.clean_content, request_info)
 
         delegation_limit = 2
         while (response is not None) and (delegation_limit > 0):
-            response = await handle_bot_response(message, request_info, response)
+            response = await handle_response_as_message(message, request_info, response)
             delegation_limit = delegation_limit - 1
 
         # No command response
@@ -623,6 +653,161 @@ async def on_message(message):
     except Exception as exception:
         handle_exception(message.content, exception)
 
+@trace
+async def handle_call(interaction, params, request, private_response=False):
+    await interaction.response.defer()
+    fallback = True
+
+    try:
+        # pass
+        # # Don't react to own messages
+        # if interaction.author == discord_bot.user:
+        #     return
+
+        # Block DMChannel at all
+        if isinstance(interaction.channel, disnake.DMChannel):
+            return
+
+        # # Add per-server ratelimiting
+
+        # Check if we have proper bot for the requester
+        bot = bots.get(interaction.guild.id)
+        if not isinstance(bot, dkp_bot.DKPBot):
+            if script_control.is_initialized():
+                BotLogger().get().critical(
+                    "Missing bot for %s (%d)", interaction.guild.name, interaction.guild.id
+                )
+            return
+
+        request_info = get_interaction_request_info(interaction)
+        BotLogger().get().debug(
+            "Interaction with user [%s (%d)] in [%s (%d)] info %s -> (%s)",
+            interaction.author,
+            interaction.author.id,
+            interaction.guild.name,
+            interaction.guild.id,
+            request_info,
+            params
+        )
+
+        # response = None
+        # if discord_bot.user in message.mentions:
+        #     # Handle bot mention
+        #     response = bot.call_help("", request_info)
+        # else:
+        # Handle command
+        separator = " "
+        if params is None:
+            separator = ""
+            params = ""
+
+        response = bot.handle(bot.get_prefix() + request + separator + params, request_info)
+
+        delegation_limit = 2
+        while (response is not None) and (delegation_limit > 0):
+            response = await handle_response_as_message(interaction, request_info, response)
+            delegation_limit = delegation_limit - 1
+
+        # No command response
+        # Check if we have attachment on registered channel
+        # if (
+        #     bot.is_channel_registered() and bot.check_channel(interaction.channel.id)
+        # ) or not bot.is_channel_registered():
+        #     await discord_attachment_check(bot, interaction, interaction.author, True)
+    except Exception as exception:
+        handle_exception(params, exception)
+    
+    if fallback:
+        await interaction.edit_original_message(content="Internal Error")
+
+#########################
+### DISCORD Menu CMDS ###
+#########################
+
+@discord_bot.message_command(name="DKP", guild_ids=[746131486234640444])
+async def message_dkp(interaction: disnake.ApplicationCommandInteraction):
+    await handle_call(interaction, normalize_author(interaction.author), 'dkp')
+
+@discord_bot.message_command(name="Raid Loot", guild_ids=[746131486234640444])
+async def message_raidloot(interaction: disnake.ApplicationCommandInteraction):
+    await handle_call(interaction, "", 'raidloot')
+
+##########################
+### DISCORD Slash CMDS ###
+##########################
+
+@discord_bot.slash_command(description="Request player or group DKP.")
+async def dkp(interaction: disnake.ApplicationCommandInteraction,
+        target: str=commands.Param(description="Player name(s), class(es) or alias(es).", default=None),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
+    ):
+    await handle_call(interaction, target, 'dkp')
+    
+    
+@discord_bot.slash_command(description="Request player or point history.")
+async def history(interaction: disnake.ApplicationCommandInteraction,
+        target: str=commands.Param(description="Player name.", default=None),
+        paging: int=commands.Param(description="Older data offset.", default=0),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
+    ):
+    await handle_call(interaction, target, 'history')
+
+@discord_bot.slash_command(description="Request player or loot history.")
+async def loot(interaction: disnake.ApplicationCommandInteraction,
+        target: str=commands.Param(description="Player name.", default=None),
+        paging: int=commands.Param(description="Older data offset.", default=0),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
+    ):
+    await handle_call(interaction, target, 'loot')
+
+@discord_bot.slash_command(description="Request recent raid loot. Supporter only command.")
+async def raidloot(interaction: disnake.ApplicationCommandInteraction,
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
+    ):
+    await handle_call(interaction, "", 'raidloot')
+
+@discord_bot.slash_command(description="Search for item. Supporter only command.")
+async def item(interaction: disnake.ApplicationCommandInteraction,
+        item: str=commands.Param(description="Part of item name"),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
+    ):
+    await handle_call(interaction, item, 'item')
+
+@discord_bot.slash_command(description="Check item value. Supporter only command.")
+async def value(interaction: disnake.ApplicationCommandInteraction,
+        item: str=commands.Param(description="Part of item name"),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
+    ):
+    await handle_call(interaction, item, 'value')
+
+@discord_bot.slash_command(description="Configure bot. Administrator only command.")
+async def config(interaction: disnake.ApplicationCommandInteraction,
+        params: str=commands.Param(description="Raw text params - for now.", default="dummy"),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, params, 'config')
+
+@discord_bot.slash_command(description="Update display settings. Administrator only command.")
+async def display(interaction: disnake.ApplicationCommandInteraction,
+        params: str=commands.Param(description="Raw text params - for now.", default="dummy"),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, params, 'display')
+
+@discord_bot.slash_command(description="Help!")
+async def help(interaction: disnake.ApplicationCommandInteraction,
+        params: str=commands.Param(description="Raw text params - for now.", default="dummy"),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "", 'help')
+
+@discord_bot.slash_command(description="Info!")
+async def info(interaction: disnake.ApplicationCommandInteraction,
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "", 'info')
+
+####################
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:

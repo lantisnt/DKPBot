@@ -1,5 +1,5 @@
 import collections
-from discord import Game
+from disnake import Game
 from bot_logger import trace, trace_func_only, for_all_methods
 
 
