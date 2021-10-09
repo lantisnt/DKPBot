@@ -728,6 +728,14 @@ async def handle_call(interaction, params, request, private_response=False):
 async def message_dkp(interaction: disnake.ApplicationCommandInteraction):
     await handle_call(interaction, normalize_author(interaction.author), 'dkp')
 
+@discord_bot.message_command(name="EPGP", guild_ids=[746131486234640444])
+async def message_epgp(interaction: disnake.ApplicationCommandInteraction):
+    await handle_call(interaction, normalize_author(interaction.author), 'epgp')
+
+@discord_bot.message_command(name="RCLC", guild_ids=[746131486234640444])
+async def message_rc(interaction: disnake.ApplicationCommandInteraction):
+    await handle_call(interaction, normalize_author(interaction.author), 'rc')
+
 @discord_bot.message_command(name="Raid Loot", guild_ids=[746131486234640444])
 async def message_raidloot(interaction: disnake.ApplicationCommandInteraction):
     await handle_call(interaction, "", 'raidloot')
@@ -743,7 +751,20 @@ async def dkp(interaction: disnake.ApplicationCommandInteraction,
     ):
     await handle_call(interaction, target, 'dkp')
     
-    
+@discord_bot.slash_command(description="Request player or group EPGP.")
+async def epgp(interaction: disnake.ApplicationCommandInteraction,
+        target: str=commands.Param(description="Player name(s), class(es) or alias(es).", default=None),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
+    ):
+    await handle_call(interaction, target, 'epgp')
+
+@discord_bot.slash_command(description="Request player RCLC Info.")
+async def rc(interaction: disnake.ApplicationCommandInteraction,
+        target: str=commands.Param(description="Player name.", default=None),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
+    ):
+    await handle_call(interaction, target, 'rc')
+
 @discord_bot.slash_command(description="Request player or point history.")
 async def history(interaction: disnake.ApplicationCommandInteraction,
         target: str=commands.Param(description="Player name.", default=None),
@@ -780,20 +801,6 @@ async def value(interaction: disnake.ApplicationCommandInteraction,
     ):
     await handle_call(interaction, item, 'value')
 
-@discord_bot.slash_command(description="Configure bot. Administrator only command.")
-async def config(interaction: disnake.ApplicationCommandInteraction,
-        params: str=commands.Param(description="Raw text params - for now.", default="dummy"),
-        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
-    ):
-    await handle_call(interaction, params, 'config')
-
-@discord_bot.slash_command(description="Update display settings. Administrator only command.")
-async def display(interaction: disnake.ApplicationCommandInteraction,
-        params: str=commands.Param(description="Raw text params - for now.", default="dummy"),
-        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
-    ):
-    await handle_call(interaction, params, 'display')
-
 @discord_bot.slash_command(description="Help!")
 async def help(interaction: disnake.ApplicationCommandInteraction,
         params: str=commands.Param(description="Raw text params - for now.", default="dummy"),
@@ -806,6 +813,39 @@ async def info(interaction: disnake.ApplicationCommandInteraction,
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
     await handle_call(interaction, "", 'info')
+
+### Config ###
+
+@discord_bot.slash_command()
+async def config(interaction):
+    pass
+
+@config.sub_command(name="summary", description="Display configuration summary. Administrator only command.")
+async def config_summary(interaction: disnake.ApplicationCommandInteraction,
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, None, 'config')
+
+@config.sub_command(name="reload", description="Reload the bot. Required to apply some of the configuration changes. Administrator only command.")
+async def config_reload(interaction: disnake.ApplicationCommandInteraction,
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "reload", 'config')
+
+@config.sub_command(name="default", description="Instantly reset bot configuration to default. Administrator only command.")
+async def config_default(interaction: disnake.ApplicationCommandInteraction,
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "default", 'config')
+
+## Display ###
+
+@discord_bot.slash_command(description="Update display settings. Administrator only command.")
+async def display(interaction: disnake.ApplicationCommandInteraction,
+        params: str=commands.Param(description="Raw text params - for now.", default="dummy"),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, params, 'display')
 
 ####################
 
