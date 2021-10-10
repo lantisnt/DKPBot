@@ -414,19 +414,24 @@ class DKPBot:
         else:
             return None
 
-    def __handle_command(self, command, param, request_info):
-        method = ""
-        sanitized_command = ""
+    def is_direct_response(self, command, request_info):
         direct_message = self.__direct_message_response
         if command[0] == self.__prefix:
             if len(command) > 1 and command[1] == self.__prefix:
-                sanitized_command = command[2:]  # remove second ! also
                 if not self.__block_response_modifier or (
                     self.__block_response_modifier and request_info["is_privileged"]
                 ):
                     direct_message = (
                         not self.__direct_message_response
                     )  # direct message
+        return direct_message
+
+    def __handle_command(self, command, param, request_info):
+        method = ""
+        sanitized_command = ""
+        if command[0] == self.__prefix:
+            if len(command) > 1 and command[1] == self.__prefix:
+                sanitized_command = command[2:]  # remove second prefix also
             else:
                 sanitized_command = command[1:]
             method = "call_" + sanitized_command
@@ -451,7 +456,7 @@ class DKPBot:
             self.statistics.data[sanitized_command] = 1000 * (
                 timestamp_now() - start
             )  # miliseconds
-            response.direct_message = direct_message
+            response.direct_message = self.is_direct_response(command, request_info)
             if sanitized_command not in [
                 "config",
                 "display",

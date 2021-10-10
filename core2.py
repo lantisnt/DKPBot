@@ -3,7 +3,10 @@ import io
 import atexit
 import pickle
 import asyncio
+import concurrent.futures
 import pytz
+from typing import List
+from enum import Enum
 from configparser import ConfigParser
 
 import disnake
@@ -159,7 +162,6 @@ def handle_exception(note, exception):
     BotLogger().get().error(exception, exc_info=True, stack_info=True)
     BotLogger().get().error("====== END ======")
 
-
 # Data related
 @trace
 def pickle_data(uid, data):
@@ -229,7 +231,7 @@ def get_request_info(message: disnake.Message):
     return request_info
 
 @trace
-def get_interaction_request_info(interaction: disnake.Interaction):
+def get_interaction_request_info(interaction: disnake.Interaction, channels: List[disnake.abc.GuildChannel], roles:List[disnake.Role]):
     # Normalize author
     author = normalize_author(interaction.author)
 
@@ -246,15 +248,15 @@ def get_interaction_request_info(interaction: disnake.Interaction):
         "mentions": {"roles": [], "channels": []},
     }
 
-    # for role_mention in interaction.role_mentions:
-    #     if role_mention.mentionable:
-    #         request_info["mentions"]["roles"].append(role_mention.id)
+    for role in roles:
+        if role.mentionable:
+            request_info["mentions"]["roles"].append(role.id)
 
-    # for channel_mention in message.channel_mentions:
-    #     if isinstance(channel_mention, disnake.TextChannel):
-    #         # bot_permissions =  discord_bot.user.permissions_in(channel_mention)
-    #         # if bot_permissions.read_messages and bot_permissions.send_messages:
-    #         request_info["mentions"]["channels"].append(channel_mention.id)
+    for channel in channels:
+        if isinstance(channel, disnake.TextChannel):
+            # bot_permissions =  channel.permissions_for(discord_bot.user)
+            # if bot_permissions.read_messages and bot_permissions.send_messages:
+            request_info["mentions"]["channels"].append(channel.id)
 
     return request_info
 
@@ -415,18 +417,17 @@ async def discord_attachment_check(
                     message.guild.name,
                     message.guild.id,
                 )
-                response = bot.build_database(
-                    attachment_bytes.decode("utf-8", errors="replace"), info
-                )
-                if response.status == dkp_bot.ResponseStatus.SUCCESS:
-                    if (
-                        announce and bot.is_announcement_channel_registered()
-                    ):  # announce
-                        await discord_announce(bot, message.guild.channels)
-                    await discord_respond(message.channel, response.data)
-                elif response.status == dkp_bot.ResponseStatus.ERROR:
-                    await discord_respond(message.channel, response.data)
-                return response.status
+                with concurrent.futures.ThreadPoolExecutor() as pool:
+                    response = await discord_bot.loop.run_in_executor(pool, bot.build_database, attachment_bytes.decode("utf-8", errors="replace"), info)
+                    if response.status == dkp_bot.ResponseStatus.SUCCESS:
+                        if (
+                            announce and bot.is_announcement_channel_registered()
+                        ):  # announce
+                            await discord_announce(bot, message.guild.channels)
+                        await discord_respond(message.channel, response.data)
+                    elif response.status == dkp_bot.ResponseStatus.ERROR:
+                        await discord_respond(message.channel, response.data)
+                    return response.status
             else:
                 BotLogger().get().debug(
                     "Ignoring file [%s] with size [%d B] on channel [%s (%d)] in [%s (%d)]",
@@ -553,6 +554,11 @@ async def handle_response_as_message(
 # Discord API
 @trace
 @discord_bot.event
+async def on_error(event, *args, **kwargs):
+    handle_exception("discord_bot on_error()", event)
+
+@trace
+@discord_bot.event
 async def on_guild_join(guild):
     try:
         await spawn_bot(guild)
@@ -571,7 +577,6 @@ async def on_connect():
 @discord_bot.event
 async def on_disconnect():
     BotLogger().get().info("Disconnected from discord gateway")
-
 
 @trace
 @discord_bot.event
@@ -654,10 +659,8 @@ async def on_message(message):
         handle_exception(message.content, exception)
 
 @trace
-async def handle_call(interaction, params, request, private_response=False):
-    await interaction.response.defer()
-    fallback = True
-
+async def handle_call(interaction, params, request, channels=[], roles=[], private_response=False):
+    defered = False
     try:
         # pass
         # # Don't react to own messages
@@ -666,6 +669,7 @@ async def handle_call(interaction, params, request, private_response=False):
 
         # Block DMChannel at all
         if isinstance(interaction.channel, disnake.DMChannel):
+            await interaction.response.send_message("DM commands are not supported")
             return
 
         # # Add per-server ratelimiting
@@ -677,37 +681,39 @@ async def handle_call(interaction, params, request, private_response=False):
                 BotLogger().get().critical(
                     "Missing bot for %s (%d)", interaction.guild.name, interaction.guild.id
                 )
+                await interaction.response.send_message("Missing bot for " + interaction.guild.name)
             return
 
-        request_info = get_interaction_request_info(interaction)
-        BotLogger().get().debug(
-            "Interaction with user [%s (%d)] in [%s (%d)] info %s -> (%s)",
-            interaction.author,
-            interaction.author.id,
-            interaction.guild.name,
-            interaction.guild.id,
-            request_info,
-            params
-        )
+        # preprocess command and request info into backwards compatible API
+        request_info = get_interaction_request_info(interaction, channels, roles)
 
-        # response = None
-        # if discord_bot.user in message.mentions:
-        #     # Handle bot mention
-        #     response = bot.call_help("", request_info)
-        # else:
-        # Handle command
         separator = " "
         if params is None:
             separator = ""
             params = ""
 
-        response = bot.handle(bot.get_prefix() + request + separator + params, request_info)
+        prefix = bot.get_prefix()
+        if private_response:
+            prefix = prefix*2
+        ## Build the old API command
+        command = prefix + request + separator + params
+        ## Defer sending response based on bot config
+        await interaction.response.defer(ephemeral=bot.is_direct_response(command, request_info))
+        defered = True
+        BotLogger().get().debug(
+            "Interaction with user [%s (%d)] in [%s (%d)] info %s (%s) -> %s",
+            interaction.author, interaction.author.id, interaction.guild.name, interaction.guild.id, request_info,
+            params, command
+        )
+        ## handle command
+        response = bot.handle(command, request_info)
 
         delegation_limit = 2
         while (response is not None) and (delegation_limit > 0):
             response = await handle_response_as_message(interaction, request_info, response)
             delegation_limit = delegation_limit - 1
 
+        await interaction.edit_original_message(content="<<< NOT YET IMPLEMENTED >>>")
         # No command response
         # Check if we have attachment on registered channel
         # if (
@@ -716,9 +722,10 @@ async def handle_call(interaction, params, request, private_response=False):
         #     await discord_attachment_check(bot, interaction, interaction.author, True)
     except Exception as exception:
         handle_exception(params, exception)
-    
-    if fallback:
-        await interaction.edit_original_message(content="Internal Error")
+        if defered:
+            await interaction.edit_original_message(content="Internal Error Occured. Please try again.")
+        else:
+            await interaction.response.send_message(content="Internal Error Occured. Please try again.", ephemeral=True)
 
 #########################
 ### DISCORD Menu CMDS ###
@@ -749,21 +756,21 @@ async def dkp(interaction: disnake.ApplicationCommandInteraction,
         target: str=commands.Param(description="Player name(s), class(es) or alias(es).", default=None),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
     ):
-    await handle_call(interaction, target, 'dkp')
+    await handle_call(interaction, target, 'dkp', private_response=private)
     
 @discord_bot.slash_command(description="Request player or group EPGP.")
 async def epgp(interaction: disnake.ApplicationCommandInteraction,
         target: str=commands.Param(description="Player name(s), class(es) or alias(es).", default=None),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
     ):
-    await handle_call(interaction, target, 'epgp')
+    await handle_call(interaction, target, 'epgp', private_response=private)
 
 @discord_bot.slash_command(description="Request player RCLC Info.")
 async def rc(interaction: disnake.ApplicationCommandInteraction,
         target: str=commands.Param(description="Player name.", default=None),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
     ):
-    await handle_call(interaction, target, 'rc')
+    await handle_call(interaction, target, 'rc', private_response=private)
 
 @discord_bot.slash_command(description="Request player or point history.")
 async def history(interaction: disnake.ApplicationCommandInteraction,
@@ -771,7 +778,7 @@ async def history(interaction: disnake.ApplicationCommandInteraction,
         paging: int=commands.Param(description="Older data offset.", default=0),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
     ):
-    await handle_call(interaction, target, 'history')
+    await handle_call(interaction, target, 'history', private_response=private)
 
 @discord_bot.slash_command(description="Request player or loot history.")
 async def loot(interaction: disnake.ApplicationCommandInteraction,
@@ -779,40 +786,40 @@ async def loot(interaction: disnake.ApplicationCommandInteraction,
         paging: int=commands.Param(description="Older data offset.", default=0),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
     ):
-    await handle_call(interaction, target, 'loot')
+    await handle_call(interaction, target, 'loot', private_response=private)
 
 @discord_bot.slash_command(description="Request recent raid loot. Supporter only command.")
 async def raidloot(interaction: disnake.ApplicationCommandInteraction,
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
     ):
-    await handle_call(interaction, "", 'raidloot')
+    await handle_call(interaction, "", 'raidloot', private_response=private)
 
 @discord_bot.slash_command(description="Search for item. Supporter only command.")
 async def item(interaction: disnake.ApplicationCommandInteraction,
         item: str=commands.Param(description="Part of item name"),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
     ):
-    await handle_call(interaction, item, 'item')
+    await handle_call(interaction, item, 'item', private_response=private)
 
 @discord_bot.slash_command(description="Check item value. Supporter only command.")
 async def value(interaction: disnake.ApplicationCommandInteraction,
         item: str=commands.Param(description="Part of item name"),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False),
     ):
-    await handle_call(interaction, item, 'value')
+    await handle_call(interaction, item, 'value', private_response=private)
 
 @discord_bot.slash_command(description="Help!")
 async def help(interaction: disnake.ApplicationCommandInteraction,
         params: str=commands.Param(description="Raw text params - for now.", default="dummy"),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
-    await handle_call(interaction, "", 'help')
+    await handle_call(interaction, "", 'help', private_response=private)
 
 @discord_bot.slash_command(description="Info!")
 async def info(interaction: disnake.ApplicationCommandInteraction,
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
-    await handle_call(interaction, "", 'info')
+    await handle_call(interaction, "", 'info', private_response=private)
 
 ### Config ###
 
@@ -824,19 +831,94 @@ async def config(interaction):
 async def config_summary(interaction: disnake.ApplicationCommandInteraction,
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
-    await handle_call(interaction, None, 'config')
+    await handle_call(interaction, None, 'config', private_response=private)
 
 @config.sub_command(name="reload", description="Reload the bot. Required to apply some of the configuration changes. Administrator only command.")
 async def config_reload(interaction: disnake.ApplicationCommandInteraction,
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
-    await handle_call(interaction, "reload", 'config')
+    await handle_call(interaction, "reload", 'config', private_response=private)
 
 @config.sub_command(name="default", description="Instantly reset bot configuration to default. Administrator only command.")
 async def config_default(interaction: disnake.ApplicationCommandInteraction,
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
-    await handle_call(interaction, "default", 'config')
+    await handle_call(interaction, "default", 'config', private_response=private)
+
+class ConfigBotTypeOptions(str, Enum):
+    ClassicLootManager = "clm"
+    EssentialDKP = "essential"
+    CommunityDKP = "community"
+    MonolithDKP = "monolith"
+    CEPGP = "cepgp"
+    RCLootCouncil = "rclc"
+
+@config.sub_command(name="bot", description="Set bot type to handle specified addon. Administrator only command.")
+async def config_bot_type(interaction: disnake.ApplicationCommandInteraction,
+        type: ConfigBotTypeOptions,
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "bot-type " + str(type), 'config', private_response=private)
+
+class ConfigBotVersionOptions(str, Enum):
+    Classic = "classic"
+    TheBurningCrussadeClassic = "tbc"
+    Retail = "retail"
+
+@config.sub_command(name="version", description="Set WoW content version. Administrator only command.")
+async def config_bot_version(interaction: disnake.ApplicationCommandInteraction,
+        version: ConfigBotVersionOptions,
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "version " + str(version), 'config', private_response=private)
+
+@config.sub_command(name="timezone", description="Configure bot timezone. Supports most cannonical timezones. Administrator only command.")
+async def config_bot_timezone(interaction: disnake.ApplicationCommandInteraction,
+        timezone: str,
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "timezone " + timezone, 'config', private_response=private)
+
+class ConfigBotFactionOptions(str, Enum):
+    Alliance = "alliance"
+    Horde = "horde"
+
+@config.sub_command(name="server-faction", description="Set ingame server and faction data required by some addons. Administrator only command.")
+async def config_bot_server_side(interaction: disnake.ApplicationCommandInteraction,
+        server: str=commands.Param(description="Server name."), faction:ConfigBotFactionOptions=commands.Param(description="Faction name."),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "server-side " + server + " " + faction, 'config', private_response=private)
+
+@config.sub_command(name="guild", description="Set ingame guild name required by some addons. Administrator only command.")
+async def config_bot_guild(interaction: disnake.ApplicationCommandInteraction,
+        guild: str=commands.Param(description="Guild name."),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "guild-name " + guild, 'config', private_response=private)
+
+@config.sub_command(name="team", description="Register channel to handle specified team id. Administrator only command.")
+async def config_team_channel(interaction: disnake.ApplicationCommandInteraction,
+        id: str,
+        channel: disnake.abc.GuildChannel=commands.Param(description="Channel to connect with team. Defaults to current used.", default=None),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "team " + id, 'config', channels=[channel])
+
+@config.sub_command(name="register", description="Register channel as the only one on which lua upload will be accepted. Administrator only command.")
+async def config_register_upload_channel(interaction: disnake.ApplicationCommandInteraction,
+        channel: disnake.abc.GuildChannel=commands.Param(description="Channel to register for upload. Defaults to current used.", default=None),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "register", 'config', channels=[channel])
+
+@config.sub_command(name="announcement", description="Register a channel to enable announcement on new standings upload. Administrator only command.")
+async def config_announcement(interaction: disnake.ApplicationCommandInteraction,
+        channel: disnake.abc.GuildChannel=commands.Param(description="Channel on which announcement will be posted. Defaults to current used.", default=None),
+        role: disnake.Role=commands.Param(description="A role which will be mentioned during the announcement. ", default=None),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "announcement", 'config', channels=[channel], roles=[role])
 
 ## Display ###
 
@@ -845,7 +927,7 @@ async def display(interaction: disnake.ApplicationCommandInteraction,
         params: str=commands.Param(description="Raw text params - for now.", default="dummy"),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
-    await handle_call(interaction, params, 'display')
+    await handle_call(interaction, params, 'display', private_response=private)
 
 ####################
 
