@@ -382,11 +382,11 @@ async def discord_delete(handle):
 async def discord_announce(bot: dkp_bot.DKPBot, channels):
     announcement_channel = None
     for channel in channels:
-        if channel.id == discord_bot.get_announcement_channel():
+        if channel.id == bot.get_announcement_channel():
             announcement_channel = channel
             break
     if announcement_channel is not None:
-        await discord_respond(announcement_channel, discord_bot.get_announcement())
+        await discord_respond(announcement_channel, bot.get_announcement())
         return
 
     BotLogger().get().debug("Announcement channel not found")
