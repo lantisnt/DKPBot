@@ -16,7 +16,7 @@ import build_info
 import dkp_bot
 import bot_factory
 import bot_memory_manager
-from bot_config import BotConfig
+import bot_config
 from bot_logger import BotLogger, trace
 from display_templates import BasicSuccess, BasicError, BasicInfo, BasicCritical
 from loop_activity import LoopActivity
@@ -51,9 +51,7 @@ class ScriptControl:
 
 # Global objects
 script_control = ScriptControl()
-# client = disnake.Client(chunk_guilds_at_startup=False)
 discord_bot = commands.Bot(command_prefix="", test_guilds=[746131486234640444]) 
-# discord_bot = commands.InteractionBot(command_prefix="", test_guilds=[746131486234640444]) # no messages parsing # TBD
 bots = {}
 activity = LoopActivity("")
 activity.update({"booting": "booting..."})
@@ -447,7 +445,7 @@ async def spawn_bot(guild):
     try:
         BotLogger().get().info("Spawn bot for %s (%d).", guild.name, guild.id)
         config_filename = "{0}/{1}.ini".format(script_control.config_dir, guild.id)
-        bot = bot_factory.new(guild.id, BotConfig(config_filename))
+        bot = bot_factory.new(guild.id, bot_config.BotConfig(config_filename))
         if bot:
             if guild.id in bots.keys():
                 BotLogger().get().info(
@@ -827,7 +825,7 @@ async def info(interaction: disnake.ApplicationCommandInteraction,
 async def config(interaction):
     pass
 
-@config.sub_command(name="summary", description="Display configuration summary. Administrator only command.")
+@config.sub_command(name="summary", description="Show configuration summary. Administrator only command.")
 async def config_summary(interaction: disnake.ApplicationCommandInteraction,
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
@@ -903,14 +901,14 @@ async def config_team_channel(interaction: disnake.ApplicationCommandInteraction
         channel: disnake.abc.GuildChannel=commands.Param(description="Channel to connect with team. Defaults to current used.", default=None),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
-    await handle_call(interaction, "team " + id, 'config', channels=[channel])
+    await handle_call(interaction, "team " + id, 'config', private_response=private , channels=[channel])
 
 @config.sub_command(name="register", description="Register channel as the only one on which lua upload will be accepted. Administrator only command.")
 async def config_register_upload_channel(interaction: disnake.ApplicationCommandInteraction,
         channel: disnake.abc.GuildChannel=commands.Param(description="Channel to register for upload. Defaults to current used.", default=None),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
-    await handle_call(interaction, "register", 'config', channels=[channel])
+    await handle_call(interaction, "register", 'config', private_response=private , channels=[channel])
 
 @config.sub_command(name="announcement", description="Register a channel to enable announcement on new standings upload. Administrator only command.")
 async def config_announcement(interaction: disnake.ApplicationCommandInteraction,
@@ -918,16 +916,75 @@ async def config_announcement(interaction: disnake.ApplicationCommandInteraction
         role: disnake.Role=commands.Param(description="A role which will be mentioned during the announcement. ", default=None),
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
-    await handle_call(interaction, "announcement", 'config', channels=[channel], roles=[role])
+    await handle_call(interaction, "announcement", 'config', private_response=private , channels=[channel], roles=[role])
+
+@config.sub_command(name="private", description="Swap default response to private. Administrator only command.")
+async def config_private(interaction: disnake.ApplicationCommandInteraction,
+        swap: bool=commands.Param(description="True if default response should be private."),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "dm-response " + str(swap), 'config', private_response=private)
+
+@config.sub_command(name="block", description="Block private response option for non-administrators. Administrator only command.")
+async def config_block(interaction: disnake.ApplicationCommandInteraction,
+        block: bool=commands.Param(description="True if private modifier should be blocked."),
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_call(interaction, "block-response-modifier " + str(block), 'config', private_response=private)
 
 ## Display ###
 
-@discord_bot.slash_command(description="Update display settings. Administrator only command.")
-async def display(interaction: disnake.ApplicationCommandInteraction,
-        params: str=commands.Param(description="Raw text params - for now.", default="dummy"),
+@discord_bot.slash_command()
+async def display(interaction):
+    pass
+
+@display.sub_command(name="summary", description="Show display configuration summary. Administrator only command.")
+async def display_summary(interaction: disnake.ApplicationCommandInteraction,
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
-    await handle_call(interaction, params, 'display', private_response=private)
+    await handle_call(interaction, None, 'display', private_response=private)
+
+async def display_command_handler(
+    interaction: disnake.ApplicationCommandInteraction,
+    opt: str, subopt: str, value,
+    private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+):
+    await handle_call(interaction, str(opt) + " " + str(subopt) + " " + str(value), 'display', private_response=private)
+
+async def __dummy(interaction):
+    pass
+
+class DisplayCommandHandler: 
+    def __init__(self, opt, subopt):
+        self.opt, self.subopt = opt, subopt
+
+    async def handleBool(self, interaction: disnake.ApplicationCommandInteraction, value:bool, private: bool=False):
+        await display_command_handler(interaction, self.opt, self.subopt, value, private)
+
+    async def handleInt(self, interaction: disnake.ApplicationCommandInteraction, value:int, private: bool=False):
+        await display_command_handler(interaction, self.opt, self.subopt, value, private)
+
+display_config_opts = {
+    'alternative_display_mode':     {'n': 'compact',  't': bool},
+    'enable_icons':                 {'n': 'icons',    't': bool},
+    'entries_per_field':            {'n': 'entries',  't': int},
+    'fields':                       {'n': 'fields',   't': int},
+    'multiple_columns':             {'n': 'multiple', 't': bool},
+    'separate_messages':            {'n': 'messages', 't': int},
+    'value_suffix':                 {'n': 'suffix',   't': bool},
+}
+bot_config_opts = bot_config.get_configs_data()
+for opt in bot_config_opts.keys():
+    group_decorator = display.sub_command_group(name=opt)
+    group = group_decorator(__dummy)
+    for subopt in display_config_opts.keys():
+        sub_name = display_config_opts[subopt]['n']
+        sub_desc = "Configure display settings for " + opt.replace("-", " ") + " " + sub_name.replace("-", " ")
+        subcmd_decorator = group.sub_command(name=sub_name, description=sub_desc)
+        if display_config_opts[subopt]['t'] == bool:
+            subcmd_decorator(DisplayCommandHandler(opt, subopt).handleBool)
+        else:
+            subcmd_decorator(DisplayCommandHandler(opt, subopt).handleInt)
 
 ####################
 

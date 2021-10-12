@@ -11,6 +11,15 @@ DEFAULT_CONFIG = "/var/wowdkpbot-runner/default.ini"
 def get_row_format():
     return "{0:24} | {1:5} | {2:17}"
 
+def get_configs_data():
+    return {
+            "dkp": {"title": "Multiple players DKP Display"},
+            "dkp-history": {"title": "Player DKP history"},
+            "loot-history": {"title": "Player loot history"},
+            "latest-loot": {"title": "Latest raid loot"},
+            "item-search": {"title": "Item search results"},
+            "item-value": {"title": "Item value results"},
+    }
 
 class BotConfigType(Enum):
     SPECIFIC = 0  # Server specific ini
@@ -57,13 +66,13 @@ class GuildInfo:
 class DisplayConfig(object):
     def __init__(
         self,
-        fields,
-        entries_per_field,
-        separate_messages,
-        multiple_columns,
-        enable_icons,
-        value_suffix,
-        alternative_display_mode
+        fields=6,
+        entries_per_field=16,
+        separate_messages=5,
+        multiple_columns=True,
+        enable_icons=True,
+        value_suffix=True,
+        alternative_display_mode=False
     ):
         self.__fields = fields
         self.__entries_per_field = entries_per_field
@@ -264,7 +273,7 @@ class BotConfig:
     item_search = DisplayConfig(6, 5, 3, False, True, True, False)
     item_value = DisplayConfig(6, 5, 3, False, True, True, False)
 
-    def __init__(self, filepath):
+    def __init__(self, filepath=""):
         self.__filepath = filepath
         self.__config = ConfigParser()
         self.load()
