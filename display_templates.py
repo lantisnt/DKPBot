@@ -9,6 +9,55 @@ INVITE = "[Invite Bot](https://tiny.one/wowdkpbot-invite)"
 SUPPORT_SERVER = "[Support Server](https://{0})".format(build_info.SUPPORT_SERVER)
 DONATE = "[Donate](https://tiny.one/wowdkpbot-donate)"
 
+def dict_strlen(dict_):
+    l = 0
+    for each_key in dict_:
+        if isinstance(dict_[each_key], dict):
+            # Recursive call
+            l += dict_strlen(dict_[each_key])
+        if isinstance(dict_[each_key], list):
+            # Recursive call
+            for element in dict_[each_key]:
+                l += dict_strlen(element)
+        elif isinstance(dict_[each_key], int):
+            l += 4
+        else:
+            l += len(dict_[each_key])
+    return l
+
+def embed_dict_len(embed):
+    field_count = 0
+    l = 0
+
+    title = embed.get('title')
+    if isinstance(title, str):
+        l += len(title)
+
+    description = embed.get('description')
+    if isinstance(description, str):
+        l += len(description)
+
+    footer = embed.get('footer')
+    if isinstance(footer, dict):
+        text = footer.get('text')
+        if isinstance(text, str):
+            l += len(text)
+
+    author = embed.get('author')
+    if isinstance(author, dict):
+        name = author.get('name')
+        if isinstance(name, str):
+            l += len(name)
+
+    fields = embed.get('fields')
+    if isinstance(fields, list):
+        for field in fields:
+            field_count = field_count + 1
+            l += len(field['name'])
+            l += len(field['value'])
+
+    print(title, l, field_count)
+    
 class WoWVersion(Enum):
     CLASSIC = 0
     TBC = 1
@@ -386,6 +435,7 @@ class RawEmbed:
         self.__is_built = False
 
     def get(self):
+        embed_dict_len(self._d)
         return self._d.copy()
 
     def __call__(self):
