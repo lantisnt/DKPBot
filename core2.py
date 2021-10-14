@@ -436,12 +436,6 @@ async def interaction_respond(interaction: disnake.ApplicationCommandInteraction
 
         BotLogger().get().debug("Response type %s: %s", str(type(responses)), responses)
 
-        # response can be either:
-        # string (response) -> content=
-        # dict (embed) -> embed=
-        # tuple: string + dict
-        # list of tuples:string + dict (embed) concatenate strings to content=, create list of embeds to embeds=
-        # binary: file
         if not isinstance(responses, list):
             response_list = []
             response_list.append(responses)
@@ -472,39 +466,39 @@ async def interaction_respond(interaction: disnake.ApplicationCommandInteraction
                 "Responding to interaction with content %s and embeds: %s", content,  embeds
             )
 
-        if len(content) > 0:
-            if len(embeds) > 0:
-                await interaction.edit_original_message(content=content, embeds=embeds)
+        # if len(content) > 0:
+        #     if len(embeds) > 0:
+        #         await interaction.edit_original_message(content=content, embeds=embeds)
+        #     else:
+        #         await interaction.edit_original_message(content=content)
+        # else:
+        #     if len(embeds) > 0:
+        #         await interaction.edit_original_message(embeds=embeds)
+        #     else:
+        #         await interaction.edit_original_message(content=" ")
+
+        content_len = len(content)
+        num_embeds = len(embeds)
+        has_content = (content_len > 0)
+        has_embeds = (num_embeds > 0)
+        if has_embeds: ## Has embeds
+            if num_embeds > 1:
+                if has_content:
+                    await interaction.edit_original_message(content=content, embed=embeds[0])
+                else:
+                    await interaction.edit_original_message(embed=embeds[0])
+                for embed in embeds[1:]:
+                    await interaction.followup.send(embed=embed, ephemeral=private)
             else:
-                await interaction.edit_original_message(content=content)
-        else:
-            if len(embeds) > 0:
-                await interaction.edit_original_message(embeds=embeds)
-            else:
-                await interaction.edit_original_message(content=" ")
-        # if isinstance(response, str):
-        #     BotLogger().get().debug(
-        #         "Responding to interaction with message: %s", response
-        #     )
-        #     await interaction.edit_original_message(content=response)
-        # elif isinstance(response, dict):
-        #     BotLogger().get().debug(
-        #         "Responding to interaction with embed: %s", response
-        #     )
-        #     await interaction.edit_original_message(embed=discord_build_embed(response))
-        # elif isinstance(response, tuple):
-        #     message = response[0]
-        #     extra = response[1]
-        #     if isinstance(message, str):
-        #         if isinstance(extra, dict):
-        #             BotLogger().get().debug(
-        #                 "Responding to interaction with message: %s and embed %s",
-        #                 message,
-        #                 extra,
-        #             )
-        #             await interaction.edit_original_message(
-        #                 content=message, embed=discord_build_embed(extra)
-        #             )
+                if has_content:
+                    await interaction.edit_original_message(content=content, embeds=embeds)
+                else:
+                    await interaction.edit_original_message(embeds=embeds)
+        elif has_content: ## Just Message
+            await interaction.edit_original_message(content=content)
+        else: ## Empty?!
+            await interaction.edit_original_message(content=" ")
+        
     except (disnake.errors.Forbidden, disnake.errors.NotFound) as exception:
         BotLogger().get().warning(str(exception))
     except disnake.HTTPException as exception:

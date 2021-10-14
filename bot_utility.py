@@ -71,3 +71,53 @@ def get_all_names(name_list: list):
         full_name_list.extend(split_names(name))
 
     return full_name_list
+
+    
+def dict_strlen(dict_):
+    l = 0
+    for each_key in dict_:
+        if isinstance(dict_[each_key], dict):
+            # Recursive call
+            l += dict_strlen(dict_[each_key])
+        if isinstance(dict_[each_key], list):
+            # Recursive call
+            for element in dict_[each_key]:
+                l += dict_strlen(element)
+        elif isinstance(dict_[each_key], int):
+            l += 4
+        else:
+            l += len(dict_[each_key])
+    return l
+
+def embed_dict_len(embed):
+    field_count = 0
+    l = 0
+
+    title = embed.get('title')
+    if isinstance(title, str):
+        l += len(title)
+
+    description = embed.get('description')
+    if isinstance(description, str):
+        l += len(description)
+
+    footer = embed.get('footer')
+    if isinstance(footer, dict):
+        text = footer.get('text')
+        if isinstance(text, str):
+            l += len(text)
+
+    author = embed.get('author')
+    if isinstance(author, dict):
+        name = author.get('name')
+        if isinstance(name, str):
+            l += len(name)
+
+    fields = embed.get('fields')
+    if isinstance(fields, list):
+        for field in fields:
+            field_count = field_count + 1
+            l += len(field['name'])
+            l += len(field['value'])
+
+    print(title, l, field_count)
