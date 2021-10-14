@@ -19,6 +19,8 @@ class CommunityDKPBot(EssentialDKPBot):
             "Community DKP Profile", self._timezone, self._version
         )
 
+        self._update_views_info()
+
     def _get_addon_thumbnail(self):
         return "https://cdn.discordapp.com/attachments/765089790295015425/822883949000654858/communitylogo.png"
 

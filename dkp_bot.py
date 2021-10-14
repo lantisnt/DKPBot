@@ -125,6 +125,10 @@ class DKPBot:
         self._timezone = pytz.timezone(self.__config.guild_info.timezone)
         self._version = WoWVersion.from_string(self.__config.guild_info.version)
 
+        # if self.is_database_loaded():
+        #     self._update_views_info()
+
+
     def _update_views_info(self):
         pass
 
@@ -1134,6 +1138,7 @@ class DKPBot:
         command = params[0]
 
         method = "config_call_" + command.replace("-", "_").lower()
+        print(method)
         callback = getattr(self, method, None)
         if callback and callable(callback):
             return callback(params, num_params, request_info)

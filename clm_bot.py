@@ -20,6 +20,8 @@ class CLMBot(EssentialDKPBot):
             "Classic Loot Manager Profile", self._timezone, self._version
         )
 
+        self._update_views_info()
+
     def _get_addon_thumbnail(self):
         return "https://cdn.discordapp.com/attachments/843129642298376252/892049790731436082/CLM-dark-v4.png"
 
