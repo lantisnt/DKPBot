@@ -1138,7 +1138,6 @@ class DKPBot:
         command = params[0]
 
         method = "config_call_" + command.replace("-", "_").lower()
-        print(method)
         callback = getattr(self, method, None)
         if callback and callable(callback):
             return callback(params, num_params, request_info)
