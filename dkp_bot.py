@@ -1211,7 +1211,7 @@ class DKPBot:
             string += preformatted_block(string2)
             embed.add_field("guild-name", string, False)
             # team
-            string = "Register channel to handle specified team number (starting from 0). Limited to 8 channels. If no #channel is mentioned then the current one will be used. Bot must have access to the channel. Calling without any parameters will result in available team list.\n"
+            string = "Register channel to handle specified team number (starting from 0). Limited to 8 channels. If no #channel is mentioned then the current one will be used. Bot must have access to the channel. Calling **teams** without any parameters will result in available team list.\n"
             string += preformatted_block(
                 "Usage:     {0}config team Id #channel\nExample:   {0}config team 0".format(
                     self.__prefix

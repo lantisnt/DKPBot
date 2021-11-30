@@ -405,6 +405,17 @@ class BasicCritical(RawEmbed):
         )
         self.add_field("\u200b", get_bot_links(), False)
 
+@for_all_methods(trace, trace_func_only)
+class SimpleDeny(RawEmbed):
+    def __init__(self, message):
+        self.build(
+            None,
+            "",
+            message,
+            "",
+            14368774,
+            None,
+        )
 
 class BasicError(RawEmbed):
     def __init__(self, message):

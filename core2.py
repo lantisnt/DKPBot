@@ -18,7 +18,7 @@ import bot_factory
 import bot_memory_manager
 import bot_config
 from bot_logger import BotLogger, trace
-from display_templates import BasicSuccess, BasicError, BasicInfo, BasicCritical
+from display_templates import BasicSuccess, BasicError, BasicInfo, BasicCritical, SimpleDeny
 from loop_activity import LoopActivity
 from bot_utility import SPLIT_DELIMITERS
 import footprint
@@ -202,7 +202,6 @@ def get_request_info(message: disnake.Message):
     # Check if user is privileged user (administrator)
     is_privileged = False
     if isinstance(message.author, disnake.Member):
-        # is_privileged = message.author.permissions_in(message.channel).administrator
         is_privileged = message.channel.permissions_for(message.author).administrator
 
     request_info = {
@@ -637,7 +636,10 @@ async def handle_response_as_interaction(
         ## ERROR
         elif response.status == dkp_bot.ResponseStatus.ERROR:
             BotLogger().get().error(response.data)
-            await interaction_respond(interaction, "Internal Bot Error", response.direct_message)
+            await interaction_respond(interaction, BasicCritical("Internal bot error. Please report this issue to the author.").get(), response.direct_message)
+        ## IGNORE
+        elif response.status == dkp_bot.ResponseStatus.IGNORE:
+            await interaction_respond(interaction, SimpleDeny("You need to be Administrator to manage the bot.").get(), True)
         ## RELOAD
         elif response.status == dkp_bot.ResponseStatus.RELOAD:
             guild = None
@@ -1005,6 +1007,12 @@ async def config_bot_guild(interaction: disnake.ApplicationCommandInteraction,
         private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
     ):
     await handle_bot_interaction(interaction, "guild-name " + guild, 'config', private_response=private)
+
+@setup.sub_command(name="teams", description="Display decoded teams from parsed Saved Variable. Administrator only command.")
+async def config_team_channel(interaction: disnake.ApplicationCommandInteraction,
+        private: bool=commands.Param(description="Hide the call and response from other users.", default=False)
+    ):
+    await handle_bot_interaction(interaction, "team", 'config', private_response=private)
 
 @setup.sub_command(name="team", description="Register channel to handle specified team id. Administrator only command.")
 async def config_team_channel(interaction: disnake.ApplicationCommandInteraction,

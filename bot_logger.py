@@ -11,8 +11,8 @@ class BotLogger:
         def initialize(self, path):
             self.stdout_enabled = False
             self.trace_enabled = False
-            # self.level = logging.INFO
-            self.level = logging.DEBUG
+            self.level = logging.INFO
+            # self.level = logging.DEBUG
 
             self.logger = logging.getLogger("wowdkpbot-{0}".format(path))
             self.file_handler = logging.FileHandler(
