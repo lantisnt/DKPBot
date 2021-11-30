@@ -102,7 +102,6 @@ def cleanup():
             bot.shutdown()
     BotLogger().get().info("Bye Bye!")
 
-
 # Main
 def main(control: ScriptControl):
     # Get Config

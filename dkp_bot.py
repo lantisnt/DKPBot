@@ -520,13 +520,13 @@ class DKPBot:
     def _get_dkp(self, player, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            return None
+            return []
         return team_data["dkp"].get(player.lower())
 
     def _get_team_dkp(self, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            return None
+            return []
         team_dkp_data = []
         for entry in team_data["dkp"].values():
             team_dkp_data.append(entry)
@@ -543,19 +543,19 @@ class DKPBot:
     def _get_player_loot(self, player, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            return None
+            return []
         return team_data["player_loot"].get(player.lower())
 
     def _get_loot(self, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            return None
+            return []
         return team_data["loot"]
 
     def _get_history(self, player, team):
         team_data = self.__db["global"].get(team)
         if team_data is None:
-            return None
+            return []
         return team_data["history"].get(player.lower())
 
     def __init_db_structure(self):
