@@ -573,7 +573,7 @@ async def handle_response_as_message(
             if response.direct_message:
                 if isinstance(response_channel, disnake.DMChannel):
                     await discord_respond(response_channel, response.data)
-                    # await discord_delete(interaction)
+                    await discord_delete(interaction)
                 else:
                     BotLogger().get().warning(
                         "Unable to respond on DM to message %s", interaction

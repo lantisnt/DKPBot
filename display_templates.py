@@ -5,7 +5,7 @@ from bot_config import DisplayConfig
 from bot_logger import trace, trace_func_only, for_all_methods, BotLogger
 import build_info
 
-INVITE = "[Invite Bot](https://tiny.one/wowdkpbot2-invite)"
+INVITE = "[Invite Bot](https://tiny.one/wowdkpbot-invite2)"
 SUPPORT_SERVER = "[Support Server](https://{0})".format(build_info.SUPPORT_SERVER)
 DONATE = "[Donate](https://tiny.one/wowdkpbot-donate)"
 
