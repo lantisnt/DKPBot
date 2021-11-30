@@ -1,5 +1,5 @@
 wheel
-disnake==2.1.2
+disnake==2.2.2
 SLPP==1.2.1
 pytz==2020.1
 configparser==5.0.0
